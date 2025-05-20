@@ -5,11 +5,11 @@ import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 
-public class HTTPConnectionWorkerThread extends Thread{
+public class HttpConnectionWorkerThread extends Thread{
 
     private Socket socket;
 
-    HTTPConnectionWorkerThread(Socket socket){
+    HttpConnectionWorkerThread(Socket socket){
         this.socket = socket;
     }
 

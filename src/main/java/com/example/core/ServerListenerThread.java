@@ -32,7 +32,7 @@ public class ServerListenerThread extends Thread{
                 Socket socket = serverSocket.accept();
     
                 //Processa a requisição paralelamente
-                HTTPConnectionWorkerThread worker = new HTTPConnectionWorkerThread(socket);
+                HttpConnectionWorkerThread worker = new HttpConnectionWorkerThread(socket);
     
                 worker.start();
             }   

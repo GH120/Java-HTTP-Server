@@ -22,15 +22,19 @@ class Token {
 
 //Classe traduzida do javascript
 //Tentar depois fazer em java do zero, maior empecilho foi sintaxe e conhecimento de bibliotecas regex
-public class HTTPLexer {
+class Lexer {
     Map<String, Pattern> rules;
     List<String> separators;
 
-    public HTTPLexer(Map<String, String> rawRules) {
+    public Lexer(){
+
+    }
+
+    public Lexer(Map<String, String> rawRules) {
         this(rawRules, Arrays.asList(","));
     }
 
-    public HTTPLexer(Map<String, String> rawRules, List<String> separators) {
+    public Lexer(Map<String, String> rawRules, List<String> separators) {
         this.rules = toRegex(rawRules);
         this.separators = separators;
     }
@@ -42,6 +46,7 @@ public class HTTPLexer {
         return tokens;
     }
 
+    //Transformar isso num iterator?
     private List<Token> parsePhrase(String phrase) {
         List<Token> tokens = new ArrayList<>();
         int index = 0;
@@ -102,7 +107,7 @@ public class HTTPLexer {
         return bestRule;
     }
 
-    private Map<String, Pattern> toRegex(Map<String, String> rawRules) {
+    public Map<String, Pattern> toRegex(Map<String, String> rawRules) {
         Map<String, Pattern> compiled = new HashMap<>();
         for (Map.Entry<String, String> entry : rawRules.entrySet()) {
             compiled.put(entry.getKey(), Pattern.compile(entry.getValue()));
@@ -111,9 +116,12 @@ public class HTTPLexer {
     }
 }
 
-class TestCase {
-    public static void main(String[] args) {
-       Map<String, String> rules = new HashMap<>();
+public class HttpLexer extends Lexer{
+
+    HttpLexer(){
+        super();
+
+        Map<String, String> rules = new HashMap<>();
         rules.put("GET", "GET");
         rules.put("PUT", "PUT");
         rules.put("HEAD", "HEAD");
@@ -134,7 +142,7 @@ class TestCase {
         rules.put("WORD", "[a-zA-Z0-9\\-_.]+"); // simples e abrangente
         rules.put("DOT", "\\.");
         rules.put("COLON", ":");
-        rules.put("ADDRESS", "([0-9a-fA-F]{0,4}:){1,7}[0-9a-fA-F]{0,4}"); // IPv6 básico
+        rules.put("ADDRESS", "([0-9a-fA-F]{1,4}:){2,7}[0-9a-fA-F]{1,4}"); // IPv6 básico
         rules.put("SYMBOL", "[;\\+\\*,\\?!]");
         rules.put("LPAR", "\\(");
         rules.put("RPAR", "\\)");
@@ -142,8 +150,13 @@ class TestCase {
         rules.put("RBRACKET", "\\]");
         rules.put("QUOTES", "\"");
 
+        this.rules = this.toRegex(rules);
+        this.separators = Arrays.asList(",");
+    }
+}
 
-
+class TestCase {
+    public static void main(String[] args) {
 
         String input = "GET / HTTP/1.1\r\n" + //
                         "Host:Connection accepted/0:0:0:0:0:0:0:1\r\n" + //
@@ -163,7 +176,7 @@ class TestCase {
                         "Accept-Encoding: gzip, deflate, br, zstd\r\n" + //
                         "Accept-Language: pt-BR,pt;q=0.9,en-US;q=0.8,en;q=0.7";
 
-        HTTPLexer lexer = new HTTPLexer(rules);
+        Lexer lexer = new HttpLexer();
         lexer.parse(input);
     }
 }
