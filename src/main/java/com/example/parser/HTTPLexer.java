@@ -62,11 +62,12 @@ class Lexer {
             }
 
             String substring = searchMatcher.group();
-            String type = rules.entrySet().stream()
-                    .filter(entry -> entry.getValue().pattern().equals(bestRule.pattern()))
-                    .findFirst()
-                    .map(Map.Entry::getKey)
-                    .orElse("undefined");
+            String type = rules.entrySet()
+                                .stream()
+                                .filter(entry -> entry.getValue().pattern().equals(bestRule.pattern()))
+                                .findFirst()
+                                .map(Map.Entry::getKey)
+                                .orElse("undefined");
 
             tokens.add(new Token(substring, type, index));
             index += substring.length();
@@ -87,12 +88,20 @@ class Lexer {
         int bestLength = -1;
 
         for (Pattern rule : rules.values()) {
+            
             Matcher matcher = rule.matcher(phrase);
             if (matcher.find()) {
+
+                //indice do match encontrado
                 int index = matcher.start();
+
+                //Tamanho do match
                 int length = matcher.group().length();
 
+                //Se o índice for menor que o melhor índice
+                //Se o índice for igual ao melhor índice e o tamanho é maior que o melhor 
                 if (index < bestIndex || (index == bestIndex && length > bestLength)) {
+
                     bestIndex = index;
                     bestLength = length;
                     bestRule = rule;
@@ -108,20 +117,31 @@ class Lexer {
     }
 
     public Map<String, Pattern> toRegex(Map<String, String> rawRules) {
-        Map<String, Pattern> compiled = new HashMap<>();
+        Map<String, Pattern> compiled = new LinkedHashMap<>();
         for (Map.Entry<String, String> entry : rawRules.entrySet()) {
             compiled.put(entry.getKey(), Pattern.compile(entry.getValue()));
         }
         return compiled;
     }
+
+    public String testCase(){
+        return "";
+    }
 }
 
 public class HttpLexer extends Lexer{
 
+    public static void main(String[] args) {
+
+        Lexer lexer = new HttpLexer();
+        lexer.parse(lexer.testCase());
+    }
+
     HttpLexer(){
         super();
 
-        Map<String, String> rules = new HashMap<>();
+        //Obs: ordem de inserção importa. Em caso de empate, a primeira inserida é a escolhida
+        Map<String, String> rules = new LinkedHashMap<>();
         rules.put("GET", "GET");
         rules.put("PUT", "PUT");
         rules.put("HEAD", "HEAD");
@@ -153,12 +173,10 @@ public class HttpLexer extends Lexer{
         this.rules = this.toRegex(rules);
         this.separators = Arrays.asList(",");
     }
-}
 
-class TestCase {
-    public static void main(String[] args) {
+    public String testCase(){
 
-        String input = "GET / HTTP/1.1\r\n" + //
+        return "GET / HTTP/1.1\r\n" + //
                         "Host:Connection accepted/0:0:0:0:0:0:0:1\r\n" + //
                         " localhost:8080\r\n" + //
                         "Connection: keep-alive\r\n" + //
@@ -175,8 +193,5 @@ class TestCase {
                         "Sec-Fetch-Dest: document\r\n" + //
                         "Accept-Encoding: gzip, deflate, br, zstd\r\n" + //
                         "Accept-Language: pt-BR,pt;q=0.9,en-US;q=0.8,en;q=0.7";
-
-        Lexer lexer = new HttpLexer();
-        lexer.parse(input);
     }
 }
