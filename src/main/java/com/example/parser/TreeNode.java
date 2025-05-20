@@ -2,15 +2,38 @@ package com.example.parser;
 
 import java.util.ArrayList;
 
-public class TreeNode {
+interface Node {
+
+}
+
+class Token implements Node{
+
+    String string;
+    String type;
+    int index;
+
+    public Token(String string, String type, int index) {
+        this.string = string;
+        this.type = type;
+        this.index = index;
+    }
+
+    @Override
+    public String toString() {
+        return "Token(" + string + ", " + type + ", " + index + ")";
+    }
+}
+
+
+class TreeNode implements Node{
 
     String name;
-    ArrayList<TreeNode> children;
+    ArrayList<Node> children;
 
 
     public TreeNode(String name){
         this.name = name;
-        this.children = new ArrayList<TreeNode>();
+        this.children = new ArrayList<Node>();
     }
 
     @Override
@@ -18,7 +41,7 @@ public class TreeNode {
         return toString(0);
     }
 
-    private String toString(int level) {
+    public String toString(int level) {
         StringBuilder sb = new StringBuilder();
 
         for (int i = 0; i < level; i++) {
@@ -27,8 +50,12 @@ public class TreeNode {
 
         sb.append(name).append("\n");
 
-        for (TreeNode child : children) {
-            sb.append(child.toString(level + 1));
+
+        for (Node child : children) {
+
+            if(child instanceof Token) continue;
+
+            sb.append(((TreeNode)child).toString(level + 1));
         }
 
         return sb.toString();

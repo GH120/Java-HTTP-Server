@@ -3,23 +3,6 @@ package com.example.parser;
 import java.util.*;
 import java.util.regex.*;
 
-class Token {
-    String string;
-    String type;
-    int index;
-
-    public Token(String string, String type, int index) {
-        this.string = string;
-        this.type = type;
-        this.index = index;
-    }
-
-    @Override
-    public String toString() {
-        return "Token(" + string + ", " + type + ", " + index + ")";
-    }
-}
-
 //Classe traduzida do javascript
 //Tentar depois fazer em java do zero, maior empecilho foi sintaxe e conhecimento de bibliotecas regex
 class Lexer {

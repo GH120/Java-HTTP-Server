@@ -27,6 +27,10 @@ class TreeBuilder{
         parent.children.add(currentNode);
     }
 
+    public void insertToken(Token token){
+        currentNode.children.add(token);
+    }
+
     public void endContext(){
 
         TreeNode parent = ancestors.poll();
@@ -59,9 +63,15 @@ public class HttpParser {
 
     private Token eat(String expected) throws Exception {
         Token token = tokens.poll();
+
         if (token.type.equals(expected)) {
+
+            treeBuilder.insertToken(token);
+
             return token;
+            
         } else {
+
             System.out.println(token);
             throw new Exception("Esperado: " + expected + " mas encontrado: " + token.type);
         }
