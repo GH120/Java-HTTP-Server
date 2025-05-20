@@ -1,6 +1,5 @@
 package com.example.parser;
 
-import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -69,7 +68,7 @@ public class HttpParser {
             treeBuilder.insertToken(token);
 
             return token;
-            
+
         } else {
 
             System.out.println(token);
@@ -99,7 +98,7 @@ public class HttpParser {
         PATH();
         eat("SPACE");
         eat("VERSION");
-        // eat("CRLF");
+        eat("CRLF");
         treeBuilder.endContext();
     }
 
@@ -133,13 +132,13 @@ public class HttpParser {
     void parseSingleHeader() throws Exception {
         treeBuilder.startContext("HEADER");
         Token headerNameToken = eat("HEADER_NAME");
-        String headerName = headerNameToken.string.toLowerCase();
+        String headerName = headerNameToken.expression.toLowerCase();
 
         eat("COLON");
 
         StringBuilder sb = new StringBuilder();
         while (!tokens.peek().type.equals("CRLF")) {
-            sb.append(eat("HEADER_VALUE").string);
+            sb.append(eat("HEADER_VALUE").expression);
         }
         String value = sb.toString().trim();
 
@@ -180,7 +179,7 @@ public class HttpParser {
                 case "DOT":
                 case "WORD":
                 case "NUMBER":
-                    path.append(eat(token.type).string);
+                    path.append(eat(token.type).expression);
                     break;
                 default:
                     treeBuilder.endContext();

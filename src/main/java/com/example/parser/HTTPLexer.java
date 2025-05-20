@@ -133,8 +133,8 @@ public class HttpLexer extends Lexer{
         rules.put("CONNECT", "CONNECT");
         rules.put("OPTIONS", "OPTIONS");
         rules.put("TRACE", "TRACE");
-        rules.put("SPACE", "\\s+");
         rules.put("CRLF", "\\r\\n");
+        rules.put("SPACE", "\\s+");
         rules.put("VERSION", "HTTP/[0-9]\\.[0-9]");
         rules.put("BAR", "/");
         rules.put("LOCALHOST", "localhost");
