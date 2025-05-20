@@ -35,7 +35,6 @@ public class HTTPConnectionWorkerThread extends Thread{
 
                 outputStream.write(response.getBytes());
 
-                sleep(10000);
         }
         catch(Exception e){
             System.out.println("Erro na comunicação");
