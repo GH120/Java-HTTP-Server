@@ -1,12 +1,9 @@
 package com.example.core;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 
-import com.example.config.Configuration;
 
 public class ServerListenerThread extends Thread{
 
@@ -28,11 +25,30 @@ public class ServerListenerThread extends Thread{
 
     public void run(){
 
-        while(serverSocket.isBound() && !serverSocket.isClosed()){
+        try{
+            while(serverSocket.isBound() && !serverSocket.isClosed()){
+    
+                //Aceita uma conexão socket, roda a thread dela e concorrentemente espera a proxima
+                Socket socket = serverSocket.accept();
+    
+                //Processa a requisição paralelamente
+                HTTPConnectionWorkerThread worker = new HTTPConnectionWorkerThread(socket);
+    
+                worker.start();
+            }   
 
-            ServerListenerWorker worker = new ServerListenerWorker(serverSocket);
+        }catch(IOException e){
+            e.printStackTrace();
+        }
+        finally{
+            if(serverSocket == null) return;
 
-            worker.start();
-        }   
+            try{
+                serverSocket.close();
+            }
+            catch(IOException e){
+                e.printStackTrace();
+            }
+        }
     }
 }
