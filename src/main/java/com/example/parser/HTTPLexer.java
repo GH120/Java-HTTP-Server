@@ -139,9 +139,14 @@ public class HttpLexer extends Lexer{
         rules.put("BAR", "/");
         rules.put("LOCALHOST", "localhost");
         rules.put("NUMBER", "[0-9]+");
-        rules.put("CONNECTION", "Connection");
         rules.put("EQUALS", "=");
-        rules.put("HOST", "Host");
+        rules.put("HEADER_NAME", 
+            "Host|User-Agent|Accept|Content-Type|Content-Length|Connection|Authorization|Cache-Control|Set-Cookie|Date|Server"
+            + "|(S|s)(e|E)c(-[a-zA-Z0-9]+)+"  // pega headers tipo Sec-*, sec-*
+            + "|(S|s)(c|C)p(-[a-zA-Z0-9]+)*"  // pega headers tipo Scp-*
+            + "|(X|x)-[a-zA-Z0-9\\-]+"        // headers não-padrão como X-Forwarded-For
+        );
+        rules.put("NON_STANDARD_HEADER", "([a-zA-Z0-9]+\\-)+([a-zA-Z0-9)]+)");
         rules.put("WORD", "[a-zA-Z0-9\\-_.]+"); // simples e abrangente
         rules.put("DOT", "\\.");
         rules.put("COLON", ":");
@@ -175,6 +180,6 @@ public class HttpLexer extends Lexer{
                         "Sec-Fetch-User: ?1\r\n" + //
                         "Sec-Fetch-Dest: document\r\n" + //
                         "Accept-Encoding: gzip, deflate, br, zstd\r\n" + //
-                        "Accept-Language: pt-BR,pt;q=0.9,en-US;q=0.8,en;q=0.7";
+                        "Accept-Language: pt-BR,pt;q=0.9,en-US;q=0.8,en;q=0.7\r\n"; //tem que ter o \r\n no final
     }
 }

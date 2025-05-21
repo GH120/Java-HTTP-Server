@@ -55,9 +55,6 @@ public class HttpParser {
         HttpParser parser = new HttpParser();
 
         parser.parse(new LinkedList<Token>(tokens));
-
-        // Exibe a árvore final (opcional)
-        System.out.println(parser.treeBuilder.getTree());
     }
 
     private Token eat(String expected) throws Exception {
@@ -82,9 +79,11 @@ public class HttpParser {
         try {
             treeBuilder.startContext("HTTP_MESSAGE");
             REQUEST_LINE();
-            // HEADERS();
+            HEADERS();
             // BODY(); // opcional
             treeBuilder.endContext();
+            // Exibe a árvore final (opcional)
+            System.out.println(treeBuilder.getTree());
             System.out.println("Parsing concluído com sucesso.");
         } catch (Exception e) {
             System.err.println("Erro no parsing: " + e.getMessage());
@@ -131,39 +130,28 @@ public class HttpParser {
 
     void parseSingleHeader() throws Exception {
         treeBuilder.startContext("HEADER");
-        Token headerNameToken = eat("HEADER_NAME");
-        String headerName = headerNameToken.expression.toLowerCase();
 
-        eat("COLON");
-
-        StringBuilder sb = new StringBuilder();
-        while (!tokens.peek().type.equals("CRLF")) {
-            sb.append(eat("HEADER_VALUE").expression);
+        if(tokens.peek().type.equals("HEADER_NAME")){
+            eat("HEADER_NAME");
         }
-        String value = sb.toString().trim();
+        else{
+            eat("NON_STANDARD_HEADER");
+        }
 
+        eat("COLON"); 
+        HEADER_VALUE();
         eat("CRLF");
 
-        handleSingleHeader(headerName, value);
         treeBuilder.endContext();
     }
 
-    void handleSingleHeader(String headerName, String value) {
-        treeBuilder.startContext("HEADER_HANDLER:" + headerName);
-        switch (headerName) {
-            case "host":
-                System.out.println("Host: " + value);
-                break;
-            case "connection":
-                System.out.println("Connection: " + value);
-                break;
-            case "cache-control":
-                System.out.println("Cache-Control: " + value);
-                break;
-            default:
-                System.out.println("Header desconhecido (" + headerName + "): " + value);
-                break;
+    void HEADER_VALUE() throws Exception{
+        treeBuilder.startContext("HEADER_VALUE");
+
+        while (!tokens.peek().type.equals("CRLF")) {
+            eat(tokens.peek().type); //Come qualquer token
         }
+
         treeBuilder.endContext();
     }
 
