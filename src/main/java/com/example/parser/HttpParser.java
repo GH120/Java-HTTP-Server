@@ -3,41 +3,38 @@ package com.example.parser;
 import java.util.LinkedList;
 import java.util.List;
 
-class TreeBuilder{
+import com.example.http.HttpParseException;
+import com.example.http.HttpStatusCode;
 
-    private TreeNode   tree;
-    private TreeNode   currentNode;
+class TreeBuilder {
+
+    private TreeNode tree;
+    private TreeNode currentNode;
     private LinkedList<TreeNode> ancestors;
 
-    public TreeBuilder(){
-        tree        = new TreeNode("ROOT");
+    public TreeBuilder() {
+        tree = new TreeNode("ROOT");
         currentNode = tree;
-        ancestors   = new LinkedList<>();
+        ancestors = new LinkedList<>();
     }
 
-    public void startContext(String name){
-
+    public void startContext(String name) {
         TreeNode parent = currentNode;
-
         ancestors.push(parent);
-
         currentNode = new TreeNode(name);
-
         parent.children.add(currentNode);
     }
 
-    public void insertToken(Token token){
+    public void insertToken(Token token) {
         currentNode.children.add(token);
     }
 
-    public void endContext(){
-
+    public void endContext() {
         TreeNode parent = ancestors.poll();
-        
         currentNode = parent;
     }
 
-    public TreeNode getTree(){
+    public TreeNode getTree() {
         return tree;
     }
 }
@@ -49,27 +46,23 @@ public class HttpParser {
 
     public static void main(String[] args) {
         Lexer lexer = new HttpLexer();
-
         List<Token> tokens = lexer.parse(lexer.testCase());
-
         HttpParser parser = new HttpParser();
-
         parser.parse(new LinkedList<Token>(tokens));
     }
 
     private Token eat(String expected) throws Exception {
+        if (tokens.isEmpty()) {
+            throw new HttpParseException(HttpStatusCode.CLIENT_ERROR_400_BAD_REQUEST);
+        }
+
         Token token = tokens.poll();
 
         if (token.type.equals(expected)) {
-
             treeBuilder.insertToken(token);
-
             return token;
-
         } else {
-
-            System.out.println(token);
-            throw new Exception("Esperado: " + expected + " mas encontrado: " + token.type);
+            throw new HttpParseException(HttpStatusCode.CLIENT_ERROR_400_BAD_REQUEST);
         }
     }
 
@@ -82,9 +75,12 @@ public class HttpParser {
             HEADERS();
             // BODY(); // opcional
             treeBuilder.endContext();
-            // Exibe a árvore final (opcional)
             System.out.println(treeBuilder.getTree());
             System.out.println("Parsing concluído com sucesso.");
+        } catch (HttpParseException e) {
+            System.err.println("Erro HTTP " + e.getStatusCode().STATUS_CODE + ": " + e.getStatusCode().MESSAGE);
+
+            throw e;
         } catch (Exception e) {
             System.err.println("Erro no parsing: " + e.getMessage());
         }
@@ -92,12 +88,29 @@ public class HttpParser {
 
     void REQUEST_LINE() throws Exception {
         treeBuilder.startContext("REQUEST_LINE");
+
+        if (!isValidMethod(tokens.peek())) {
+            throw new HttpParseException(HttpStatusCode.CLIENT_ERROR_401_METHOD_NOT_ALLOWED);
+        }
         METHOD();
+
         eat("SPACE");
-        PATH();
+
+        String path = PATH();
+        if (path.length() > 2048) {
+            throw new HttpParseException(HttpStatusCode.CLIENT_ERROR_414_BAD_REQUEST);
+        }
+
         eat("SPACE");
+
+        Token versionToken = tokens.peek();
+        if (versionToken == null || !versionToken.type.equals("VERSION")) {
+            throw new HttpParseException(HttpStatusCode.CLIENT_ERROR_400_BAD_REQUEST);
+        }
         eat("VERSION");
+
         eat("CRLF");
+
         treeBuilder.endContext();
     }
 
@@ -112,6 +125,8 @@ public class HttpParser {
             case "OPTIONS": eat("OPTIONS"); break;
             case "CONNECT": eat("CONNECT"); break;
             case "HEAD": eat("HEAD"); break;
+            default:
+                throw new HttpParseException(HttpStatusCode.CLIENT_ERROR_401_METHOD_NOT_ALLOWED);
         }
         treeBuilder.endContext();
     }
@@ -120,7 +135,7 @@ public class HttpParser {
         treeBuilder.startContext("HEADERS");
         while (!tokens.isEmpty()) {
             if (tokens.peek().type.equals("CRLF")) {
-                eat("CRLF"); // fim da seção de cabeçalhos
+                eat("CRLF");
                 break;
             }
             parseSingleHeader();
@@ -131,25 +146,26 @@ public class HttpParser {
     void parseSingleHeader() throws Exception {
         treeBuilder.startContext("HEADER");
 
-        if(tokens.peek().type.equals("HEADER_NAME")){
+        if (tokens.peek().type.equals("HEADER_NAME")) {
             eat("HEADER_NAME");
-        }
-        else{
+        } else if (tokens.peek().type.equals("NON_STANDARD_HEADER")) {
             eat("NON_STANDARD_HEADER");
+        } else {
+            throw new HttpParseException(HttpStatusCode.CLIENT_ERROR_400_BAD_REQUEST);
         }
 
-        eat("COLON"); 
+        eat("COLON");
         HEADER_VALUE();
         eat("CRLF");
 
         treeBuilder.endContext();
     }
 
-    void HEADER_VALUE() throws Exception{
+    void HEADER_VALUE() throws Exception {
         treeBuilder.startContext("HEADER_VALUE");
 
-        while (!tokens.peek().type.equals("CRLF")) {
-            eat(tokens.peek().type); //Come qualquer token
+        while (!tokens.isEmpty() && !tokens.peek().type.equals("CRLF")) {
+            eat(tokens.peek().type);
         }
 
         treeBuilder.endContext();
@@ -181,11 +197,18 @@ public class HttpParser {
 
     void BODY() throws Exception {
         treeBuilder.startContext("BODY");
-        // Placeholder para parsing do corpo
         treeBuilder.endContext();
     }
 
-    public TreeNode getTree(){
+    public TreeNode getTree() {
         return treeBuilder.getTree();
+    }
+
+    private boolean isValidMethod(Token token) {
+        if (token == null) return false;
+        return switch (token.type) {
+            case "GET", "PUT", "UPDATE", "DELETE", "TRACE", "OPTIONS", "CONNECT", "HEAD" -> true;
+            default -> false;
+        };
     }
 }

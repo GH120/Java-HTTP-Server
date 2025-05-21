@@ -1,9 +1,7 @@
 package com.example.http;
 
-import java.util.LinkedList;
 import java.util.Map;
 
-import com.example.parser.HttpParser;
 
 public class HttpMessage {
 

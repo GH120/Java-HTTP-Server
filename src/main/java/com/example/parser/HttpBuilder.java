@@ -27,41 +27,17 @@ public class HttpBuilder {
     private void extractRequestLine(TreeNode AST) {
         TreeNode requestLine = (TreeNode) AST.getNodeByType("REQUEST_LINE").get(0);
 
-        try{
+        String methodStr = requestLine.getNodeByType("METHOD").get(0).getExpression();
+        String path = requestLine.getNodeByType("PATH").get(0).getExpression();
+        String version = requestLine.getNodeByType("VERSION").get(0).getExpression();
 
-            String methodStr = requestLine.getNodeByType("METHOD").get(0).getExpression();
-            String path = requestLine.getNodeByType("PATH").get(0).getExpression();
-            String version = requestLine.getNodeByType("VERSION").get(0).getExpression();
+        HttpMethod method; // Assumindo enum HttpMethod
 
-            HttpMethod method; // Assumindo enum HttpMethod
+        method = HttpMethod.valueOf(methodStr);
 
-            try{
-                method = HttpMethod.valueOf(methodStr);
-            } catch(IllegalArgumentException e){
-                throw new HttpParseException(HttpStatusCode.CLIENT_ERROR_401_METHOD_NOT_ALLOWED);
-            }
-
-            if(path.length() > 2048){
-                throw new HttpParseException(HttpStatusCode.CLIENT_ERROR_414_BAD_REQUEST);
-            }
-
-            if(!version.matches("HTTP/\\d\\.\\d")){
-                throw new HttpParseException(HttpStatusCode.CLIENT_ERROR_400_BAD_REQUEST);
-            }
-
-            message.setMethod(method);
-            message.setPath(path);
-            message.setVersion(version);
-        }
-        catch (IndexOutOfBoundsException e){
-            throw new HttpParseException(HttpStatusCode.CLIENT_ERROR_400_BAD_REQUEST);
-        }
-        catch (HttpParseException e){ //Todos os erros http dentro do try são propagados para fora
-            throw e;
-        }
-        catch(Exception e){ // Todos os erros inexperados são categorizados como internal server error
-            throw new HttpParseException(HttpStatusCode.SERVER_ERROR_500_INTERNAL_SERVER_ERROR);
-        }
+        message.setMethod(method);
+        message.setPath(path);
+        message.setVersion(version);
     }
 
     private void extractHeaders(TreeNode AST) {

@@ -26,30 +26,21 @@ public class HttpParserTest {
 
     @Test
     void testParseAndPrintHttpMessage() {
-        // Parse
         LinkedList<Token> tokens = new LinkedList<>(lexer.parse(generateValidTestCase()));
         httpParser.parse(tokens);
 
-        // Pega a árvore sintática
         TreeNode ast = httpParser.getTree();
-
-        System.out.println(ast);
-
-        // Constrói HttpMessage e imprime
         HttpMessage message = httpBuilder.build(ast);
-        message.print();  // este método foi criado anteriormente
+        message.print();
     }
 
-        
     @Test
     void testInvalidRequestLine_missingMethod() {
         String input = "/ HTTP/1.1\r\nHost: localhost\r\n\r\n";
         LinkedList<Token> tokens = new LinkedList<>(lexer.parse(input));
-        httpParser.parse(tokens);
-        TreeNode ast = httpParser.getTree();
 
         assertThrows(HttpParseException.class, () -> {
-            httpBuilder.build(ast);
+            httpParser.parse(tokens);
         });
     }
 
@@ -57,11 +48,9 @@ public class HttpParserTest {
     void testInvalidRequestLine_unsupportedMethod() {
         String input = "FETCH / HTTP/1.1\r\nHost: localhost\r\n\r\n";
         LinkedList<Token> tokens = new LinkedList<>(lexer.parse(input));
-        httpParser.parse(tokens);
-        TreeNode ast = httpParser.getTree();
 
         HttpParseException ex = assertThrows(HttpParseException.class, () -> {
-            httpBuilder.build(ast);
+            httpParser.parse(tokens);
         });
 
         assert ex.getStatusCode() == HttpStatusCode.CLIENT_ERROR_401_METHOD_NOT_ALLOWED;
@@ -71,11 +60,9 @@ public class HttpParserTest {
     void testInvalidRequestLine_missingPath() {
         String input = "GET  HTTP/1.1\r\nHost: localhost\r\n\r\n";
         LinkedList<Token> tokens = new LinkedList<>(lexer.parse(input));
-        httpParser.parse(tokens);
-        TreeNode ast = httpParser.getTree();
 
         HttpParseException ex = assertThrows(HttpParseException.class, () -> {
-            httpBuilder.build(ast);
+            httpParser.parse(tokens);
         });
 
         assert ex.getStatusCode() == HttpStatusCode.CLIENT_ERROR_400_BAD_REQUEST;
@@ -85,11 +72,9 @@ public class HttpParserTest {
     void testInvalidRequestLine_missingVersion() {
         String input = "GET /\r\nHost: localhost\r\n\r\n";
         LinkedList<Token> tokens = new LinkedList<>(lexer.parse(input));
-        httpParser.parse(tokens);
-        TreeNode ast = httpParser.getTree();
 
         HttpParseException ex = assertThrows(HttpParseException.class, () -> {
-            httpBuilder.build(ast);
+            httpParser.parse(tokens);
         });
 
         assert ex.getStatusCode() == HttpStatusCode.CLIENT_ERROR_400_BAD_REQUEST;
@@ -98,15 +83,13 @@ public class HttpParserTest {
     @Test
     void testInvalidRequestLine_pathTooLong() {
         StringBuilder longPath = new StringBuilder("/");
-        for (int i = 0; i < 1000; i++) longPath.append("a"); // > 2048 chars total
+        for (int i = 0; i < 2049; i++) longPath.append("a");
 
         String input = "GET " + longPath + " HTTP/1.1\r\nHost: localhost\r\n\r\n";
         LinkedList<Token> tokens = new LinkedList<>(lexer.parse(input));
-        httpParser.parse(tokens);
-        TreeNode ast = httpParser.getTree();
 
         HttpParseException ex = assertThrows(HttpParseException.class, () -> {
-            httpBuilder.build(ast);
+            httpParser.parse(tokens);
         });
 
         assert ex.getStatusCode() == HttpStatusCode.CLIENT_ERROR_414_BAD_REQUEST;
