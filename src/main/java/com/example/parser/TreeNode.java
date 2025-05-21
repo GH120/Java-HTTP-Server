@@ -1,16 +1,21 @@
 package com.example.parser;
 
 import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
 
-interface Node {
+abstract class Node {
 
-    public String getExpression();
+    public String type;
+
+    abstract public String getExpression();
+
+    abstract public List<Node> getNodeByType(String type);
 }
 
-class Token implements Node {
+class Token extends Node {
 
     String expression;
-    String type;
     int index;
 
     public Token(String expression, String type, int index) {
@@ -21,29 +26,39 @@ class Token implements Node {
 
     @Override
     public String toString() {
-
-        if(type == "CRLF") return type + "()" + " i: " + index;
-
+        if ("CRLF".equals(type)) return type + "()" + " i: " + index;
         return type + "(" + expression + ")" + " i: " + index;
     }
 
-    public String getExpression(){
+    @Override
+    public String getExpression() {
         return expression;
+    }
+
+    @Override
+    public List<Node> getNodeByType(String type) {
+        List<Node> result = new ArrayList<>();
+        if (this.type.equals(type)) {
+            result.add(this);
+        }
+        return result;
     }
 }
 
-class TreeNode implements Node {
+class TreeNode extends Node {
 
-    String type;
     ArrayList<Node> children;
 
     public TreeNode(String type) {
         this.type = type;
-        this.children = new ArrayList<Node>();
+        this.children = new ArrayList<>();
     }
 
-    public String getExpression(){
-        return children.stream().map(c -> c.getExpression()).reduce("", String::concat);
+    @Override
+    public String getExpression() {
+        return children.stream()
+                .map(Node::getExpression)
+                .reduce("", String::concat);
     }
 
     @Override
@@ -53,22 +68,33 @@ class TreeNode implements Node {
 
     public String toString(int level) {
         StringBuilder sb = new StringBuilder();
-
-        // Indentação do nó atual
         sb.append("  ".repeat(level)).append(type).append("\n");
 
         for (Node child : children) {
             if (child instanceof Token) {
-                // Indenta tokens
-                sb.append("  ".repeat(level + 1))
+                sb.append("  ".repeat(level + 2))
                   .append(child.toString())
                   .append("\n");
             } else if (child instanceof TreeNode) {
-                // Recursão para subnós
-                sb.append(((TreeNode) child).toString(level + 1));
+                sb.append(((TreeNode) child).toString(level + 2));
             }
         }
 
         return sb.toString();
+    }
+
+    @Override
+    public List<Node> getNodeByType(String type) {
+        List<Node> result = new ArrayList<>();
+
+        if (this.type.equals(type)) {
+            result.add(this);
+        }
+
+        for (Node child : children) {
+            result.addAll(child.getNodeByType(type));
+        }
+
+        return result;
     }
 }
