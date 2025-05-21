@@ -1,50 +1,133 @@
 package com.example.parser;
 
-import java.io.ByteArrayInputStream;
-import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
 import java.util.LinkedList;
+
+import com.example.http.HttpMessage;
+import com.example.http.HttpParseException;
+import com.example.http.HttpStatusCode;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 public class HttpParserTest {
 
-    private HttpLexer lexer;
-    private HttpParser httpParser;
+    private static HttpLexer lexer;
+    private static HttpParser httpParser;
+    private static HttpBuilder httpBuilder;
 
     @BeforeAll
-    public void beforeClass(){
-
+    public static void beforeClass() {
         lexer = new HttpLexer();
         httpParser = new HttpParser();
+        httpBuilder = new HttpBuilder();
     }
 
     @Test
-    void testParse() {
-        httpParser.parse(new LinkedList<>(lexer.parse(generateValidTestCase())));
+    void testParseAndPrintHttpMessage() {
+        // Parse
+        LinkedList<Token> tokens = new LinkedList<>(lexer.parse(generateValidTestCase()));
+        httpParser.parse(tokens);
+
+        // Pega a árvore sintática
+        TreeNode ast = httpParser.getTree();
+
+        System.out.println(ast);
+
+        // Constrói HttpMessage e imprime
+        HttpMessage message = httpBuilder.build(ast);
+        message.print();  // este método foi criado anteriormente
     }
 
-    private String generateValidTestCase(){
+        
+    @Test
+    void testInvalidRequestLine_missingMethod() {
+        String input = "/ HTTP/1.1\r\nHost: localhost\r\n\r\n";
+        LinkedList<Token> tokens = new LinkedList<>(lexer.parse(input));
+        httpParser.parse(tokens);
+        TreeNode ast = httpParser.getTree();
 
-        String rawData = "GET / HTTP/1.1\r\n" + //
-                        "Host:Connection accepted/0:0:0:0:0:0:0:1\r\n" + //
-                        " localhost:8080\r\n" + //
-                        "Connection: keep-alive\r\n" + //
-                        "Cache-Control: max-age=0\r\n" + //
-                        "sec-ch-ua: \"Chromium\";v=\"136\", \"Google Chrome\";v=\"136\", \"Not.A/Brand\";v=\"99\"\r\n" + //
-                        "sec-ch-ua-mobile: ?0\r\n" + //
-                        "sec-ch-ua-platform: \"Windows\"\r\n" + //
-                        "Upgrade-Insecure-Requests: 1\r\n" + //
-                        "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36\r\n" + //
-                        "Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7\r\n" + //
-                        "Sec-Fetch-Site: none\r\n" + //
-                        "Sec-Fetch-Mode: navigate\r\n" + //
-                        "Sec-Fetch-User: ?1\r\n" + //
-                        "Sec-Fetch-Dest: document\r\n" + //
-                        "Accept-Encoding: gzip, deflate, br, zstd\r\n" + //
-                        "Accept-Language: pt-BR,pt;q=0.9,en-US;q=0.8,en;q=0.7\r\n"; //tem que ter o \r\n no final
+        assertThrows(HttpParseException.class, () -> {
+            httpBuilder.build(ast);
+        });
+    }
 
-            return rawData;
+    @Test
+    void testInvalidRequestLine_unsupportedMethod() {
+        String input = "FETCH / HTTP/1.1\r\nHost: localhost\r\n\r\n";
+        LinkedList<Token> tokens = new LinkedList<>(lexer.parse(input));
+        httpParser.parse(tokens);
+        TreeNode ast = httpParser.getTree();
+
+        HttpParseException ex = assertThrows(HttpParseException.class, () -> {
+            httpBuilder.build(ast);
+        });
+
+        assert ex.getStatusCode() == HttpStatusCode.CLIENT_ERROR_401_METHOD_NOT_ALLOWED;
+    }
+
+    @Test
+    void testInvalidRequestLine_missingPath() {
+        String input = "GET  HTTP/1.1\r\nHost: localhost\r\n\r\n";
+        LinkedList<Token> tokens = new LinkedList<>(lexer.parse(input));
+        httpParser.parse(tokens);
+        TreeNode ast = httpParser.getTree();
+
+        HttpParseException ex = assertThrows(HttpParseException.class, () -> {
+            httpBuilder.build(ast);
+        });
+
+        assert ex.getStatusCode() == HttpStatusCode.CLIENT_ERROR_400_BAD_REQUEST;
+    }
+
+    @Test
+    void testInvalidRequestLine_missingVersion() {
+        String input = "GET /\r\nHost: localhost\r\n\r\n";
+        LinkedList<Token> tokens = new LinkedList<>(lexer.parse(input));
+        httpParser.parse(tokens);
+        TreeNode ast = httpParser.getTree();
+
+        HttpParseException ex = assertThrows(HttpParseException.class, () -> {
+            httpBuilder.build(ast);
+        });
+
+        assert ex.getStatusCode() == HttpStatusCode.CLIENT_ERROR_400_BAD_REQUEST;
+    }
+
+    @Test
+    void testInvalidRequestLine_pathTooLong() {
+        StringBuilder longPath = new StringBuilder("/");
+        for (int i = 0; i < 1000; i++) longPath.append("a"); // > 2048 chars total
+
+        String input = "GET " + longPath + " HTTP/1.1\r\nHost: localhost\r\n\r\n";
+        LinkedList<Token> tokens = new LinkedList<>(lexer.parse(input));
+        httpParser.parse(tokens);
+        TreeNode ast = httpParser.getTree();
+
+        HttpParseException ex = assertThrows(HttpParseException.class, () -> {
+            httpBuilder.build(ast);
+        });
+
+        assert ex.getStatusCode() == HttpStatusCode.CLIENT_ERROR_414_BAD_REQUEST;
+    }
+
+    private String generateValidTestCase() {
+        return "GET / HTTP/1.1\r\n" +
+               "Host: localhost:8080\r\n" +
+               "Connection: keep-alive\r\n" +
+               "Cache-Control: max-age=0\r\n" +
+               "sec-ch-ua: \"Chromium\";v=\"136\", \"Google Chrome\";v=\"136\", \"Not.A/Brand\";v=\"99\"\r\n" +
+               "sec-ch-ua-mobile: ?0\r\n" +
+               "sec-ch-ua-platform: \"Windows\"\r\n" +
+               "Upgrade-Insecure-Requests: 1\r\n" +
+               "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36\r\n" +
+               "Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7\r\n" +
+               "Sec-Fetch-Site: none\r\n" +
+               "Sec-Fetch-Mode: navigate\r\n" +
+               "Sec-Fetch-User: ?1\r\n" +
+               "Sec-Fetch-Dest: document\r\n" +
+               "Accept-Encoding: gzip, deflate, br, zstd\r\n" +
+               "Accept-Language: pt-BR,pt;q=0.9,en-US;q=0.8,en;q=0.7\r\n";
     }
 }

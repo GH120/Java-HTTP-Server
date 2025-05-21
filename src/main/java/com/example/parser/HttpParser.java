@@ -184,4 +184,8 @@ public class HttpParser {
         // Placeholder para parsing do corpo
         treeBuilder.endContext();
     }
+
+    public TreeNode getTree(){
+        return treeBuilder.getTree();
+    }
 }
