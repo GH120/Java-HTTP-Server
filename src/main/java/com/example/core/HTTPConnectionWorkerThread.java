@@ -9,6 +9,7 @@ import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 
 import com.example.config.Configuration;
 import com.example.config.ConfigurationManager;
@@ -45,9 +46,9 @@ public class HttpConnectionWorkerThread extends Thread{
 
                 HttpMessage message = getRequest(inputStream);
 
-                handleRequest(message);
+                handleRequest(message, outputStream);
                 
-                defaultResponse(outputStream);
+                // defaultResponse(outputStream);
 
         }
         catch(Exception e){
@@ -132,7 +133,7 @@ public class HttpConnectionWorkerThread extends Thread{
         outputStream.write(response.getBytes());
     }
 
-    private void handleRequest(HttpMessage request) throws WebRootNotFoundException{
+    private void handleRequest(HttpMessage request, OutputStream output) throws WebRootNotFoundException, IOException{
 
         Configuration  configuration = ConfigurationManager.getInstance().getCurrentConfiguration();
 
@@ -144,11 +145,17 @@ public class HttpConnectionWorkerThread extends Thread{
 
                 String path = request.getPath();
 
-                System.out.println(path);
-
                 File file = handler.getFile(path);
 
+                System.out.println("Path do arquivo");
                 System.out.println(file);
+
+                if(path.endsWith(".html")){
+                    // output.write(extractData(file).getBytes());
+                    byte[] bytes = Files.readAllBytes(file.toPath());
+
+                    output.write(httpResponseStringFrom(new String(bytes)).getBytes());
+                }
 
                 break;
             }
