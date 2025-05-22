@@ -150,12 +150,10 @@ public class HttpConnectionWorkerThread extends Thread{
                 System.out.println("Path do arquivo");
                 System.out.println(file);
 
-                if(path.endsWith(".html")){
-                    // output.write(extractData(file).getBytes());
-                    byte[] bytes = Files.readAllBytes(file.toPath());
+                // output.write(extractData(file).getBytes());
+                byte[] bytes = Files.readAllBytes(file.toPath());
 
-                    output.write(httpResponseStringFrom(new String(bytes)).getBytes());
-                }
+                output.write(httpResponseStringFrom(new String(bytes)).getBytes());
 
                 break;
             }

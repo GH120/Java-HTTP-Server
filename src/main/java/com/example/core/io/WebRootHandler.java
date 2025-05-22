@@ -18,7 +18,7 @@ public class WebRootHandler {
     public File getFile(String relativePath) throws WebRootNotFoundException{
 
         if(!CheckIfEndsWithSlash(relativePath)) 
-            throw new WebRootNotFoundException("Arquivo não encontrado");
+            throw new WebRootNotFoundException("Arquivo não encontrado: " + relativePath);
 
         return new File(webRoot, relativePath);
 
