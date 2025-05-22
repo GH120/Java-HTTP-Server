@@ -10,6 +10,8 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 
+import com.example.config.Configuration;
+import com.example.config.ConfigurationManager;
 import com.example.core.io.WebRootHandler;
 import com.example.core.io.WebRootNotFoundException;
 import com.example.http.HttpMessage;
@@ -132,20 +134,41 @@ public class HttpConnectionWorkerThread extends Thread{
 
     private void handleRequest(HttpMessage request) throws WebRootNotFoundException{
 
-        WebRootHandler handler;
-        
-        // switch(request.getMethod()){
+        Configuration  configuration = ConfigurationManager.getInstance().getCurrentConfiguration();
 
-        //     case GET:{
+        WebRootHandler handler = new WebRootHandler(configuration.getWebroot());
 
-        //         String path = request.getPath();
+        switch(request.getMethod()){
 
-        //         handler = new WebRootHandler(path);
+            case GET:{
 
-        //         File file = handler.getFile(path);
+                String path = request.getPath();
 
-        //         break;
-        //     }
-        // }
+                System.out.println(path);
+
+                File file = handler.getFile(path);
+
+                System.out.println(file);
+
+                break;
+            }
+        }
+    }
+
+    private void printFilePaths(String directoryPath){
+        File dir = new File(directoryPath);
+        File[] files = dir.listFiles();
+
+        if (files != null){
+            for (File file : files){
+                if(file.isFile()){
+                    System.out.println(file.getAbsolutePath());
+                }
+            }
+        }else{
+            System.out.println("vazio");
+        }
+
+
     }
 }

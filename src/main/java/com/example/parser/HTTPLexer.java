@@ -56,7 +56,7 @@ class Lexer {
 
             index += substring.length();
 
-            System.out.println(new Token(substring, type, index));
+            // System.out.println(new Token(substring, type, index));
 
             if (loop > 1000) {
                 throw new RuntimeException("Loop infinito");
