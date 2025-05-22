@@ -46,7 +46,7 @@ public class HttpParser {
 
     public static void main(String[] args) {
         Lexer lexer = new HttpLexer();
-        List<Token> tokens = lexer.parse(lexer.testCase());
+        List<Token> tokens = lexer.tokenize(lexer.testCase());
         HttpParser parser = new HttpParser();
         parser.parse(new LinkedList<Token>(tokens));
     }
@@ -75,7 +75,6 @@ public class HttpParser {
             HEADERS();
             // BODY(); // opcional
             treeBuilder.endContext();
-            System.out.println(treeBuilder.getTree());
             System.out.println("Parsing concluído com sucesso.");
         } catch (HttpParseException e) {
             System.err.println("Erro HTTP " + e.getStatusCode().STATUS_CODE + ": " + e.getStatusCode().MESSAGE);
@@ -151,6 +150,7 @@ public class HttpParser {
         } else if (tokens.peek().type.equals("NON_STANDARD_HEADER")) {
             eat("NON_STANDARD_HEADER");
         } else {
+            System.out.println(tokens.peek());
             throw new HttpParseException(HttpStatusCode.CLIENT_ERROR_400_BAD_REQUEST);
         }
 

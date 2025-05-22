@@ -26,18 +26,18 @@ public class HttpParserTest {
 
     @Test
     void testParseAndPrintHttpMessage() {
-        LinkedList<Token> tokens = new LinkedList<>(lexer.parse(generateValidTestCase()));
+        LinkedList<Token> tokens = new LinkedList<>(lexer.tokenize(generateValidTestCase()));
         httpParser.parse(tokens);
 
         TreeNode ast = httpParser.getTree();
-        HttpMessage message = httpBuilder.build(ast);
+        HttpMessage message = httpBuilder.buildFrom(ast);
         message.print();
     }
 
     @Test
     void testInvalidRequestLine_missingMethod() {
         String input = "/ HTTP/1.1\r\nHost: localhost\r\n\r\n";
-        LinkedList<Token> tokens = new LinkedList<>(lexer.parse(input));
+        LinkedList<Token> tokens = new LinkedList<>(lexer.tokenize(input));
 
         assertThrows(HttpParseException.class, () -> {
             httpParser.parse(tokens);
@@ -47,7 +47,7 @@ public class HttpParserTest {
     @Test
     void testInvalidRequestLine_unsupportedMethod() {
         String input = "FETCH / HTTP/1.1\r\nHost: localhost\r\n\r\n";
-        LinkedList<Token> tokens = new LinkedList<>(lexer.parse(input));
+        LinkedList<Token> tokens = new LinkedList<>(lexer.tokenize(input));
 
         HttpParseException ex = assertThrows(HttpParseException.class, () -> {
             httpParser.parse(tokens);
@@ -59,7 +59,7 @@ public class HttpParserTest {
     @Test
     void testInvalidRequestLine_missingPath() {
         String input = "GET  HTTP/1.1\r\nHost: localhost\r\n\r\n";
-        LinkedList<Token> tokens = new LinkedList<>(lexer.parse(input));
+        LinkedList<Token> tokens = new LinkedList<>(lexer.tokenize(input));
 
         HttpParseException ex = assertThrows(HttpParseException.class, () -> {
             httpParser.parse(tokens);
@@ -71,7 +71,7 @@ public class HttpParserTest {
     @Test
     void testInvalidRequestLine_missingVersion() {
         String input = "GET /\r\nHost: localhost\r\n\r\n";
-        LinkedList<Token> tokens = new LinkedList<>(lexer.parse(input));
+        LinkedList<Token> tokens = new LinkedList<>(lexer.tokenize(input));
 
         HttpParseException ex = assertThrows(HttpParseException.class, () -> {
             httpParser.parse(tokens);
@@ -86,7 +86,7 @@ public class HttpParserTest {
         for (int i = 0; i < 2049; i++) longPath.append("a");
 
         String input = "GET " + longPath + " HTTP/1.1\r\nHost: localhost\r\n\r\n";
-        LinkedList<Token> tokens = new LinkedList<>(lexer.parse(input));
+        LinkedList<Token> tokens = new LinkedList<>(lexer.tokenize(input));
 
         HttpParseException ex = assertThrows(HttpParseException.class, () -> {
             httpParser.parse(tokens);

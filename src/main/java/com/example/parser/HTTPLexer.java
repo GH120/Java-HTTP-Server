@@ -23,15 +23,15 @@ class Lexer {
     }
 
     //Implementar uma otimização depois para fazer em chunks de strings
-    public List<Token> parse(String input) {
-        List<Token> tokens = parsePhrase(input);
+    public LinkedList<Token> tokenize(String input) {
+        LinkedList<Token> tokens = tokenizePhrase(input);
         
         return tokens;
     }
 
     //Transformar isso num iterator?
-    private List<Token> parsePhrase(String phrase) {
-        List<Token> tokens = new ArrayList<>();
+    private LinkedList<Token> tokenizePhrase(String phrase) {
+        LinkedList<Token> tokens = new LinkedList<>();
         int index = 0;
         int loop = 0;
 
@@ -53,6 +53,7 @@ class Lexer {
                                 .orElse("undefined");
 
             tokens.add(new Token(substring, type, index));
+
             index += substring.length();
 
             System.out.println(new Token(substring, type, index));
@@ -117,10 +118,10 @@ public class HttpLexer extends Lexer{
     public static void main(String[] args) {
 
         Lexer lexer = new HttpLexer();
-        lexer.parse(lexer.testCase());
+        lexer.tokenize(lexer.testCase());
     }
 
-    HttpLexer(){
+    public HttpLexer(){
         super();
 
         //Obs: ordem de inserção importa. Em caso de empate, a primeira inserida é a escolhida
@@ -141,7 +142,7 @@ public class HttpLexer extends Lexer{
         rules.put("NUMBER", "[0-9]+");
         rules.put("EQUALS", "=");
         rules.put("HEADER_NAME", 
-            "Host|User-Agent|Accept|Content-Type|Content-Length|Connection|Authorization|Cache-Control|Set-Cookie|Date|Server"
+            "Host|User-Agent|Accept|Content-Type|Content-Length|Connection|Authorization|Cache-Control|Set-Cookie|Date|Server|Referer"
             + "|(S|s)(e|E)c(-[a-zA-Z0-9]+)+"  // pega headers tipo Sec-*, sec-*
             + "|(S|s)(c|C)p(-[a-zA-Z0-9]+)*"  // pega headers tipo Scp-*
             + "|(X|x)-[a-zA-Z0-9\\-]+"        // headers não-padrão como X-Forwarded-For

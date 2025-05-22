@@ -16,7 +16,7 @@ import com.example.core.ServerListenerThread;
 public class Main {
 
     public static void main(String[] args) {
-        System.out.println("Saca só o servidor do pai meu dogger");
+        System.out.println("Servidor");
 
         ConfigurationManager.getInstance().loadConfigurationFile("src/main/resources/http.json");
 

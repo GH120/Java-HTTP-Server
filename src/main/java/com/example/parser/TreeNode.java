@@ -45,7 +45,7 @@ class Token extends Node {
     }
 }
 
-class TreeNode extends Node {
+public class TreeNode extends Node {
 
     ArrayList<Node> children;
 

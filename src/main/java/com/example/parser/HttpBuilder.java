@@ -17,7 +17,7 @@ public class HttpBuilder {
         this.message = new HttpMessage();
     }
 
-    public HttpMessage build(TreeNode AST) {
+    public HttpMessage buildFrom(TreeNode AST) {
         extractRequestLine(AST);
         extractHeaders(AST);
         extractBody(AST);
