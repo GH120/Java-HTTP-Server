@@ -2,9 +2,11 @@ package com.example.parser;
 
 import com.example.http.HttpMessage;
 import com.example.http.HttpMethod;
-import com.example.http.HttpParseException;
-import com.example.http.HttpStatusCode;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -22,6 +24,31 @@ public class HttpBuilder {
         extractHeaders(AST);
         extractBody(AST);
         return message;
+    }
+
+    public HttpMessage getRequest(InputStream inputStream){
+
+        HttpMessage httpMessage = new HttpMessage();
+        HttpBuilder builder = new HttpBuilder();
+
+        try{
+
+            String rawHttpRequest = readHttpRequestRaw(inputStream);
+
+            HttpParser httpParser = new HttpParser();
+
+            httpParser.parse(new HttpLexer().tokenize(rawHttpRequest));
+
+            TreeNode AbstractSyntaxTree = httpParser.getTree();
+
+            httpMessage = builder.buildFrom(AbstractSyntaxTree);
+
+        }
+        catch(IOException e){
+            e.printStackTrace();
+        }
+
+        return httpMessage;
     }
 
     private void extractRequestLine(TreeNode AST) {
@@ -65,5 +92,30 @@ public class HttpBuilder {
             String body = bodyNode.getExpression();
             message.setBody(body);
         }
+    }
+
+    //TODO: está ignorando mensagens com body, adicionar checagem de body (pois para no duplo \n\r dos headers)
+    private String readHttpRequestRaw(InputStream inputStream) throws IOException{
+
+        ByteArrayOutputStream byteBuffer = new ByteArrayOutputStream();
+            
+        int[] EOF   = {13,10,13,10};
+        int pointer = 0;
+
+        for(int _byte; (_byte = inputStream.read()) >= 0; ){
+
+            byteBuffer.write(_byte);
+
+            //Detecta \n\r\n\r
+            if(EOF[pointer] == _byte) 
+                pointer++;
+            else 
+                pointer = 0;
+
+            if(pointer == 4) break;
+
+        }
+
+        return byteBuffer.toString(StandardCharsets.US_ASCII);
     }
 }
