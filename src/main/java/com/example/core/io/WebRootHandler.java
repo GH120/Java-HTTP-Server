@@ -33,6 +33,7 @@ public class WebRootHandler {
 
         try{
 
+            System.out.println("Caminho válido " +file.getCanonicalPath().startsWith(webRoot.getCanonicalPath()));
             if (file.getCanonicalPath().startsWith(webRoot.getCanonicalPath())) 
                 return true;
         }

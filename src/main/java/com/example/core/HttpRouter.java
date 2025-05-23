@@ -14,7 +14,7 @@ import com.example.http.HttpResponse;
 
 abstract public class HttpRouter {
 
-    abstract public void handleRequest(HttpMessage message, OutputStream output) throws Exception;
+    abstract public void handleRequest(HttpMessage message, OutputStream output);
 }
 
 
@@ -37,15 +37,22 @@ class ExampleRouter extends HttpRouter{
     Configuration  configuration;
     WebRootHandler handler;
 
-    public void handleRequest(HttpMessage request, OutputStream output) throws WebRootNotFoundException, IOException{
+    public void handleRequest(HttpMessage request, OutputStream output){
 
         configuration = ConfigurationManager.getInstance().getCurrentConfiguration();
 
-        handler = new WebRootHandler(configuration.getWebroot());
+        try{
 
-        switch(request.getMethod()){
+            handler = new WebRootHandler(configuration.getWebroot());
 
-            case GET: handleGet(request, output); break;
+            switch(request.getMethod()){
+
+                case GET: handleGet(request, output); break;
+            }
+        }
+        catch(Exception e){
+            System.out.println(request.getPath());
+            e.printStackTrace();
         }
     }
 

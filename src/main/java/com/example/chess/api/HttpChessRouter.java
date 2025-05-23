@@ -26,23 +26,30 @@ public class HttpChessRouter extends HttpRouter{
         super(); createRoutes();
     }
 
-    public void handleRequest(HttpMessage request, OutputStream output) throws Exception{
+    public void handleRequest(HttpMessage request, OutputStream output){
 
         configuration = ConfigurationManager.getInstance().getCurrentConfiguration();
 
-        handler = new WebRootHandler(configuration.getWebroot());
-
         boolean IsAPIRequest = apiRoute.contains(request.getPath());
 
-        if(IsAPIRequest){
+        try{
 
-            handleRoute(request, output);
-        }
-        else{
-            switch(request.getMethod()){
-                
-                case GET: handleGet(request, output); break;
+            handler = new WebRootHandler(configuration.getWebroot());
+
+            if(IsAPIRequest){
+
+                handleRoute(request, output);
             }
+            else{
+                switch(request.getMethod()){
+                    
+                    case GET: handleGet(request, output); break;
+                }
+            }
+        }
+        catch(Exception e){
+            System.out.println("Erro na requisição");
+            e.printStackTrace();
         }
     }
 
@@ -98,10 +105,15 @@ public class HttpChessRouter extends HttpRouter{
 
     private String getContentType(String path){
 
-        String contentType = path.endsWith(".png")? "image/png" : null;
-               contentType = path.endsWith(".jpg")? "image/jpg" : null;    
+        if (path.endsWith(".html")) return "text/html";
+        if (path.endsWith(".css")) return "text/css";
+        if (path.endsWith(".js")) return "application/javascript";
+        if (path.endsWith(".png")) return "image/png";
+        if (path.endsWith(".jpg") || path.endsWith(".jpeg")) return "image/jpeg";
+        if (path.endsWith(".svg")) return "image/svg+xml";
+        if (path.endsWith(".json")) return "application/json";
 
-        return contentType;
+        return "application/octet-stream";
     }
 
     //Guarda uma lista de todos os endpoints usados para ações
