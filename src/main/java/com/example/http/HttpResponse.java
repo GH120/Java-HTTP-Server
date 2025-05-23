@@ -9,7 +9,7 @@ public class HttpResponse{
     private String version;
     private Map<String, String> headers;
     private String body;
-    private final String CRLF = "\\r\\n";
+    private final String CRLF = "\r\n";
 
     public String toString(){
 
