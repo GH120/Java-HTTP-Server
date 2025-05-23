@@ -2,6 +2,7 @@ package com.example.http;
 
 public enum HttpStatusCode {
 
+    OK(200, "OK"),
     CLIENT_ERROR_400_BAD_REQUEST(400, "Bad Request"),
     CLIENT_ERROR_401_METHOD_NOT_ALLOWED(401, "Method Not Allowed"),
     CLIENT_ERROR_414_BAD_REQUEST(414, "URI too long"),
@@ -15,5 +16,14 @@ public enum HttpStatusCode {
     HttpStatusCode(int STATUS_CODE, String Message){
         this.STATUS_CODE = STATUS_CODE;
         this.MESSAGE = Message;
+    }
+
+    public static HttpStatusCode fromCode(int code){
+        for (HttpStatusCode status : values()){
+            if(status.STATUS_CODE == code){
+                return status;
+            }
+        }
+        return null;
     }
 }

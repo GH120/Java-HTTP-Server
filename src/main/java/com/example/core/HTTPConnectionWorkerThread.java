@@ -1,12 +1,10 @@
 package com.example.core;
 
-import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -16,7 +14,7 @@ import com.example.config.ConfigurationManager;
 import com.example.core.io.WebRootHandler;
 import com.example.core.io.WebRootNotFoundException;
 import com.example.http.HttpMessage;
-import com.example.http.HttpMethod;
+import com.example.http.HttpResponse;
 import com.example.parser.HttpBuilder;
 import com.example.parser.HttpLexer;
 import com.example.parser.HttpParser;
@@ -69,29 +67,30 @@ public class HttpConnectionWorkerThread extends Thread{
 
     private HttpMessage getRequest(InputStream inputStream){
 
-        HttpMessage message = new HttpMessage();
+        HttpMessage httpMessage = new HttpMessage();
         HttpBuilder builder = new HttpBuilder();
 
         try{
 
             String rawHttpRequest = readHttpRequestRaw(inputStream);
 
-            HttpParser parser = new HttpParser();
+            HttpParser httpParser = new HttpParser();
 
-            parser.parse(new HttpLexer().tokenize(rawHttpRequest));
+            httpParser.parse(new HttpLexer().tokenize(rawHttpRequest));
 
-            TreeNode AbstractSyntaxTree = parser.getTree();
+            TreeNode AbstractSyntaxTree = httpParser.getTree();
 
-            message = builder.buildFrom(AbstractSyntaxTree);
+            httpMessage = builder.buildFrom(AbstractSyntaxTree);
 
         }
         catch(IOException e){
             e.printStackTrace();
         }
 
-        return message;
+        return httpMessage;
     }
 
+    //TODO: está ignorando mensagens com body, adicionar checagem de body (pois para no duplo \n\r dos headers)
     private String readHttpRequestRaw(InputStream inputStream) throws IOException{
 
         ByteArrayOutputStream byteBuffer = new ByteArrayOutputStream();
@@ -116,23 +115,6 @@ public class HttpConnectionWorkerThread extends Thread{
         return byteBuffer.toString(StandardCharsets.US_ASCII);
     }
 
-    //Colocar isso na classe HttpMessage?
-    private String httpResponseStringFrom(String content){
-
-        final String CRLF = "\n\r";
-
-        return "HTTP/1.1 200 OK" + CRLF + "Content-Length: " + content.getBytes().length + CRLF + CRLF + content + CRLF + CRLF; //Status line: HTTP Version Response_code Response_message;
-    }
-    
-    private void defaultResponse(OutputStream outputStream) throws IOException{
-        //O que ele iria retornar depende do requisitado
-        String html = "<html><head><title>Simple Java HTTP Server</title></head><body>This is an example</body></html>";
-        
-        String response = httpResponseStringFrom(html);
-
-        outputStream.write(response.getBytes());
-    }
-
     private void handleRequest(HttpMessage request, OutputStream output) throws WebRootNotFoundException, IOException{
 
         Configuration  configuration = ConfigurationManager.getInstance().getCurrentConfiguration();
@@ -145,15 +127,24 @@ public class HttpConnectionWorkerThread extends Thread{
 
                 String path = request.getPath();
 
+                String contentType = path.endsWith(".png")? "image/png" : null;
+                       contentType = path.endsWith(".jpg")? "image/jpg" : null;    
+
                 File file = handler.getFile(path);
 
                 System.out.println("Path do arquivo");
                 System.out.println(file);
 
-                // output.write(extractData(file).getBytes());
-                byte[] bytes = Files.readAllBytes(file.toPath());
+                byte[] body = Files.readAllBytes(file.toPath());
 
-                output.write(httpResponseStringFrom(new String(bytes)).getBytes());
+                var response = HttpResponse.OK(body.length, contentType);
+
+                //Escreve o cabeçário
+                output.write(response.toString().getBytes());
+
+                //Escreve o corpo
+                output.write(body);
+                output.flush();
 
                 break;
             }
