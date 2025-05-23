@@ -40,10 +40,13 @@ class ExampleRouter extends HttpRouter{
     public void handleRequest(HttpMessage request, OutputStream output){
 
         configuration = ConfigurationManager.getInstance().getCurrentConfiguration();
+        
 
         try{
 
             handler = new WebRootHandler(configuration.getWebroot());
+
+            printFilePaths(configuration.getWebroot());
 
             switch(request.getMethod()){
 
