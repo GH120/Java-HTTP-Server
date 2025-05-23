@@ -137,6 +137,8 @@ public class HttpConnectionWorkerThread extends Thread{
 
                 byte[] body = Files.readAllBytes(file.toPath());
 
+                System.out.println(body.length);
+
                 var response = HttpResponse.OK(body.length, contentType);
 
                 //Escreve o cabeçário
