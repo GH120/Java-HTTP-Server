@@ -124,6 +124,7 @@ public class HttpParser {
             case "OPTIONS": eat("OPTIONS"); break;
             case "CONNECT": eat("CONNECT"); break;
             case "HEAD": eat("HEAD"); break;
+            case "POST": eat("POST"); break;
             default:
                 throw new HttpParseException(HttpStatusCode.CLIENT_ERROR_401_METHOD_NOT_ALLOWED);
         }
@@ -206,8 +207,9 @@ public class HttpParser {
 
     private boolean isValidMethod(Token token) {
         if (token == null) return false;
+
         return switch (token.type) {
-            case "GET", "PUT", "UPDATE", "DELETE", "TRACE", "OPTIONS", "CONNECT", "HEAD" -> true;
+            case "GET", "PUT", "UPDATE","POST", "DELETE", "TRACE", "OPTIONS", "CONNECT", "HEAD" -> true;
             default -> false;
         };
     }
