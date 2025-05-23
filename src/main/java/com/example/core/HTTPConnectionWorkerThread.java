@@ -1,24 +1,11 @@
 package com.example.core;
 
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 
-import com.example.config.Configuration;
-import com.example.config.ConfigurationManager;
-import com.example.core.io.WebRootHandler;
-import com.example.core.io.WebRootNotFoundException;
 import com.example.http.HttpMessage;
-import com.example.http.HttpResponse;
 import com.example.parser.HttpBuilder;
-import com.example.parser.HttpLexer;
-import com.example.parser.HttpParser;
-import com.example.parser.TreeNode;
 
 public class HttpConnectionWorkerThread extends Thread{
 
@@ -40,7 +27,7 @@ public class HttpConnectionWorkerThread extends Thread{
             //Espera aceitar uma conexão
             System.out.println("Connection accepted" + socket.getInetAddress());
             
-            inputStream = socket.getInputStream();
+            inputStream  = socket.getInputStream();
             outputStream = socket.getOutputStream();
 
             HttpMessage message = new HttpBuilder().getRequest(inputStream);
@@ -62,5 +49,9 @@ public class HttpConnectionWorkerThread extends Thread{
 
             }
         }
+    }
+
+    public void setRouter(HttpRouter router){
+        this.router = router;
     }
 }

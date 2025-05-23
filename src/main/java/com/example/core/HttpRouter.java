@@ -17,6 +17,21 @@ abstract public class HttpRouter {
     abstract public void handleRequest(HttpMessage message, OutputStream output) throws Exception;
 }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 class ExampleRouter extends HttpRouter{
 
     Configuration  configuration;

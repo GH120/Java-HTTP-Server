@@ -1,4 +1,4 @@
-package com.example.chess;
+package com.example.chess.controlers;
 
 public class MainMenuController {
 
@@ -12,7 +12,11 @@ public class MainMenuController {
         
     }
     
-    public MainMenuController getInstance(){
+    static public MainMenuController getInstance(){
+
+        if(controller == null) 
+           controller = new MainMenuController();
+           
         return controller;
     }
 }
