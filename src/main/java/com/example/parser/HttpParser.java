@@ -6,75 +6,25 @@ import java.util.List;
 import com.example.http.HttpParseException;
 import com.example.http.HttpStatusCode;
 
-class TreeBuilder {
-
-    private TreeNode tree;
-    private TreeNode currentNode;
-    private LinkedList<TreeNode> ancestors;
-
-    public TreeBuilder() {
-        tree = new TreeNode("ROOT");
-        currentNode = tree;
-        ancestors = new LinkedList<>();
-    }
-
-    public void startContext(String name) {
-        TreeNode parent = currentNode;
-        ancestors.push(parent);
-        currentNode = new TreeNode(name);
-        parent.children.add(currentNode);
-    }
-
-    public void insertToken(Token token) {
-        currentNode.children.add(token);
-    }
-
-    public void endContext() {
-        TreeNode parent = ancestors.poll();
-        currentNode = parent;
-    }
-
-    public TreeNode getTree() {
-        return tree;
-    }
-}
-
 public class HttpParser {
 
     LinkedList<Token> tokens;
     TreeBuilder treeBuilder = new TreeBuilder();
 
-    public static void main(String[] args) {
-        Lexer lexer = new HttpLexer();
-        List<Token> tokens = lexer.tokenize(lexer.testCase());
-        HttpParser parser = new HttpParser();
-        parser.parse(new LinkedList<Token>(tokens));
-    }
-
-    private Token eat(String expected) throws Exception {
-        if (tokens.isEmpty()) {
-            throw new HttpParseException(HttpStatusCode.CLIENT_ERROR_400_BAD_REQUEST);
-        }
-
-        Token token = tokens.poll();
-
-        if (token.type.equals(expected)) {
-            treeBuilder.insertToken(token);
-            return token;
-        } else {
-            throw new HttpParseException(HttpStatusCode.CLIENT_ERROR_400_BAD_REQUEST);
-        }
-    }
-
     public void parse(LinkedList<Token> tokens) {
+
         this.tokens = tokens;
 
         try {
-            treeBuilder.startContext("HTTP_MESSAGE");
+            treeBuilder.startContext("HTTP_MESSAGE"); 
+
+            //Símbolos não terminais são métodos recursivos
             REQUEST_LINE();
             HEADERS();
             // BODY(); // opcional
+
             treeBuilder.endContext();
+            
             System.out.println("Parsing concluído com sucesso.");
         } catch (HttpParseException e) {
             System.err.println("Erro HTTP " + e.getStatusCode().STATUS_CODE + ": " + e.getStatusCode().MESSAGE);
@@ -85,6 +35,24 @@ public class HttpParser {
         }
     }
 
+    //CONSOME UM TOKEN (TERMINAL) SE ELE FOR DO TIPO ESPERADO, SENÃO PARA EXECUÇÃO 
+    private Token eat(String expected) throws Exception {
+
+        if (tokens.isEmpty()) throw new HttpParseException(HttpStatusCode.CLIENT_ERROR_400_BAD_REQUEST);
+
+        Token token = tokens.poll();
+
+        if (token.type.equals(expected)) {
+            treeBuilder.insertToken(token);
+            return token;
+        } else 
+            throw new HttpParseException(HttpStatusCode.CLIENT_ERROR_400_BAD_REQUEST);
+        
+    }
+
+    /**********************************************************/
+    /*MÉTODOS DOS SÍMBOLOS NÃO TERMINAIS DA GRAMÁTICA DO HTTP */
+    /**********************************************************/
     void REQUEST_LINE() throws Exception {
         treeBuilder.startContext("REQUEST_LINE");
 
@@ -138,21 +106,21 @@ public class HttpParser {
                 eat("CRLF");
                 break;
             }
-            parseSingleHeader();
+            HEADER();
         }
         treeBuilder.endContext();
     }
 
-    void parseSingleHeader() throws Exception {
+    void HEADER() throws Exception {
         treeBuilder.startContext("HEADER");
 
-        if (tokens.peek().type.equals("HEADER_NAME")) {
-            eat("HEADER_NAME");
-        } else if (tokens.peek().type.equals("NON_STANDARD_HEADER")) {
-            eat("NON_STANDARD_HEADER");
-        } else {
-            System.out.println(tokens.peek());
-            throw new HttpParseException(HttpStatusCode.CLIENT_ERROR_400_BAD_REQUEST);
+        switch (tokens.peek().type) {
+            case "HEADER_NAME", "NON_STANDARD_HEADER"-> {eat(tokens.peek().type);}
+
+            default -> {
+                System.out.println("Token lido: " + tokens.peek() + " Token esperado: " + "HEADER_NAME");
+                throw new HttpParseException(HttpStatusCode.CLIENT_ERROR_400_BAD_REQUEST);
+            }
         }
 
         eat("COLON");
@@ -201,6 +169,9 @@ public class HttpParser {
         treeBuilder.endContext();
     }
 
+    //*********************************************************************/
+    //**************************Métodos Auxiliares*************************/
+    //*********************************************************************/
     public TreeNode getTree() {
         return treeBuilder.getTree();
     }
@@ -212,5 +183,51 @@ public class HttpParser {
             case "GET", "PUT", "UPDATE","POST", "DELETE", "TRACE", "OPTIONS", "CONNECT", "HEAD" -> true;
             default -> false;
         };
+    }
+}
+
+//Serve para auxiliar na construção de uma árvore na medida que percorre o recursive descent
+//Ao entrar em um Não terminal (método em maiúsculo), adiciona um nó a árvore 
+//Toda adição de tokens serão nós filhos desse último nó.
+//Outros não terminais chamados antes de sair do contexto serão filhos diretos desse nó
+//Ao sair do contexto, volta para o pai dele 
+class TreeBuilder {
+
+    private TreeNode tree;
+    private TreeNode currentNode;
+    private LinkedList<TreeNode> ancestors;
+
+    public TreeBuilder() {
+        tree = new TreeNode("ROOT");
+        currentNode = tree;
+        ancestors = new LinkedList<>();
+    }
+
+    public void startContext(String name) {
+        TreeNode parent = currentNode;
+        ancestors.push(parent);
+        currentNode = new TreeNode(name);
+        parent.children.add(currentNode);
+    }
+
+    public void insertToken(Token token) {
+        currentNode.children.add(token);
+    }
+
+    public void endContext() {
+        TreeNode parent = ancestors.poll();
+        currentNode = parent;
+    }
+
+    public TreeNode getTree() {
+        return tree;
+    }
+
+    //Teste
+    public static void main(String[] args) {
+        Lexer lexer = new HttpLexer();
+        List<Token> tokens = lexer.tokenize(lexer.testCase());
+        HttpParser parser = new HttpParser();
+        parser.parse(new LinkedList<Token>(tokens));
     }
 }

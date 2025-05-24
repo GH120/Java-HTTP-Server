@@ -8,5 +8,6 @@ public enum HttpMethod {
     TRACE,
     OPTIONS,
     CONNECT,
-    HEAD
+    HEAD,
+    POST
 }

@@ -36,6 +36,9 @@ public class HttpChessRouter extends HttpRouter{
 
             handler = new WebRootHandler(configuration.getWebroot());
 
+            System.out.println("IS API CALL " + IsAPIRequest);
+            System.out.println(request.getPath());
+
             if(IsAPIRequest){
 
                 handleRoute(request, output);
@@ -76,31 +79,42 @@ public class HttpChessRouter extends HttpRouter{
 
     private void handleRoute(HttpMessage request, OutputStream output) throws Exception{
 
+        System.out.println("API ativada");
+
+        request.print();
+
         switch(request.getPath()){
 
-            case "api/findMatch":{
+            case "/api/findMatch":{
 
                 Player player = Player.fromRequest(request);
 
                 ChessMatchMaker.getInstance().findDuel(player);
 
+                System.out.println(player);
+
                 break;
             }
-            case "api/move":{
+            case "/api/move":{
                 
                 break;
             }
 
-            case "api/state":{
+            case "/api/state":{
 
                 break;
             }
 
-            case "api/reset":{
+            case "/api/reset":{
 
                 break;
             }
         }
+
+        var response = HttpResponse.OK(0, null);
+
+        output.write(response.toString().getBytes());
+        output.flush();
     }
 
     private String getContentType(String path){
@@ -120,9 +134,9 @@ public class HttpChessRouter extends HttpRouter{
     private void createRoutes(){
         apiRoute = new ArrayList<>();
 
-        apiRoute.add("api/findMatch");
-        apiRoute.add("api/move");
-        apiRoute.add("api/state");
-        apiRoute.add("api/reset");
+        apiRoute.add("/api/findMatch");
+        apiRoute.add("/api/move");
+        apiRoute.add("/api/state");
+        apiRoute.add("/api/reset");
     }
 }

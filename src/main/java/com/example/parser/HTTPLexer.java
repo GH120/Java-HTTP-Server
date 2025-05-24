@@ -25,6 +25,8 @@ class Lexer {
     //Implementar uma otimização depois para fazer em chunks de strings
     public LinkedList<Token> tokenize(String input) {
         LinkedList<Token> tokens = tokenizePhrase(input);
+
+        // System.out.println(input);
         
         return tokens;
     }
@@ -142,17 +144,17 @@ public class HttpLexer extends Lexer{
         rules.put("NUMBER", "[0-9]+");
         rules.put("EQUALS", "=");
         rules.put("HEADER_NAME", 
-            "Host|User-Agent|Accept|Content-Type|Content-Length|Connection|Authorization|Cache-Control|Set-Cookie|Date|Server|Referer"
+            "Host|Origin|User-Agent|Accept|Content-Type|Content-Length|Connection|Authorization|Cache-Control|Set-Cookie|Date|Server|Referer"
             + "|(S|s)(e|E)c(-[a-zA-Z0-9]+)+"  // pega headers tipo Sec-*, sec-*
             + "|(S|s)(c|C)p(-[a-zA-Z0-9]+)*"  // pega headers tipo Scp-*
             + "|(X|x)-[a-zA-Z0-9\\-]+"        // headers não-padrão como X-Forwarded-For
         );
-        rules.put("NON_STANDARD_HEADER", "([a-zA-Z0-9]+\\-)+([a-zA-Z0-9)]+)");
+        rules.put("NON_STANDARD_HEADER", "(([a-zA-Z0-9]+\\-)+([a-zA-Z0-9)]+))");
         rules.put("WORD", "[a-zA-Z0-9\\-_.]+"); // simples e abrangente
         rules.put("DOT", "\\.");
         rules.put("COLON", ":");
         rules.put("ADDRESS", "([0-9a-fA-F]{1,4}:){2,7}[0-9a-fA-F]{1,4}"); // IPv6 básico
-        rules.put("SYMBOL", "[;\\+\\*,\\?!]");
+        rules.put("SYMBOL", "[;\\+\\*,\\?!{}\\[\\]]");
         rules.put("LPAR", "\\(");
         rules.put("RPAR", "\\)");
         rules.put("LBRACKET", "\\[");

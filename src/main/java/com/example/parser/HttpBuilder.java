@@ -35,6 +35,9 @@ public class HttpBuilder {
 
             String rawHttpRequest = readHttpRequestRaw(inputStream);
 
+            System.out.println("raw request");
+            System.out.println(rawHttpRequest);
+
             HttpParser httpParser = new HttpParser();
 
             httpParser.parse(new HttpLexer().tokenize(rawHttpRequest));

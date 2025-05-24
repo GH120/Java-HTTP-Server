@@ -11,6 +11,7 @@ public class Player {
     public String  address;
 
     public static Player fromRequest(HttpMessage request) throws Exception{
+        System.out.println(request.getBody());
         JsonNode info = Json.parse(request.getBody());
 
         return Json.fromJson(info, Player.class);

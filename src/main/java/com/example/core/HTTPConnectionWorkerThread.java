@@ -11,7 +11,7 @@ import com.example.parser.HttpBuilder;
 public class HttpConnectionWorkerThread extends Thread{
 
     private Socket     socket;
-    private HttpRouter router = new ExampleRouter();
+    private HttpRouter router = new HttpChessRouter();
 
     HttpConnectionWorkerThread(Socket socket){
         this.socket = socket;
