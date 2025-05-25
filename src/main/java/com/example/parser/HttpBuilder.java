@@ -35,8 +35,8 @@ public class HttpBuilder {
 
             String rawHttpRequest = readHttpHeader(inputStream);
 
-            System.out.println("raw request");
-            System.out.println(rawHttpRequest);
+            // System.out.println("raw request");
+            // System.out.println(rawHttpRequest);
 
             HttpParser httpParser = new HttpParser();
 
@@ -52,6 +52,9 @@ public class HttpBuilder {
 
             httpMessage.setBody(rawBody);
 
+        }
+        catch(NullPointerException HttpMessageWithoutBody){
+            httpMessage.setBody(null);
         }
         catch(IOException e){
             e.printStackTrace();
@@ -128,7 +131,7 @@ public class HttpBuilder {
         return byteBuffer.toString(StandardCharsets.US_ASCII);
     }
 
-    private String readHttpBody(InputStream inputStream, HttpMessage message) throws IOException{
+    private String readHttpBody(InputStream inputStream, HttpMessage message) throws IOException, NullPointerException{
 
         ByteArrayOutputStream byteBuffer = new ByteArrayOutputStream();
 

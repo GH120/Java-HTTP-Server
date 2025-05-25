@@ -25,9 +25,19 @@ function createMatch(){
         body: JSON.stringify(player1)
     })
     .then(response => {
-        return response.text();
+        fetch("/api/findMatch", {
+            method: "POST",
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(player2)
+        })
+        .then(response => {
+            return response.text();
+        })
+        .then(data => console.log(`resposta do servidor ${data}`));
     })
-    .then(data => console.log(`resposta do servidor ${data}`));
+
 }
 
 console.log("CARREGOU SCRIPT")

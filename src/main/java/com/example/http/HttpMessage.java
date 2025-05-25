@@ -8,7 +8,7 @@ public class HttpMessage {
     private HttpMethod method;
     private String path;
     private String version;
-    private Map<String, String> headers;
+    private Map<String, String> headers; //Talvez criar um enum de headers
     private String body;
 
     public HttpMethod getMethod() {
