@@ -1,0 +1,377 @@
+package com.example.parser;
+
+import java.util.*;
+import java.util.regex.*;
+
+
+//Refactor feito por curiosidade com ajuda do Gepeto
+//Não funcionou kkkkkkkkkk
+//Não tem nenhum benefício tentar consertar isso, mas para quem achou confuso as classes do lexer e parser ajuda legal
+
+//Classe traduzida do javascript com ajuda do Gepeto
+//Tentar depois fazer em java do zero, maior empecilho foi sintaxe e conhecimento de bibliotecas regex
+class Lexer {
+    protected final LinkedHashMap<String, Pattern> rules; // keep insertion order
+    protected final List<String> separators;
+
+    public Lexer() {
+        this.rules = new LinkedHashMap<>();
+        this.separators = Collections.emptyList();
+    }
+
+    public Lexer(Map<String, String> rawRules) {
+        this(rawRules, Collections.emptyList());
+    }
+
+    public Lexer(Map<String, String> rawRules, List<String> separators) {
+        this.rules = compileRules(rawRules);
+        this.separators = separators != null ? separators : Collections.emptyList();
+    }
+
+    // Compile regex strings into Patterns
+    private LinkedHashMap<String, Pattern> compileRules(Map<String, String> rawRules) {
+        LinkedHashMap<String, Pattern> compiled = new LinkedHashMap<>();
+        for (Map.Entry<String, String> entry : rawRules.entrySet()) {
+            compiled.put(entry.getKey(), Pattern.compile(entry.getValue()));
+        }
+        return compiled;
+    }
+
+    // Main tokenizing method
+    public LinkedList<Token> tokenize(String input) {
+        LinkedList<Token> tokens = new LinkedList<>();
+        int index = 0;
+        int maxIterations = input.length() * 2; // safeguard against infinite loops
+
+        while (index < input.length()) {
+            Token token = nextToken(input, index);
+            if (token == null) {
+                throw new RuntimeException("Unrecognized character at position " + index + ": '" + input.charAt(index) + "'");
+            }
+            tokens.add(token);
+            index += token.expression.length();
+
+            if (--maxIterations <= 0) {
+                throw new RuntimeException("Potential infinite loop detected during tokenization.");
+            }
+        }
+        return tokens;
+    }
+
+    // Find the next token starting at 'startIndex' in the input string
+    private Token nextToken(String input, int startIndex) {
+        String substring = input.substring(startIndex);
+
+        String bestType = null;
+        String bestMatch = null;
+
+        for (Map.Entry<String, Pattern> entry : rules.entrySet()) {
+            Matcher matcher = entry.getValue().matcher(substring);
+
+            // Only match at start of substring
+            if (matcher.lookingAt()) {
+                String match = matcher.group();
+                // Prefer longest match if tie or first found
+                if (bestMatch == null || match.length() > bestMatch.length()) {
+                    bestMatch = match;
+                    bestType = entry.getKey();
+                }
+            }
+        }
+
+        if (bestType == null) {
+            return null; // no match found at this position
+        }
+        return new Token(bestMatch, bestType, startIndex);
+    }
+
+    // For overriding in subclasses
+    public String testCase() {
+        return "";
+    }
+}
+
+public class HttpLexer extends Lexer{
+
+    public HttpLexer() {
+        super(createHttpRules(), Arrays.asList(","));
+    }
+
+    private static Map<String, String> createHttpRules() {
+        Map<String, String> rules = new LinkedHashMap<>();
+
+        rules.put("GET", "GET");
+        rules.put("PUT", "PUT");
+        rules.put("HEAD", "HEAD");
+        rules.put("POST", "POST");
+        rules.put("DELETE", "DELETE");
+        rules.put("CONNECT", "CONNECT");
+        rules.put("OPTIONS", "OPTIONS");
+        rules.put("TRACE", "TRACE");
+        rules.put("CRLF", "\\r\\n");
+        rules.put("SPACE", "\\s+");
+        rules.put("VERSION", "HTTP/[0-9]\\.[0-9]");
+        rules.put("BAR", "/");
+        rules.put("LOCALHOST", "localhost");
+        rules.put("NUMBER", "[0-9]+");
+        rules.put("EQUALS", "=");
+        rules.put("HEADER_NAME",
+                "Host|Origin|User-Agent|Accept|Content-Type|Content-Length|Connection|Authorization|Cache-Control|Set-Cookie|Date|Server|Referer"
+                + "|(S|s)(e|E)c(-[a-zA-Z0-9]+)+"  // Sec-* headers
+                + "|(S|s)(c|C)p(-[a-zA-Z0-9]+)*"  // Scp-* headers
+                + "|(X|x)-[a-zA-Z0-9\\-]+"        // Non-standard headers like X-Forwarded-For
+        );
+        rules.put("NON_STANDARD_HEADER", "([a-zA-Z0-9]+\\-)+([a-zA-Z0-9]+)");
+        rules.put("WORD", "[a-zA-Z0-9\\-_.]+");
+        rules.put("DOT", "\\.");
+        rules.put("COLON", ":");
+        rules.put("ADDRESS", "([0-9a-fA-F]{1,4}:){2,7}[0-9a-fA-F]{1,4}"); // Basic IPv6
+        rules.put("SYMBOL", "[;\\+\\*,\\?!{}\\[\\]]");
+        rules.put("LPAR", "\\(");
+        rules.put("RPAR", "\\)");
+        rules.put("LBRACKET", "\\[");
+        rules.put("RBRACKET", "\\]");
+        rules.put("QUOTES", "\"");
+
+        return rules;
+    }
+
+    public String testCase(){
+
+        return "GET / HTTP/1.1\r\n" + //
+                        "Host:Connection accepted/0:0:0:0:0:0:0:1\r\n" + //
+                        " localhost:8080\r\n" + //
+                        "Connection: keep-alive\r\n" + //
+                        "Cache-Control: max-age=0\r\n" + //
+                        "sec-ch-ua: \"Chromium\";v=\"136\", \"Google Chrome\";v=\"136\", \"Not.A/Brand\";v=\"99\"\r\n" + //
+                        "sec-ch-ua-mobile: ?0\r\n" + //
+                        "sec-ch-ua-platform: \"Windows\"\r\n" + //
+                        "Upgrade-Insecure-Requests: 1\r\n" + //
+                        "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36\r\n" + //
+                        "Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7\r\n" + //
+                        "Sec-Fetch-Site: none\r\n" + //
+                        "Sec-Fetch-Mode: navigate\r\n" + //
+                        "Sec-Fetch-User: ?1\r\n" + //
+                        "Sec-Fetch-Dest: document\r\n" + //
+                        "Accept-Encoding: gzip, deflate, br, zstd\r\n" + //
+                        "Accept-Language: pt-BR,pt;q=0.9,en-US;q=0.8,en;q=0.7\r\n"; //tem que ter o \r\n no final
+    }
+}
+
+package com.example.parser;
+
+import java.util.LinkedList;
+import java.util.List;
+
+import com.example.http.HttpParseException;
+import com.example.http.HttpStatusCode;
+
+public class HttpParser {
+
+    LinkedList<Token> tokens;
+    TreeBuilder treeBuilder = new TreeBuilder();
+
+    public void parse(LinkedList<Token> tokens) {
+
+        this.tokens = tokens;
+
+        try {
+            treeBuilder.startContext("HTTP_MESSAGE"); 
+
+            //Símbolos não terminais são métodos recursivos (Escritos em caixa alta)
+            REQUEST_LINE();
+            HEADERS();
+
+            treeBuilder.endContext();
+            
+            System.out.println("Parsing concluído com sucesso.");
+        } catch (HttpParseException e) {
+            System.err.println("Erro HTTP " + e.getStatusCode().STATUS_CODE + ": " + e.getStatusCode().MESSAGE);
+
+            throw e;
+        } catch (Exception e) {
+            System.err.println("Erro no parsing: " + e.getMessage());
+        }
+    }
+
+    //CONSOME UM TOKEN (TERMINAL) SE ELE FOR DO TIPO ESPERADO, SENÃO PARA EXECUÇÃO 
+    private Token eat(String expected) throws Exception {
+
+        if (tokens.isEmpty()) throw new HttpParseException(HttpStatusCode.CLIENT_ERROR_400_BAD_REQUEST);
+
+        Token token = tokens.poll();
+
+        if (token.type.equals(expected)) {
+            treeBuilder.insertToken(token);
+            return token;
+        } else 
+            throw new HttpParseException(HttpStatusCode.CLIENT_ERROR_400_BAD_REQUEST);
+        
+    }
+
+    /**********************************************************/
+    /*MÉTODOS DOS SÍMBOLOS NÃO TERMINAIS DA GRAMÁTICA DO HTTP */
+    /**********************************************************/
+    void REQUEST_LINE() throws Exception {
+        treeBuilder.startContext("REQUEST_LINE"); //TODO: Transformar em anotação?
+
+        METHOD(); //Valid methods validated inside method
+        eat("SPACE"); 
+        PATH(); //Path size validated inside path
+        eat("SPACE");
+        eat("VERSION");
+        eat("CRLF");
+
+        treeBuilder.endContext();
+    }
+
+    void METHOD() throws Exception {
+        treeBuilder.startContext("METHOD");
+
+        switch (tokens.peek().type) {
+            case "GET": eat("GET"); break;
+            case "PUT": eat("PUT"); break;
+            case "UPDATE": eat("UPDATE"); break;
+            case "DELETE": eat("DELETE"); break;
+            case "TRACE": eat("TRACE"); break;
+            case "OPTIONS": eat("OPTIONS"); break;
+            case "CONNECT": eat("CONNECT"); break;
+            case "HEAD": eat("HEAD"); break;
+            case "POST": eat("POST"); break;
+            default:
+                throw new HttpParseException(HttpStatusCode.CLIENT_ERROR_401_METHOD_NOT_ALLOWED);
+        }
+
+        treeBuilder.endContext();
+    }
+
+    void HEADERS() throws Exception {
+        treeBuilder.startContext("HEADERS");
+        while (!tokens.isEmpty()) {
+            if (tokens.peek().type.equals("CRLF")) {
+                eat("CRLF");
+                break;
+            }
+            HEADER();
+        }
+        treeBuilder.endContext();
+    }
+
+    void HEADER() throws Exception {
+        treeBuilder.startContext("HEADER");
+
+        switch (tokens.peek().type) {
+            case "HEADER_NAME", "NON_STANDARD_HEADER"-> {
+                eat(tokens.peek().type);
+            }
+
+            default -> {
+                System.out.println("Token lido: " + tokens.peek() + " Token esperado: " + "HEADER_NAME");
+                throw new HttpParseException(HttpStatusCode.CLIENT_ERROR_400_BAD_REQUEST);
+            }
+        }
+
+        eat("COLON");
+        HEADER_VALUE();
+        eat("CRLF");
+
+        treeBuilder.endContext();
+    }
+
+    void HEADER_VALUE() throws Exception {
+        treeBuilder.startContext("HEADER_VALUE");
+
+        while (!tokens.isEmpty() && !tokens.peek().type.equals("CRLF")) {
+            eat(tokens.peek().type);
+        }
+
+        treeBuilder.endContext();
+    }
+
+    void PATH() throws Exception {
+        treeBuilder.startContext("PATH");
+        StringBuilder path = new StringBuilder();
+
+        while (!tokens.isEmpty()) {
+            Token token = tokens.peek();
+
+            switch (token.type) {
+                case "BAR":
+                case "DOT":
+                case "WORD":
+                case "NUMBER":
+                    path.append(eat(token.type).expression);
+                    break;
+                default:
+                    treeBuilder.endContext();
+                    break;
+            }
+        }
+
+        //CHECK: path length smaller than 2048
+        if (path.length() > 2048) {
+            throw new HttpParseException(HttpStatusCode.CLIENT_ERROR_414_BAD_REQUEST);
+        }
+
+        treeBuilder.endContext();
+    }
+
+    void BODY() throws Exception {
+        treeBuilder.startContext("BODY");
+        treeBuilder.endContext();
+    }
+
+    //*********************************************************************/
+    //**************************Métodos Auxiliares*************************/
+    //*********************************************************************/
+    public TreeNode getTree() {
+        return treeBuilder.getTree();
+    }
+}
+
+//Serve para auxiliar na construção de uma árvore na medida que percorre o recursive descent
+//Ao entrar em um Não terminal (método em maiúsculo), adiciona um nó a árvore 
+//Toda adição de tokens serão nós filhos desse último nó.
+//Outros não terminais chamados antes de sair do contexto serão filhos diretos desse nó
+//Ao sair do contexto, volta para o pai dele 
+class TreeBuilder {
+
+    private TreeNode tree;
+    private TreeNode currentNode;
+    private LinkedList<TreeNode> ancestors;
+
+    public TreeBuilder() {
+        tree = new TreeNode("ROOT");
+        currentNode = tree;
+        ancestors = new LinkedList<>();
+    }
+
+    //TODO: transformar em anotação?
+    public void startContext(String name) {
+        TreeNode parent = currentNode;
+        ancestors.push(parent);
+        currentNode = new TreeNode(name);
+        parent.children.add(currentNode);
+    }
+
+    public void insertToken(Token token) {
+        currentNode.children.add(token);
+    }
+
+    public void endContext() {
+        TreeNode parent = ancestors.poll();
+        currentNode = parent;
+    }
+
+    public TreeNode getTree() {
+        return tree;
+    }
+
+    //Teste
+    public static void main(String[] args) {
+        Lexer lexer = new HttpLexer();
+        List<Token> tokens = lexer.tokenize(lexer.testCase());
+        HttpParser parser = new HttpParser();
+        parser.parse(new LinkedList<Token>(tokens));
+    }
+}

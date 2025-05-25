@@ -28,12 +28,12 @@ public class HttpBuilder {
 
     public HttpMessage getRequest(InputStream inputStream){
 
-        HttpMessage httpMessage = new HttpMessage();
-        HttpBuilder builder = new HttpBuilder();
+        HttpMessage httpMessage = this.message;
+        HttpBuilder builder     = this;
 
         try{
 
-            String rawHttpRequest = readHttpRequestRaw(inputStream);
+            String rawHttpRequest = readHttpHeader(inputStream);
 
             System.out.println("raw request");
             System.out.println(rawHttpRequest);
@@ -45,6 +45,12 @@ public class HttpBuilder {
             TreeNode AbstractSyntaxTree = httpParser.getTree();
 
             httpMessage = builder.buildFrom(AbstractSyntaxTree);
+
+            //Lê o corpo da mensagem depois de construída com os headers
+            //Refatorar depois, lógica separada de criar mensagem e ler corpo confusa
+            String rawBody = builder.readHttpBody(inputStream, httpMessage);
+
+            httpMessage.setBody(rawBody);
 
         }
         catch(IOException e){
@@ -98,7 +104,7 @@ public class HttpBuilder {
     }
 
     //TODO: está ignorando mensagens com body, adicionar checagem de body (pois para no duplo \n\r dos headers)
-    private String readHttpRequestRaw(InputStream inputStream) throws IOException{
+    private String readHttpHeader(InputStream inputStream) throws IOException{
 
         ByteArrayOutputStream byteBuffer = new ByteArrayOutputStream();
             
@@ -120,5 +126,22 @@ public class HttpBuilder {
         }
 
         return byteBuffer.toString(StandardCharsets.US_ASCII);
+    }
+
+    private String readHttpBody(InputStream inputStream, HttpMessage message) throws IOException{
+
+        ByteArrayOutputStream byteBuffer = new ByteArrayOutputStream();
+
+        int bodyLength = Integer.parseInt(message.getHeaders().get("Content-Length").trim());
+
+        for(int count = 0;  count < bodyLength; count++){
+
+            int _byte = inputStream.read();
+
+            byteBuffer.write(_byte);
+
+        }
+
+        return byteBuffer.toString();
     }
 }
