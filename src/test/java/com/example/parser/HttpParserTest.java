@@ -15,25 +15,16 @@ public class HttpParserTest {
 
     private static HttpLexer lexer;
     private static HttpParser httpParser;
-    private static HttpBuilder httpBuilder;
+    private static HttpRequestReader httpBuilder;
 
     @BeforeAll
     public static void beforeClass() {
         lexer = new HttpLexer();
         httpParser = new HttpParser();
-        httpBuilder = new HttpBuilder();
+        httpBuilder = new HttpRequestReader();
     }
 
-    @Test
-    void testParseAndPrintHttpMessage() {
-        LinkedList<Token> tokens = new LinkedList<>(lexer.tokenize(generateValidTestCase()));
-        httpParser.parse(tokens);
-
-        TreeNode ast = httpParser.getTree();
-        HttpMessage message = httpBuilder.buildFrom(ast);
-        message.print();
-    }
-
+    
     @Test
     void testInvalidRequestLine_missingMethod() {
         String input = "/ HTTP/1.1\r\nHost: localhost\r\n\r\n";

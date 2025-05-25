@@ -11,59 +11,37 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class HttpBuilder {
+public class HttpRequestReader {
 
-    private HttpMessage message;
 
-    public HttpBuilder() {
-        this.message = new HttpMessage();
-    }
+    public HttpMessage process(InputStream inputStream){
 
-    public HttpMessage buildFrom(TreeNode AST) {
-        extractRequestLine(AST);
-        extractHeaders(AST);
-        extractBody(AST);
-        return message;
-    }
-
-    public HttpMessage getRequest(InputStream inputStream){
-
-        HttpMessage httpMessage = this.message;
-        HttpBuilder builder     = this;
+        var message = new HttpMessage();
 
         try{
 
-            String rawHttpRequest = readHttpHeader(inputStream);
-
-            // System.out.println("raw request");
-            // System.out.println(rawHttpRequest);
-
             HttpParser httpParser = new HttpParser();
 
-            httpParser.parse(new HttpLexer().tokenize(rawHttpRequest));
+            httpParser.parse(new HttpLexer().tokenize(readRawHttpHeader(inputStream)));
 
             TreeNode AbstractSyntaxTree = httpParser.getTree();
 
-            httpMessage = builder.buildFrom(AbstractSyntaxTree);
+            populateRequestLine(AbstractSyntaxTree, message);
+            populateHeaders(AbstractSyntaxTree, message);
 
             //Lê o corpo da mensagem depois de construída com os headers
             //Refatorar depois, lógica separada de criar mensagem e ler corpo confusa
-            String rawBody = builder.readHttpBody(inputStream, httpMessage);
+            message.setBody(readRawHttpBody(inputStream, message));
 
-            httpMessage.setBody(rawBody);
-
-        }
-        catch(NullPointerException HttpMessageWithoutBody){
-            httpMessage.setBody(null);
         }
         catch(IOException e){
             e.printStackTrace();
         }
 
-        return httpMessage;
+        return message;
     }
 
-    private void extractRequestLine(TreeNode AST) {
+    private void populateRequestLine(TreeNode AST, HttpMessage message) {
         TreeNode requestLine = (TreeNode) AST.getNodeByType("REQUEST_LINE").get(0);
 
         String methodStr = requestLine.getNodeByType("METHOD").get(0).getExpression();
@@ -79,7 +57,7 @@ public class HttpBuilder {
         message.setVersion(version);
     }
 
-    private void extractHeaders(TreeNode AST) {
+    private void populateHeaders(TreeNode AST, HttpMessage message) {
         List<Node> headers = AST.getNodeByType("HEADER");
 
         Map<String, String> headerMap = new HashMap<>();
@@ -97,7 +75,7 @@ public class HttpBuilder {
         message.setHeaders(headerMap);
     }
 
-    private void extractBody(TreeNode AST) {
+    private void populateBody(TreeNode AST, HttpMessage message) {
         List<Node> bodyNodes = AST.getNodeByType("BODY");
         if (!bodyNodes.isEmpty()) {
             TreeNode bodyNode = (TreeNode) bodyNodes.get(0);
@@ -107,7 +85,7 @@ public class HttpBuilder {
     }
 
     //TODO: está ignorando mensagens com body, adicionar checagem de body (pois para no duplo \n\r dos headers)
-    private String readHttpHeader(InputStream inputStream) throws IOException{
+    private String readRawHttpHeader(InputStream inputStream) throws IOException{
 
         ByteArrayOutputStream byteBuffer = new ByteArrayOutputStream();
             
@@ -131,11 +109,16 @@ public class HttpBuilder {
         return byteBuffer.toString(StandardCharsets.US_ASCII);
     }
 
-    private String readHttpBody(InputStream inputStream, HttpMessage message) throws IOException, NullPointerException{
+    //Lê separadamente a parte do corpo da mensagem, considerando que o header content length já foi populado
+    private String readRawHttpBody(InputStream inputStream, HttpMessage message) throws IOException{
 
         ByteArrayOutputStream byteBuffer = new ByteArrayOutputStream();
 
-        int bodyLength = Integer.parseInt(message.getHeaders().get("Content-Length").trim());
+        String lengthHeader = message.getHeaders().get("Content-Length");
+
+        if(lengthHeader == null) return null;
+
+        int bodyLength = Integer.parseInt(lengthHeader.trim());
 
         for(int count = 0;  count < bodyLength; count++){
 

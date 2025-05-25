@@ -6,7 +6,7 @@ import java.net.Socket;
 
 import com.example.chess.api.HttpChessRouter;
 import com.example.http.HttpMessage;
-import com.example.parser.HttpBuilder;
+import com.example.parser.HttpRequestReader;
 
 public class HttpConnectionWorkerThread extends Thread{
 
@@ -31,7 +31,7 @@ public class HttpConnectionWorkerThread extends Thread{
             inputStream  = socket.getInputStream();
             outputStream = socket.getOutputStream();
 
-            HttpMessage message = new HttpBuilder().getRequest(inputStream);
+            HttpMessage message = new HttpRequestReader().process(inputStream);
 
             router.handleRequest(message, outputStream);
             
