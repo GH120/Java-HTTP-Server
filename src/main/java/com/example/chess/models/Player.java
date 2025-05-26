@@ -16,4 +16,8 @@ public class Player {
 
         return Json.fromJson(info, Player.class);
     }
+
+    public String toString(){
+        return name + "@" + address;
+    }
 }

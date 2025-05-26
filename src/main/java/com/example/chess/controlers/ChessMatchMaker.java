@@ -35,6 +35,8 @@ public class ChessMatchMaker {
             ChessMatch match = new ChessMatch(player, opponent);
             ChessMatchManager.getInstance().addMatch(match);
 
+            //Mandar página html
+
             // Aqui você pode também notificar os jogadores via socket ou resposta HTTP futura
         }
     }

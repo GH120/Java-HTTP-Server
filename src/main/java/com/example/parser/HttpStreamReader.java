@@ -11,7 +11,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class HttpRequestReader {
+public class HttpStreamReader {
 
 
     public HttpMessage process(InputStream inputStream){
@@ -26,8 +26,8 @@ public class HttpRequestReader {
 
             TreeNode AbstractSyntaxTree = httpParser.getTree();
 
-            populateRequestLine(AbstractSyntaxTree, message);
-            populateHeaders(AbstractSyntaxTree, message);
+            populateRequestLine(message, AbstractSyntaxTree);
+            populateHeaders(message, AbstractSyntaxTree);
 
             //Lê o corpo da mensagem depois de construída com os headers
             //Refatorar depois, lógica separada de criar mensagem e ler corpo confusa
@@ -41,7 +41,7 @@ public class HttpRequestReader {
         return message;
     }
 
-    private void populateRequestLine(TreeNode AST, HttpMessage message) {
+    private void populateRequestLine(HttpMessage message, TreeNode AST) {
         TreeNode requestLine = (TreeNode) AST.getNodeByType("REQUEST_LINE").get(0);
 
         String methodStr = requestLine.getNodeByType("METHOD").get(0).getExpression();
@@ -57,7 +57,7 @@ public class HttpRequestReader {
         message.setVersion(version);
     }
 
-    private void populateHeaders(TreeNode AST, HttpMessage message) {
+    private void populateHeaders(HttpMessage message, TreeNode AST) {
         List<Node> headers = AST.getNodeByType("HEADER");
 
         Map<String, String> headerMap = new HashMap<>();
@@ -75,7 +75,7 @@ public class HttpRequestReader {
         message.setHeaders(headerMap);
     }
 
-    private void populateBody(TreeNode AST, HttpMessage message) {
+    private void populateBody(HttpMessage message, TreeNode AST) {
         List<Node> bodyNodes = AST.getNodeByType("BODY");
         if (!bodyNodes.isEmpty()) {
             TreeNode bodyNode = (TreeNode) bodyNodes.get(0);

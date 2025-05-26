@@ -11,6 +11,16 @@ public class HttpMessage {
     private Map<String, String> headers; //Talvez criar um enum de headers
     private String body;
 
+    public HttpMessage(){
+        
+    }
+
+    public HttpMessage(HttpMethod method, String path){
+        setMethod(HttpMethod.GET);
+        setVersion("HTTP/1.1");
+        setPath(path);
+    }
+
     public HttpMethod getMethod() {
         return method;
     }

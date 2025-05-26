@@ -15,13 +15,13 @@ public class HttpParserTest {
 
     private static HttpLexer lexer;
     private static HttpParser httpParser;
-    private static HttpRequestReader httpBuilder;
+    private static HttpStreamReader httpBuilder;
 
     @BeforeAll
     public static void beforeClass() {
         lexer = new HttpLexer();
         httpParser = new HttpParser();
-        httpBuilder = new HttpRequestReader();
+        httpBuilder = new HttpStreamReader();
     }
 
     

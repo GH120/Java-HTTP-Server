@@ -2,6 +2,7 @@ package com.example.chess.controlers;
 
 import java.util.concurrent.ConcurrentHashMap;
 import com.example.chess.models.ChessMatch;
+import com.example.chess.models.Player;
 
 public class ChessMatchManager {
 
@@ -20,9 +21,14 @@ public class ChessMatchManager {
     }
 
     public void addMatch(ChessMatch match) {
-        String matchId = match.getWhite().name + "_vs_" + match.getBlack().name;
-        matches.put(matchId, match);
+        
+        matches.put(match.getWhite().toString(), match);
+        matches.put(match.getBlack().toString(), match);
     }
 
     // métodos para buscar ou gerenciar partidas
+    public ChessMatch getMatchFromPlayer(Player player){
+
+        return matches.get(player.toString());
+    }
 }

@@ -7,6 +7,10 @@ import java.nio.file.Files;
 import java.util.ArrayList;
 
 import com.example.chess.controlers.ChessMatchMaker;
+import com.example.chess.controlers.ChessMatchManager;
+import com.example.chess.controlers.GameController;
+import com.example.chess.models.ChessMatch;
+import com.example.chess.models.Move;
 import com.example.chess.models.Player;
 import com.example.config.Configuration;
 import com.example.config.ConfigurationManager;
@@ -81,7 +85,7 @@ public class HttpChessRouter extends HttpRouter{
 
         System.out.println("API ativada");
 
-        request.print();
+        // request.print();
 
         switch(request.getPath()){
 
@@ -91,11 +95,17 @@ public class HttpChessRouter extends HttpRouter{
 
                 ChessMatchMaker.getInstance().findDuel(player);
 
-                System.out.println(player);
-
                 break;
             }
             case "/api/move":{
+
+                Player player = Player.fromRequest(request);
+                
+                ChessMatch match = ChessMatchManager.getInstance().getMatchFromPlayer(player);
+                
+                Move move = Move.fromRequest(request);
+
+                GameController.getInstance().playMove(player, match, move);
                 
                 break;
             }
