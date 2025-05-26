@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.file.Files;
 import java.util.ArrayList;
+import java.util.List;
 
 import com.example.chess.controlers.ChessMatchMaker;
 import com.example.chess.controlers.ChessMatchManager;
@@ -12,6 +13,7 @@ import com.example.chess.controlers.GameController;
 import com.example.chess.models.ChessMatch;
 import com.example.chess.models.Move;
 import com.example.chess.models.Player;
+import com.example.chess.models.Position;
 import com.example.config.Configuration;
 import com.example.config.ConfigurationManager;
 import com.example.core.HttpRouter;
@@ -106,6 +108,24 @@ public class HttpChessRouter extends HttpRouter{
                 Move move = Move.fromRequest(request);
 
                 GameController.getInstance().playMove(player, match, move);
+
+                //Escreve resposta dizendo que foi um sucesso
+                
+                break;
+            }
+
+            case "/api/seeMoves":{
+
+                Player player = Player.fromRequest(request);
+                
+                ChessMatch match = ChessMatchManager.getInstance().getMatchFromPlayer(player);
+                
+                Position position = Position.fromRequest(request);
+
+                List<Move> allowedPositions = GameController.getInstance()
+                                                            .seePossibleMoves(match, position);
+
+                //Escreve resposta com a lista de movimentos
                 
                 break;
             }

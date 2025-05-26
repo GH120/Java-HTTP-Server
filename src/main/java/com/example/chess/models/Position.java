@@ -1,5 +1,7 @@
 package com.example.chess.models;
 
+import com.example.http.HttpMessage;
+
 public class Position {
 
     public final int x;
@@ -13,5 +15,10 @@ public class Position {
 
     public String toString(){
         return numberToChar[x] + y;
+    }
+
+    //TODO
+    public static Position fromRequest(HttpMessage request){
+        return new Position(0,0);
     }
 }

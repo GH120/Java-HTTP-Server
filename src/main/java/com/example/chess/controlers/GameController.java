@@ -1,12 +1,13 @@
 package com.example.chess.controlers;
 
 import java.util.LinkedList;
-
-import javax.swing.text.Position;
+import java.util.List;
 
 import com.example.chess.models.ChessMatch;
 import com.example.chess.models.Move;
+import com.example.chess.models.Piece;
 import com.example.chess.models.Player;
+import com.example.chess.models.Position;
 
 public class GameController {
 
@@ -31,8 +32,11 @@ public class GameController {
 
     }
 
-    public void seePossibleMoves(Player player, ChessMatch match, Position position){
+    public List<Move> seePossibleMoves(ChessMatch match, Position position){
 
+        Piece piece = match.getPiece(position);
+
+        return piece.allowedMoves(match.getBoard());
     }
 
 }

@@ -26,6 +26,14 @@ public class ChessMatch {
         return white;
     }
 
+    public Piece getPiece(Position position){
+        return board[position.x][position.y];
+    }
+
+    public Piece[][] getBoard(){
+        return board;
+    }
+
     private void populateGameStart(){
         //Insere todas as peças do tabuleiro na partida
     }
