@@ -2,14 +2,18 @@ package com.example.chess.models;
 
 import java.util.LinkedList;
 import java.util.Queue;
+import java.util.Set;
 
 public class ChessMatch {
+    
+    Queue<String> history;
+    Integer       turn;
+    Piece[][]     board;
 
     Player        white;
     Player        black;
-    Queue<String> history;
-    Piece[][]     board;
-
+    Set<Piece>    blackPieces;
+    Set<Piece>    whitePieces;
 
     public ChessMatch(Player player1, Player player2){
         white   = player1;
@@ -32,6 +36,17 @@ public class ChessMatch {
 
     public Piece[][] getBoard(){
         return board;
+    }
+
+    public PieceColor getCurrentPlayer(){
+        return turn % 2 == 0 ? PieceColor.WHITE : PieceColor.BLACK;
+    }
+
+    public void registerMove(Move move){
+
+        history.add(move.toString());
+        
+        turn++;
     }
 
     private void populateGameStart(){
