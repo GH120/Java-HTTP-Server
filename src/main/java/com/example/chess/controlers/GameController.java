@@ -40,12 +40,12 @@ public class GameController {
         return piece.allowedMoves(match.getBoard());
     }
 
-    //Supõe que jogada já é válida 
+     //Supõe que jogada já é válida 
     //Verifica se a jogada causa cheque no adversário
     public boolean causesCheckOnOpponent(ChessMatch match, Move move){
 
         Piece      piece = match.getPiece(move.origin);
-        PieceColor color = match.getCurrentPlayer();
+        PieceColor color = piece.color;
 
         List<Move> attackedTiles = piece.allowedMovesFrom(match.getBoard(), move.destination);
         
@@ -65,11 +65,18 @@ public class GameController {
     //Cuidado com peças que são devoradas e não devem ser mais consideradas
     public boolean causesCheckOnThemselves(ChessMatch match, Move move){
 
-        Piece king = findKing(match, match.getCurrentPlayer());
+        Piece king = findKing(match, match.getPiece(move).color);
 
         // for(Piece enemyPiece : match.adversary)
-        // for(Move attack : enemyPiece.allowedMoves)
-        // if attack hits king returns true
+        for(Piece enemyPiece : match.enemyPieces(king.color)){
+
+            for(Move attack : enemyPiece.allowedMoves(match.getBoard())){
+                
+                Piece attackedPiece = match.getPiece(attack.destination);
+
+                if(attackedPiece == king) return true;
+            }
+        }
 
         return false;
     }
@@ -78,9 +85,19 @@ public class GameController {
     //Cuidado com peças que são devoradas e não devem ser mais consideradas
     public boolean checkMate(ChessMatch match, Move move){
 
+        Piece king = findKing(match, match.getOpponent());
 
-        //if opponent moves causes check
-        //if for every move king does, he still is in check
+        //Se o movimento causa cheque no rei, vê se é cheque mate
+        if(causesCheckOnOpponent(match,move)){
+
+            //Se algum movimento do rei não está em cheque, então não é cheque mate
+            for(Move kingMove : king.allowedMoves(match.getBoard()))
+                if(!causesCheckOnThemselves(match, move)) 
+                    return false;
+
+            //Se todos estavam em cheque, então é cheque mate
+            return true;
+        }
 
         return false;
     }
