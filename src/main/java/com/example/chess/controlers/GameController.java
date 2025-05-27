@@ -92,7 +92,7 @@ public class GameController {
 
             //Se algum movimento do rei não está em cheque, então não é cheque mate
             for(Move kingMove : king.allowedMoves(match.getBoard()))
-                if(!causesCheckOnThemselves(match, move)) 
+                if(!causesCheckOnThemselves(match, kingMove)) 
                     return false;
 
             //Se todos estavam em cheque, então é cheque mate
