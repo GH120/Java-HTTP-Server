@@ -21,4 +21,8 @@ public class Position {
     public static Position fromRequest(HttpMessage request){
         return new Position(0,0);
     }
+
+    public Position neighbourTile(Direction direction){
+        return new Position(x + direction.x, y + direction.y);
+    }
 }

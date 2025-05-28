@@ -12,7 +12,7 @@ public class ChessMatch {
 
     Player        white;
     Player        black;
-    Set<Piece>    blackPieces;
+    Set<Piece>    blackPieces; //Colocar peças no player?
     Set<Piece>    whitePieces;
 
     public ChessMatch(Player player1, Player player2){
@@ -40,6 +40,14 @@ public class ChessMatch {
 
     public PieceColor getCurrentPlayer(){
         return turn % 2 == 0 ? PieceColor.WHITE : PieceColor.BLACK;
+    }
+
+    public PieceColor getOpponent(){
+        return turn % 2 == 0 ? PieceColor.BLACK : PieceColor.WHITE;
+    }
+
+    public Set<Piece> getAllPieces(PieceColor color){
+        return color == PieceColor.WHITE ? whitePieces : blackPieces;
     }
 
     public void registerMove(Move move){

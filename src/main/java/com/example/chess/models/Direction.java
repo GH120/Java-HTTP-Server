@@ -1,0 +1,34 @@
+package com.example.chess.models;
+
+public enum Direction {
+
+    NORTH(1,0), NORTHWEST(1,-1), NORTHEAST(1,1),
+    SOUTH(1,0), SOUTHWEST(1,-1), SOUTHEAST(1,1),
+    WEST(0,-1), EAST(1,0);
+
+    public final int x;
+    public final int y;
+
+    Direction(int x, int y){
+        this.x = x;
+        this.y = y;
+    }
+
+    public Direction perpendicular(boolean clockwise){
+        
+        int perpendicularX = clockwise? y  : -y;
+        int perpendicularY = clockwise? -x :  x;
+
+        for(Direction direcao : values()){
+            
+            if(direcao.x == perpendicularX){
+                if(direcao.y == perpendicularY){
+                    return direcao;
+                }
+            }
+
+        }
+
+        throw new IllegalStateException("Sem direção perpendicular");
+    }
+}

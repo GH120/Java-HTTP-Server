@@ -40,67 +40,69 @@ public class GameController {
         return piece.allowedMoves(match.getBoard());
     }
 
-     //Supõe que jogada já é válida 
-    //Verifica se a jogada causa cheque no adversário
-    public boolean causesCheckOnOpponent(ChessMatch match, Move move){
+    //  //Supõe que jogada já é válida 
+    // //Verifica se a jogada causa cheque no adversário
+    // public boolean causesCheckOnOpponent(ChessMatch match, Move move){
 
-        Piece      piece = match.getPiece(move.origin);
-        PieceColor color = piece.color;
+    //     Piece      piece = match.getPiece(move.origin);
+    //     PieceColor color = piece.getColor();
 
-        List<Move> attackedTiles = piece.allowedMovesFrom(match.getBoard(), move.destination);
+    //     List<Move> attackedTiles = piece.allowedMovesFrom(match.getBoard(), move.destination);
         
-        for(Move attack : attackedTiles){
+    //     for(Move attack : attackedTiles){
             
-            Piece attackedPiece = match.getPiece(attack.destination);
+    //         Piece attackedPiece = match.getPiece(attack.destination);
 
-            if(attackedPiece instanceof King && !attackedPiece.sameColor(color)){
-                return true;
-            }
-        }
+    //         if(attackedPiece instanceof King && !attackedPiece.sameColor(color)){
+    //             return true;
+    //         }
+    //     }
 
-        return false;
-    }
+    //     return false;
+    // }
 
-    //Retorna se jogada inválida pois deixa o rei exposto
-    //Cuidado com peças que são devoradas e não devem ser mais consideradas
-    public boolean causesCheckOnThemselves(ChessMatch match, Move move){
+    // //Retorna se jogada inválida pois deixa o rei exposto
+    // //Cuidado com peças que são devoradas e não devem ser mais consideradas
+    // public boolean causesCheckOnThemselves(ChessMatch match, Move move){
 
-        Piece king = findKing(match, match.getPiece(move).color);
+    //     PieceColor color = match.getPiece(move.origin).getColor();
 
-        // for(Piece enemyPiece : match.adversary)
-        for(Piece enemyPiece : match.enemyPieces(king.color)){
+    //     Piece king = findKing(match, color);
 
-            for(Move attack : enemyPiece.allowedMoves(match.getBoard())){
+    //     // for(Piece enemyPiece : match.adversary)
+    //     for(Piece enemyPiece : match.getAllPieces(color.opposite())){
+
+    //         for(Move attack : enemyPiece.allowedMoves(match.getBoard())){
                 
-                Piece attackedPiece = match.getPiece(attack.destination);
+    //             Piece attackedPiece = match.getPiece(attack.destination);
 
-                if(attackedPiece == king) return true;
-            }
-        }
+    //             if(attackedPiece == king) return true;
+    //         }
+    //     }
 
-        return false;
-    }
+    //     return false;
+    // }
 
-    //Retorna se a jogada causa um cheque mate, onde o rei não tem escape
-    //Cuidado com peças que são devoradas e não devem ser mais consideradas
-    public boolean checkMate(ChessMatch match, Move move){
+    // //Retorna se a jogada causa um cheque mate, onde o rei não tem escape
+    // //Cuidado com peças que são devoradas e não devem ser mais consideradas
+    // public boolean checkMate(ChessMatch match, Move move){
 
-        Piece king = findKing(match, match.getOpponent());
+    //     Piece king = findKing(match, match.getOpponent());
 
-        //Se o movimento causa cheque no rei, vê se é cheque mate
-        if(causesCheckOnOpponent(match,move)){
+    //     //Se o movimento causa cheque no rei, vê se é cheque mate
+    //     if(causesCheckOnOpponent(match,move)){
 
-            //Se algum movimento do rei não está em cheque, então não é cheque mate
-            for(Move kingMove : king.allowedMoves(match.getBoard()))
-                if(!causesCheckOnThemselves(match, kingMove)) 
-                    return false;
+    //         //Se algum movimento do rei não está em cheque, então não é cheque mate
+    //         for(Move kingMove : king.allowedMoves(match.getBoard()))
+    //             if(!causesCheckOnThemselves(match, kingMove)) 
+    //                 return false;
 
-            //Se todos estavam em cheque, então é cheque mate
-            return true;
-        }
+    //         //Se todos estavam em cheque, então é cheque mate
+    //         return true;
+    //     }
 
-        return false;
-    }
+    //     return false;
+    // }
 
     public Piece findKing(ChessMatch match, PieceColor color){
         
@@ -111,7 +113,7 @@ public class GameController {
                 if(piece == null) continue;
 
                 if(piece instanceof King)
-                    if(piece.sameColor(color))
+                    if(piece.getColor() == color)
                         return piece;
             }
         }
