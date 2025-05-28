@@ -57,7 +57,15 @@ public class ChessMatch {
         turn++;
     }
 
+    public static boolean withinBoard(Piece[][] board, Position position){
+
+        Integer length = board.length;
+
+        return position.x > 0 && position.y > 0 && position.x < length && position.y < length;
+    }
+
     private void populateGameStart(){
         //Insere todas as peças do tabuleiro na partida
     }
+
 }

@@ -10,6 +10,7 @@ import com.example.chess.models.Position;
 
 public class Pawn extends Piece{
 
+    //TODO: verificar se movimentos estão withinBoard
     public List<Move> allowedMoves(Piece[][] board){
 
         ArrayList<Move> moves = new ArrayList<>();

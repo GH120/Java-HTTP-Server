@@ -3,6 +3,7 @@ package com.example.chess.models.chesspieces;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.example.chess.models.ChessMatch;
 import com.example.chess.models.Direction;
 import com.example.chess.models.Move;
 import com.example.chess.models.Piece;
@@ -35,8 +36,6 @@ public class Rook extends Piece{
     //Mesma função em queen e bishop, só muda o nome
     public void factorLine(Piece[][] board, List<Move> moves, Direction direction){
         
-        Integer  length    = board.length;
-        
         Position tile      = position.neighbourTile(direction);
         Position lastTile  = position;
         Piece    neighbour = board[lastTile.x][lastTile.y];
@@ -44,7 +43,7 @@ public class Rook extends Piece{
         while(neighbour == null){
 
             //Saiu do tamanho do tabuleiro
-            if(tile.x < 0 || tile.x >= length || tile.y < 0 || tile.y >= length) break;
+            if(!ChessMatch.withinBoard(board, tile)) break;
 
             neighbour = board[tile.x][tile.y];
 
