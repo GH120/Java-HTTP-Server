@@ -9,6 +9,7 @@ import com.example.chess.models.Piece;
 import com.example.chess.models.PieceColor;
 import com.example.chess.models.Player;
 import com.example.chess.models.Position;
+import com.example.chess.models.chesspieces.King;
 
 public class GameController {
 
@@ -120,10 +121,5 @@ public class GameController {
 
         return null;
     }
-
-}
-
-
-abstract class King extends Piece{
 
 }

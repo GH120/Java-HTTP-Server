@@ -45,7 +45,7 @@ public class Queen extends Piece{
         while(neighbour == null){
 
             //Saiu do tamanho do tabuleiro
-            if(!ChessMatch.withinBoard(board, tile)) break;
+            if(!ChessMatch.withinBoard(board, tile)) continue;
 
             neighbour = board[tile.x][tile.y];
 
