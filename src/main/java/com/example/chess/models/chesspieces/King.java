@@ -46,28 +46,4 @@ public class King extends Piece{
 
         return moves;
     }
-
-    //Função auxiliar que calcula todos os movimentos permitidos em uma direção
-    //Mesma função em rook e bishop, só muda o nome
-    public void factorLinesAndDiagonals(Piece[][] board, List<Move> moves, Direction direction){
-        
-        Position tile      = position.neighbourTile(direction);
-        Position lastTile  = position;
-        Piece    neighbour = board[lastTile.x][lastTile.y];
-
-        while(neighbour == null){
-
-            //Saiu do tamanho do tabuleiro
-            if(!ChessMatch.withinBoard(board, tile)) break;
-
-            neighbour = board[tile.x][tile.y];
-
-            //Só adiciona se for inimigo ou quadrante vazio, peças amigas não são adicionadas
-            if(enemyPiece(neighbour) || neighbour == null){
-                moves.add(new Move(lastTile, tile));
-            }
-
-            lastTile = tile;
-        } 
-    }
 }

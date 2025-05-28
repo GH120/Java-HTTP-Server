@@ -107,6 +107,9 @@ public class HttpChessRouter extends HttpRouter{
                 
                 Move move = Move.fromRequest(request);
 
+                //Transformar isso numa thread
+                //Fazer alguma maneira de recuperar a thread do ChessMatchManager
+                //Thread teria uma função playMove sincronizada
                 GameController.getInstance().playMove(player, match, move);
 
                 //Escreve resposta dizendo que foi um sucesso

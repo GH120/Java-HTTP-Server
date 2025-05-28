@@ -4,6 +4,11 @@ import java.util.LinkedList;
 import java.util.Queue;
 import java.util.Set;
 
+import com.example.chess.models.chesspieces.King;
+
+//Classe primariamente de dados e acesso a dados
+//Comportamento de jogada tratada em GameController
+//Validação de regras feita em ChessRules
 public class ChessMatch {
     
     Queue<String> history;
@@ -55,6 +60,14 @@ public class ChessMatch {
         history.add(move.toString());
         
         turn++;
+    }
+
+    public Piece findKing(PieceColor color){
+
+        return getAllPieces(color).stream()
+                                  .filter(p -> p instanceof King)
+                                  .findFirst()
+                                  .orElse(null);
     }
 
     public static boolean withinBoard(Piece[][] board, Position position){

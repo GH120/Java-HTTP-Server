@@ -25,7 +25,7 @@ public class Knight extends Piece{
         ArrayList<Move> moves = new ArrayList<Move>();
 
         for(Direction attackDirection : attackDirections){
-            factorAttackDirection(board, moves, attackDirection);
+            addAttackDirection(board, moves, attackDirection);
         }
 
         return moves;
@@ -34,17 +34,17 @@ public class Knight extends Piece{
 
     //Função auxiliar que calcula todos os movimentos permitidos em uma direção
     //Diferente da função em queen, bishop e rook
-    public void factorAttackDirection(Piece[][] board, List<Move> moves, Direction direction){
+    private void addAttackDirection(Piece[][] board, List<Move> moves, Direction direction){
 
         //Movimento em L: dois na direção e um na perpendicular (sentido antihorário)
         Position leftHook      = position.neighbourTile(direction)
                                          .neighbourTile(direction)
-                                         .neighbourTile(direction.perpendicular(false));
+                                         .neighbourTile(direction.rotate90Degrees(false));
 
         //Movimento em L: dois na direção e um na perpendicular (sentido horário)
         Position rightHook     = position.neighbourTile(direction)
                                          .neighbourTile(direction)
-                                         .neighbourTile(direction.perpendicular(true));
+                                         .neighbourTile(direction.rotate90Degrees(true));
 
 
         //Dois ataques na direção escolhida, um pra direita e outro pra esquerda
@@ -52,7 +52,7 @@ public class Knight extends Piece{
         attackInL(board, moves, leftHook);
     }
 
-    public void attackInL(Piece[][] board, List<Move> moves, Position attackedTile){
+    private void attackInL(Piece[][] board, List<Move> moves, Position attackedTile){
 
         
         if(ChessMatch.withinBoard(board, attackedTile)){
