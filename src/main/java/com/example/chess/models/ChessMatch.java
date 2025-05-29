@@ -1,8 +1,8 @@
 package com.example.chess.models;
 
 import java.util.LinkedList;
-import java.util.Queue;
 import java.util.Set;
+import java.util.Stack;
 
 import com.example.chess.models.chesspieces.King;
 
@@ -11,7 +11,7 @@ import com.example.chess.models.chesspieces.King;
 //Validação de regras feita em ChessRules
 public class ChessMatch {
     
-    Queue<String> history;
+    Stack<Move>   history;
     Integer       turn;
     Piece[][]     board;
 
@@ -23,7 +23,7 @@ public class ChessMatch {
     public ChessMatch(Player player1, Player player2){
         white   = player1;
         black   = player2;
-        history = new LinkedList<String>();
+        history = new Stack<Move>();
         board   = new Piece[8][8];
     }
 
@@ -57,9 +57,13 @@ public class ChessMatch {
 
     public void registerMove(Move move){
 
-        history.add(move.toString());
+        history.add(move);
         
         turn++;
+    }
+
+    public Move getLastMove(){
+        return history.peek();
     }
 
     public Piece findKing(PieceColor color){

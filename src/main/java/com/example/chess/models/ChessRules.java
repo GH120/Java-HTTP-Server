@@ -1,83 +1,112 @@
 package com.example.chess.models;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import com.example.chess.models.chesspieces.King;
+import com.example.chess.models.chesspieces.Pawn;
+import com.example.chess.models.chesspieces.Rook;
 
 public class ChessRules {
 
-    //Valida   jogadas padrões, eliminando aquelas que causam cheque no rei do jogador
-    //Adiciona jogadas não-padrões, como o en-passant, o roque etc...
-    private List<Move> process(List<Move> moves){
+    // Valida movimentos padrão e adiciona especiais (en passant, roque)
+    public List<Move> validateMoves(ChessMatch match, Piece piece, List<Move> rawMoves) {
+        
+        List<Move> validMoves = new ArrayList<>();
 
+        for (Move move : rawMoves) {
 
+            if (wouldCauseSelfCheck(match, piece, move)) continue;
+                
+            validMoves.add(move);
+        }
 
-        return null;
+        addSpecialMoves(match, piece, validMoves);
+        
+        return validMoves;
     }
 
-    //Regra de 
+    // -- Regras Especiais -- //
+    private void addSpecialMoves(ChessMatch match, Piece piece, List<Move> moves) {
+        // if (piece instanceof King) addCastlingMoves(match,  (King) piece, moves);
+        if (piece instanceof Pawn) addEnPassantMoves(match, (Pawn) piece, moves);
+    }
 
-    //  //Supõe que jogada já é válida 
-    // //Verifica se a jogada causa cheque no adversário
-    // public boolean causesCheckOnOpponent(ChessMatch match, Move move){
+    // // Roque (pequeno e grande)
+    // private void addCastlingMoves(ChessMatch match, King king, List<Move> moves) {
+    //     if (king.hasMoved() || isInCheck(match, king.getColor())) return;
 
-    //     Piece      piece = match.getPiece(move.origin);
-    //     PieceColor color = piece.getColor();
+    //     Piece[][] board = match.getBoard();
+    //     int row = king.position.x;
 
-    //     List<Move> attackedTiles = piece.allowedMovesFrom(match.getBoard(), move.destination);
-        
-    //     for(Move attack : attackedTiles){
-            
-    //         Piece attackedPiece = match.getPiece(attack.destination);
+    //     // Roque pequeno (torre direita)
+    //     if (canCastle(match, board, row, 7)) {
+    //         moves.add(new Move(king.position, new Position(row, 6)));
+    //     }
 
-    //         if(attackedPiece instanceof King && !attackedPiece.sameColor(color)){
-    //             return true;
+    //     // Roque grande (torre esquerda)
+    //     if (canCastle(match, board, row, 0)) {
+    //         moves.add(new Move(king.position, new Position(row, 2)));
+    //     }
+    // }
+
+    // private boolean canCastle(ChessMatch match, Piece[][] board, int row, int rookCol) {
+    //     Piece rook = board[row][rookCol];
+    //     if (!(rook instanceof Rook) || ((Rook) rook).hasMoved()) return false;
+
+    //     int step = rookCol == 0 ? -1 : 1;
+    //     int end = rookCol == 0 ? 3 : 5;
+
+    //     // Verifica casas vazias e não atacadas
+    //     for (int col = king.position.y + step; col != end; col += step) {
+    //         if (board[row][col] != null || isSquareUnderAttack(match, new Position(row, col))) {
+    //             return false;
     //         }
     //     }
-
-    //     return false;
+    //     return true;
     // }
 
-    // //Retorna se jogada inválida pois deixa o rei exposto
-    // //Cuidado com peças que são devoradas e não devem ser mais consideradas
-    // public boolean causesCheckOnThemselves(ChessMatch match, Move move){
+    // En passant
+    private void addEnPassantMoves(ChessMatch match, Pawn pawn, List<Move> moves) {
+        Move lastMove = match.getLastMove();
+        if (lastMove == null) return;
 
-    //     PieceColor color = match.getPiece(move.origin).getColor();
+        Position adjacentPos = pawn.position.neighbourTile(
+            pawn.getColor() == PieceColor.WHITE ? Direction.NORTH : Direction.SOUTH
+        );
 
-    //     Piece king = findKing(match, color);
+        if (isEnPassantOpportunity(pawn, lastMove, adjacentPos)) {
+            moves.add(new Move(pawn.position, adjacentPos));
+        }
+    }
 
-    //     // for(Piece enemyPiece : match.adversary)
-    //     for(Piece enemyPiece : match.getAllPieces(color.opposite())){
+    private boolean isEnPassantOpportunity(Pawn pawn, Move lastMove, Position target) {
+        // Implemente a lógica específica de en passant aqui
+        return false; // Placeholder
+    }
 
-    //         for(Move attack : enemyPiece.allowedMoves(match.getBoard())){
-                
-    //             Piece attackedPiece = match.getPiece(attack.destination);
+    // -- Validações de Xeque -- //
+    public boolean isInCheck(ChessMatch match, PieceColor color) {
+        Position kingPos = match.findKing(color).position;
+        return isSquareUnderAttack(match, kingPos, color.opposite());
+    }
 
-    //             if(attackedPiece == king) return true;
-    //         }
-    //     }
+    private boolean wouldCauseSelfCheck(ChessMatch match, Piece piece, Move move) {
+        ChessMatch simulatedMatch = simulateMove(match, piece, move);
+        return isInCheck(simulatedMatch, piece.getColor());
+    }
 
-    //     return false;
-    // }
+    private boolean isSquareUnderAttack(ChessMatch match, Position square, PieceColor byColor) {
+        return match.getAllPieces(byColor)
+                    .stream()
+                    .anyMatch(p -> p.allowedMoves(match.getBoard()).stream()
+                    .anyMatch(m -> m.destination.equals(square)));
+    }
 
-    // //Retorna se a jogada causa um cheque mate, onde o rei não tem escape
-    // //Cuidado com peças que são devoradas e não devem ser mais consideradas
-    // public boolean checkMate(ChessMatch match, Move move){
-
-    //     Piece king = findKing(match, match.getOpponent());
-
-    //     //Se o movimento causa cheque no rei, vê se é cheque mate
-    //     if(causesCheckOnOpponent(match,move)){
-
-    //         //Se algum movimento do rei não está em cheque, então não é cheque mate
-    //         for(Move kingMove : king.allowedMoves(match.getBoard()))
-    //             if(!causesCheckOnThemselves(match, kingMove)) 
-    //                 return false;
-
-    //         //Se todos estavam em cheque, então é cheque mate
-    //         return true;
-    //     }
-
-    //     return false;
-    // }
+    // -- Utilitários -- //
+    private ChessMatch simulateMove(ChessMatch match, Piece piece, Move move) {
+        // Implemente uma simulação de movimento sem alterar o estado real
+        return match; // Placeholder
+    }
 }

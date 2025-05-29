@@ -21,4 +21,16 @@ abstract public class Piece {
 
         return piece != null && piece.getColor() != color;
     }
+
+    public void apply(Move move){
+
+        // if(move.origin != position) 
+        //     throw new MoveDoesNotOriginateFromPosition();
+
+        position = move.destination;
+    }
+}
+
+class MoveDoesNotOriginateFromPosition extends Exception{
+
 }

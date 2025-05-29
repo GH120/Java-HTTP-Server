@@ -11,6 +11,8 @@ import com.example.chess.models.Position;
 
 public class King extends Piece{
 
+    private boolean hasMoved = false;
+
     private final Direction[] attackDirections = {
                                                     Direction.NORTHEAST, 
                                                     Direction.NORTHWEST,
@@ -45,5 +47,15 @@ public class King extends Piece{
         }
 
         return moves;
+    }
+
+    public void apply(Move move){
+        super.apply(move);
+
+        hasMoved = true;
+    }
+
+    public boolean hasMoved(){
+        return hasMoved;
     }
 }
