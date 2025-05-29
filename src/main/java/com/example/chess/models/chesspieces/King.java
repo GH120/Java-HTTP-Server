@@ -49,8 +49,8 @@ public class King extends Piece{
         return moves;
     }
 
-    public void apply(Move move){
-        super.apply(move);
+    public void apply(Piece[][] board, Move move){
+        super.apply(board, move);
 
         hasMoved = true;
     }

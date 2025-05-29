@@ -79,7 +79,7 @@ public class Pawn extends Piece{
 
     }
 
-    private Direction getDirectionConsideringColor(Direction direction){
+    public Direction getDirectionConsideringColor(Direction direction){
         return (getColor() == PieceColor.WHITE)? direction : direction.invert();
     }
 

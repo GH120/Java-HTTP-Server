@@ -22,11 +22,15 @@ abstract public class Piece {
         return piece != null && piece.getColor() != color;
     }
 
-    public void apply(Move move){
+    public void apply(Piece[][] board, Move move){
 
-        // if(move.origin != position) 
-        //     throw new MoveDoesNotOriginateFromPosition();
+        // Ao sair da posição, coloca ela como nula no tabuleiro
+        board[position.x][position.y] = null; 
+        
+        // Ao mover para posição, sobrescreve o quadrado atacado/movido
+        board[move.destination.x][move.destination.y] = this; 
 
+        
         position = move.destination;
     }
 }

@@ -25,6 +25,11 @@ public class Move {
         this.event       = Event.NORMAL;
     }
 
+    public Move setEvent(Event event){
+        this.event = event;
+        return this;
+    }
+
     public static Move fromRequest(HttpMessage request){
 
         return new Move(null, null);

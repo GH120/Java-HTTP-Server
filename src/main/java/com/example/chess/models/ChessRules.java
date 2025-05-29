@@ -1,6 +1,7 @@
 package com.example.chess.models;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -9,6 +10,8 @@ import com.example.chess.models.chesspieces.Pawn;
 import com.example.chess.models.chesspieces.Rook;
 
 public class ChessRules {
+
+    MoveSimulator simulator = new MoveSimulator();
 
     // Valida movimentos padrão e adiciona especiais (en passant, roque)
     public List<Move> validateMoves(ChessMatch match, Piece piece, List<Move> rawMoves) {
@@ -70,18 +73,24 @@ public class ChessRules {
     // En passant
     private void addEnPassantMoves(ChessMatch match, Pawn pawn, List<Move> moves) {
         Move lastMove = match.getLastMove();
+        
         if (lastMove == null) return;
 
-        Position adjacentPos = pawn.position.neighbourTile(
-            pawn.getColor() == PieceColor.WHITE ? Direction.NORTH : Direction.SOUTH
-        );
+        Direction direction = pawn.getDirectionConsideringColor(Direction.NORTH);
 
-        if (isEnPassantOpportunity(pawn, lastMove, adjacentPos)) {
-            moves.add(new Move(pawn.position, adjacentPos));
+        Position  attackedTile = pawn.position.neighbourTile(direction);
+
+        if (isEnPassantOpportunity(pawn, lastMove, attackedTile)) {
+
+            Move move = new Move(pawn.position, attackedTile);
+
+            move.setEvent(Move.Event.EN_PASSANT);
+
+            moves.add(move);
         }
     }
 
-    private boolean isEnPassantOpportunity(Pawn pawn, Move lastMove, Position target) {
+    private boolean isEnPassantOpportunity(Pawn pawn, Move lastMove, Position attackedTile) {
         // Implemente a lógica específica de en passant aqui
         return false; // Placeholder
     }
@@ -93,8 +102,16 @@ public class ChessRules {
     }
 
     private boolean wouldCauseSelfCheck(ChessMatch match, Piece piece, Move move) {
-        ChessMatch simulatedMatch = simulateMove(match, piece, move);
-        return isInCheck(simulatedMatch, piece.getColor());
+
+        //Simula jogada, guardando estado inicial
+        simulator.simulateMove(match.getBoard(), piece, move); 
+
+        boolean inCheck = isInCheck(match, piece.getColor());
+
+        //Retorna tabuleiro e peça ao estado inicial
+        simulator.revert(match.getBoard()); 
+
+        return inCheck;
     }
 
     private boolean isSquareUnderAttack(ChessMatch match, Position square, PieceColor byColor) {
@@ -104,9 +121,29 @@ public class ChessRules {
                     .anyMatch(m -> m.destination.equals(square)));
     }
 
-    // -- Utilitários -- //
-    private ChessMatch simulateMove(ChessMatch match, Piece piece, Move move) {
-        // Implemente uma simulação de movimento sem alterar o estado real
-        return match; // Placeholder
+    //Consegue simular uma jogada e a reverter (apenas uma jogada)
+    private class MoveSimulator{
+
+        static Move  simulatedMove;
+        static Piece attackedPiece;
+        static Piece movedPiece;
+
+        public void simulateMove(Piece[][] board, Piece piece, Move move){
+
+            simulatedMove = move;
+
+            movedPiece = piece;
+
+            attackedPiece = board[move.destination.x][move.destination.y];
+
+            piece.apply(board, move);
+        }
+
+        public void revert(Piece[][] board){
+
+            Move moveBack = new Move(simulatedMove.destination, simulatedMove.origin);
+
+            movedPiece.apply(board, moveBack);
+        }
     }
 }

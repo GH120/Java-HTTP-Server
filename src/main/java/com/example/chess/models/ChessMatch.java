@@ -9,7 +9,7 @@ import com.example.chess.models.chesspieces.King;
 //Classe primariamente de dados e acesso a dados
 //Comportamento de jogada tratada em GameController
 //Validação de regras feita em ChessRules
-public class ChessMatch {
+public class ChessMatch{
     
     Stack<Move>   history;
     Integer       turn;
@@ -55,7 +55,12 @@ public class ChessMatch {
         return color == PieceColor.WHITE ? whitePieces : blackPieces;
     }
 
-    public void registerMove(Move move){
+    //OBS: não valida jogada, apenas joga ela assumindo que foi validada
+    public void play(Piece piece, Move move){
+
+        piece.apply(getBoard(), move);
+
+        board[move.destination.x][move.destination.y] = piece;
 
         history.add(move);
         
