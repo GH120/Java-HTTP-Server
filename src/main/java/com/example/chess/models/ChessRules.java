@@ -141,9 +141,14 @@ public class ChessRules {
 
         public void revert(Piece[][] board){
 
+            int x = simulatedMove.destination.x;
+            int y = simulatedMove.destination.y;
+
             Move moveBack = new Move(simulatedMove.destination, simulatedMove.origin);
 
             movedPiece.apply(board, moveBack);
+
+            board[x][y] = attackedPiece;
         }
     }
 }
