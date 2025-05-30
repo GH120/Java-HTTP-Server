@@ -9,6 +9,7 @@ import com.example.chess.models.Move;
 import com.example.chess.models.Piece;
 import com.example.chess.models.PieceColor;
 import com.example.chess.models.Position;
+import com.example.chess.models.Move.Event;
 
 public class Pawn extends Piece{
 
@@ -27,7 +28,7 @@ public class Pawn extends Piece{
     private void addSingleForwardMove(Piece[][] board, List<Move> moves){
 
         //Avança uma casa para frente
-        Position tile = position.neighbourTile(getDirectionConsideringColor(Direction.NORTH));
+        Position tile = position.neighbourTile(getDirection(Direction.NORTH));
 
         //Se posição está fora do tabuleiro, é inválida
         if(!ChessMatch.withinBoard(board, tile)) return;
@@ -36,7 +37,7 @@ public class Pawn extends Piece{
 
         if(neighbour == null) {
 
-            moves.add(new Move(position, tile));
+            moves.add(new Move(position, tile).setEvent(Event.MOVEMENT));
             
         }
 
@@ -46,17 +47,19 @@ public class Pawn extends Piece{
 
        if(hasMoved()) return;
 
-       Position firstStep  = position .neighbourTile(getDirectionConsideringColor(Direction.NORTH));
+       Position firstStep  = position .neighbourTile(getDirection(Direction.NORTH));
 
        if(!ChessMatch.withinBoard(board, firstStep)) return;
 
-       Position secondStep = firstStep.neighbourTile(getDirectionConsideringColor(Direction.NORTH));
+       Position secondStep = firstStep.neighbourTile(getDirection(Direction.NORTH));
        
        if(!ChessMatch.withinBoard(board, secondStep)) return;
 
        if(board[firstStep.x][firstStep.y] == null && board[secondStep.x][secondStep.y] == null){
 
-            moves.add(new Move(position, secondStep));
+            Move move = new Move(position, secondStep);
+
+            moves.add(move.setEvent(Event.TWOTILESKIP));
        }
     }
 
@@ -68,7 +71,7 @@ public class Pawn extends Piece{
     private void addDiagonalCapture(Piece[][] board, List<Move> moves, Direction direction){
 
         //Ataque diagonal direita
-        Position tile = position.neighbourTile(getDirectionConsideringColor(direction));
+        Position tile = position.neighbourTile(getDirection(direction));
 
         Piece neighbour = board[tile.x][tile.y];
 
@@ -79,7 +82,7 @@ public class Pawn extends Piece{
 
     }
 
-    public Direction getDirectionConsideringColor(Direction direction){
+    public Direction getDirection(Direction direction){
         return (getColor() == PieceColor.WHITE)? direction : direction.invert();
     }
 

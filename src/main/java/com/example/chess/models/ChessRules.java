@@ -15,7 +15,7 @@ public class ChessRules {
     MoveSimulator              simulator   = new MoveSimulator();
     HashMap<Position, Boolean> attackCache = new HashMap<>();
 
-    public List<Move> addSpecialMoves(ChessMatch match, Piece piece, List<Move> moves) {
+    public List<Move> validateMoves(ChessMatch match, Piece piece, List<Move> moves) {
 
         attackCache.clear();
 
@@ -26,6 +26,10 @@ public class ChessRules {
         //Filtra todas as jogadas que deixam o rei exposto
         moves.removeIf(move -> wouldCauseSelfCheck(match, piece, move));
 
+        return moves;
+    }
+
+    public List<Move> populateCheckEvents(ChessMatch match, Piece piece, List<Move> moves){
         //Adiciona evento de cheque caso exista (verificar conflito onde várias jogadas especiais ocorrem)
         for(Move move : moves){
 
@@ -46,11 +50,11 @@ public class ChessRules {
 
         if (king.hasMoved() || isInCheck(match, king.getColor())) return;
 
-        Position KingSideRookPosition  = new Position(king.position.x, 7);
-        Position QueenSideRookPosition = new Position(king.position.x, 0);
+        Position KingsideRookPosition  = new Position(king.position.x, 7);
+        Position QueensideRookPosition = new Position(king.position.x, 0);
 
         // Roque pequeno (torre direita)
-        if (canCastle(match, match.getBoard(), KingSideRookPosition)) {
+        if (canCastle(match, match.getBoard(), KingsideRookPosition)) {
 
             Position kingDestination = new Position(king.position.x, king.position.y + 2);
 
@@ -60,7 +64,7 @@ public class ChessRules {
         }
 
         // Roque grande (torre esquerda)
-        if (canCastle(match, match.getBoard(),  QueenSideRookPosition)) {
+        if (canCastle(match, match.getBoard(),  QueensideRookPosition)) {
 
             Position kingDestination = new Position(king.position.x, king.position.y - 2);
 
@@ -103,26 +107,41 @@ public class ChessRules {
         
         if (lastMove == null) return;
 
-        Direction direction = pawn.getDirectionConsideringColor(Direction.NORTH);
+        if (isEnPassantOpportunity(pawn, lastMove)) {
 
-        Position  attackedTile = pawn.position.neighbourTile(direction);
+            Direction forward = pawn.getDirection(Direction.NORTH);
 
-        if (isEnPassantOpportunity(pawn, lastMove, attackedTile)) {
+            Position  targetTile = pawn.position.neighbourTile(forward);
 
-            Move move = new Move(pawn.position, attackedTile);
+            Move move = new Move(pawn.position, targetTile);
 
-            move.setEvent(Move.Event.EN_PASSANT);
+            move.setEvent(Move.Event.EN_PASSANT); //Deixar para computar ataque depois
 
             moves.add(move);
         }
     }
 
-    private boolean isEnPassantOpportunity(Pawn pawn, Move lastMove, Position attackedTile) {
+    private boolean isEnPassantOpportunity(Pawn pawn, Move lastMove) {
         // Implemente a lógica específica de en passant aqui
-        return false; // Placeholder
-    }
 
+        if(lastMove.event == Event.TWOTILESKIP){
+            
+            Position  attackedPawnPosition = lastMove.destination;
+            
+            boolean areSideNeighbours = Math.abs(attackedPawnPosition.x - pawn.position.x) == 1;
+
+            boolean sameHeight = attackedPawnPosition.y == pawn.position.y;
+
+            return areSideNeighbours && sameHeight;
+        }
+
+        return false;
+    }
+    
+    ///////////////////////////////
     // -- Validações de Xeque -- //
+    ///////////////////////////////
+    
     private boolean isInCheck(ChessMatch match, PieceColor color) {
 
         Position kingPos = match.findKing(color).position;
@@ -130,16 +149,21 @@ public class ChessRules {
         return isSquareUnderAttack(match, kingPos, color.opposite());
     }
     
+    //Não leva em conta o en-passant
     private boolean isSquareUnderAttack(ChessMatch match, Position square, PieceColor byColor) {
 
+        //Nenhum movimento especial é um ataque, salvo o en-passant
+        //Para o caso de movimento do pawn, levar em conta se o Event do move é um ataque ou movimento
+        
         return attackCache.computeIfAbsent(square, pos -> {
 
                     return match.getAllPieces(byColor)
                                 .stream()
                                 .anyMatch(
                                     p -> p.allowedMoves(match.getBoard())
-                                          .stream()
-                                          .anyMatch(m -> m.destination.equals(square))
+                                         .stream()
+                                         .filter(  m -> m.event == Event.ATTACK) //Ignora os movimentos de peão
+                                         .anyMatch(m -> m.destination.equals(square))
                                 );
         });
     }
@@ -195,7 +219,16 @@ public class ChessRules {
             return false;
         }
 
-        //2. Verifica se existe algum movimento que tira do xeque
+        King king = match.findKing(color);
+        
+        //2. verifica se o rei pode escapar
+        for (Move move : king.allowedMoves(match.getBoard())) {
+            if (!wouldCauseSelfCheck(match, king, move)) {
+                return false;
+            }
+        }
+
+        //3. Verifica se existe algum movimento de ataque que tira do xeque
         for(Piece piece : match.getAllPieces(color)){
             for(Move move : piece.allowedMoves(match.getBoard())){
                 if(!wouldCauseSelfCheck(match, piece, move)){
@@ -211,6 +244,7 @@ public class ChessRules {
 
     //Consegue simular jogadas e a reverter
     //TODO: Ver possível bug que jogadas simuladas de rei e torre podem setar elas como hasMoved
+    //Tratar casos de En-passant, Castle usando o event do simulatedMoves (não vale a pena separar ataque de movimento)
     private class MoveSimulator{
 
         private Stack<Move>  simulatedMoves = new Stack<>();

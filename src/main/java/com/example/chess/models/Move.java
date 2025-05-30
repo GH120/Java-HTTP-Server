@@ -9,20 +9,20 @@ public class Move {
     public Event    event;
 
     public enum Event {
-        NORMAL,       // Movimento padrão
+        ATTACK,       // Movimento padrão, conta como ataque em outra peça
         CHECK,        // Causa xeque
         CASTLING,     // Roque
         EN_PASSANT,   // En passant
         PROMOTION,    // Promoção de peão
-        CHECKMATE     // Xeque-mate
+        CHECKMATE,    // Xeque-mate
+        MOVEMENT,     // Movimento Inofensivo do peão
+        TWOTILESKIP   // Movimento de pulo do peão
     }
-
-    //TODO: adicionar campo Evento, um enum para categorizar algo especial (cheque, roque, en-passant...)
 
     public Move(Position from, Position to){
         this.origin      = from;
         this.destination = to;
-        this.event       = Event.NORMAL;
+        this.event       = Event.ATTACK;
     }
 
     public Move setEvent(Event event){
