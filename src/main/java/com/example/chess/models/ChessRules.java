@@ -2,6 +2,7 @@ package com.example.chess.models;
 
 import java.util.HashMap;
 import java.util.List;
+import java.util.Stack;
 
 import com.example.chess.models.Move.Event;
 import com.example.chess.models.chesspieces.King;
@@ -14,7 +15,7 @@ public class ChessRules {
     MoveSimulator              simulator   = new MoveSimulator();
     HashMap<Position, Boolean> attackCache = new HashMap<>();
 
-    public List<Move> validateMoves(ChessMatch match, Piece piece, List<Move> moves) {
+    public List<Move> addSpecialMoves(ChessMatch match, Piece piece, List<Move> moves) {
 
         attackCache.clear();
 
@@ -27,47 +28,69 @@ public class ChessRules {
 
         //Adiciona evento de cheque caso exista (verificar conflito onde várias jogadas especiais ocorrem)
         for(Move move : moves){
-            if(causesCheck(match, piece, move)) move.setEvent(Event.CHECK);
+
+            if(causesCheck(match, piece, move)){
+                move.setEvent(Event.CHECK);
+            }
+
+            if(causesCheckMate(match, piece, move)){
+                move.setEvent(Event.CHECKMATE);
+            }
         }
 
         return moves;
     }
 
-    //Refazer castling, deepseek zaralhou legal o código
     // Roque (pequeno e grande)
     private void addCastlingMoves(ChessMatch match, King king, List<Move> moves) {
+
         if (king.hasMoved() || isInCheck(match, king.getColor())) return;
 
-        Piece[][] board = match.getBoard();
+        Position KingSideRookPosition  = new Position(king.position.x, 7);
+        Position QueenSideRookPosition = new Position(king.position.x, 0);
 
         // Roque pequeno (torre direita)
-        if (canCastle(match, board, 7)) {
-            moves.add(new Move(king.position, new Position(0, 6)));
+        if (canCastle(match, match.getBoard(), KingSideRookPosition)) {
+
+            Position kingDestination = new Position(king.position.x, king.position.y + 2);
+
+            Move move = new Move(king.position, kingDestination);
+
+            moves.add(move.setEvent(Event.CASTLING));
         }
 
         // Roque grande (torre esquerda)
-        if (canCastle(match, board,  0)) {
-            moves.add(new Move(king.position, new Position(0, 2)));
+        if (canCastle(match, match.getBoard(),  QueenSideRookPosition)) {
+
+            Position kingDestination = new Position(king.position.x, king.position.y - 2);
+
+            Move move = new Move(king.position, kingDestination);
+
+            moves.add(move.setEvent(Event.CASTLING));
         }
     }
 
-    private boolean canCastle(ChessMatch match, Piece[][] board, int rookCol) {
-        Piece rook = board[0][rookCol];
+    private boolean canCastle(ChessMatch match, Piece[][] board, Position rookPosition) {
+
+        Piece rook = board[rookPosition.x][rookPosition.y];
+
         if (!(rook instanceof Rook) || ((Rook) rook).hasMoved()) return false;
 
-        int step = rookCol == 0 ? -1 : 1;
-        int end = rookCol == 0 ? 3 : 5;
+        boolean queenSide = rookPosition.y == 0;
+
+        int step = queenSide ? -1 : 1;
+        int end  = queenSide ?  1 : 6;
 
         Piece king = match.findKing(match.getCurrentPlayer());
 
         // Verifica casas vazias e não atacadas
         for (int col = king.position.y + step; col != end; col += step) {
             
-            if (board[0][col] != null) {
+            if (board[king.position.x][col] != null) {
                 return false;
             }
 
-            if(isSquareUnderAttack(match, new Position(0, col), match.getOpponent())){
+            if(isSquareUnderAttack(match, new Position(king.position.x, col), match.getOpponent())){
                 return false;
             }
         }
@@ -113,8 +136,11 @@ public class ChessRules {
 
                     return match.getAllPieces(byColor)
                                 .stream()
-                                .anyMatch(p -> p.allowedMoves(match.getBoard()).stream()
-                                .anyMatch(m -> m.destination.equals(square)));
+                                .anyMatch(
+                                    p -> p.allowedMoves(match.getBoard())
+                                          .stream()
+                                          .anyMatch(m -> m.destination.equals(square))
+                                );
         });
     }
 
@@ -132,6 +158,21 @@ public class ChessRules {
         return causesCheck;
     }
 
+    private boolean causesCheckMate(ChessMatch match, Piece piece, Move move){
+
+        Boolean causesCheckMate;
+
+        PieceColor enemyColor = piece.getColor().opposite();
+
+        simulator.simulateMove(match.getBoard(), piece, move);
+
+        causesCheckMate = isInCheckMate(match, enemyColor);
+
+        simulator.revert(match.getBoard());
+
+        return causesCheckMate;
+    }
+
     //Verifica se jogada não deixa o rei exposto a um ataque
     private boolean wouldCauseSelfCheck(ChessMatch match, Piece piece, Move move) {
 
@@ -146,25 +187,52 @@ public class ChessRules {
         return inCheck;
     }
 
-    //Consegue simular uma jogada e a reverter (apenas uma jogada)
+    //Ineficiente, poderia verificar apenas as peças atacando o quadrado do rei
+    public boolean isInCheckMate(ChessMatch match, PieceColor color){
+
+        //1. Primeiro verifica se o rei está em xeque
+        if(!isInCheck(match, color)){
+            return false;
+        }
+
+        //2. Verifica se existe algum movimento que tira do xeque
+        for(Piece piece : match.getAllPieces(color)){
+            for(Move move : piece.allowedMoves(match.getBoard())){
+                if(!wouldCauseSelfCheck(match, piece, move)){
+                    return false;
+                }
+            }
+        }
+
+
+        //Se não existir nenhum movimento que salva o rei, é xeque-mate
+        return true;
+    }
+
+    //Consegue simular jogadas e a reverter
+    //TODO: Ver possível bug que jogadas simuladas de rei e torre podem setar elas como hasMoved
     private class MoveSimulator{
 
-        static Move  simulatedMove;
-        static Piece attackedPiece;
-        static Piece movedPiece;
+        private Stack<Move>  simulatedMoves = new Stack<>();
+        private Stack<Piece> attackedPieces = new Stack<>();
+        private Stack<Piece> movedPieces    = new Stack<>();
 
         public void simulateMove(Piece[][] board, Piece piece, Move move){
 
-            simulatedMove = move;
+            simulatedMoves.push(move);
 
-            movedPiece = piece;
+            movedPieces.push(piece);
 
-            attackedPiece = board[move.destination.x][move.destination.y];
+            attackedPieces.push(board[move.destination.x][move.destination.y]);
 
             piece.apply(board, move);
         }
 
         public void revert(Piece[][] board){
+
+            Piece attackedPiece = attackedPieces.pop();
+            Piece movedPiece    = movedPieces.pop();
+            Move  simulatedMove = simulatedMoves.pop();
 
             int x = simulatedMove.destination.x;
             int y = simulatedMove.destination.y;

@@ -25,4 +25,8 @@ public class Position {
     public Position neighbourTile(Direction direction){
         return new Position(x + direction.x, y + direction.y);
     }
+   
+    public boolean equals(Position position){
+        return position.x == x && position.y == y;
+    }
 }

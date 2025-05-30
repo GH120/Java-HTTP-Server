@@ -71,12 +71,12 @@ public class ChessMatch{
         return history.peek();
     }
 
-    public Piece findKing(PieceColor color){
+    public King findKing(PieceColor color){
 
-        return getAllPieces(color).stream()
-                                  .filter(p -> p instanceof King)
-                                  .findFirst()
-                                  .orElse(null);
+        return (King) getAllPieces(color).stream()
+                                         .filter(p -> p instanceof King)
+                                         .findFirst()
+                                         .orElse(null);
     }
 
     public static boolean withinBoard(Piece[][] board, Position position){
