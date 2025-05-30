@@ -16,7 +16,14 @@ public class Move {
         PROMOTION,    // Promoção de peão
         CHECKMATE,    // Xeque-mate
         MOVEMENT,     // Movimento Inofensivo do peão
-        TWOTILESKIP   // Movimento de pulo do peão
+        TWOTILESKIP;  // Movimento de pulo do peão
+
+        public Piece target;
+
+        public Event setTarget(Piece target) {
+            this.target = target;
+            return this;
+        }
     }
 
     public Move(Position from, Position to){

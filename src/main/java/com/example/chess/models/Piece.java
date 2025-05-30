@@ -9,6 +9,7 @@ abstract public class Piece {
 
     abstract public List<Move>     allowedMoves(Piece[][] board);
 
+    //Util
     public PieceColor getColor(){
         return color;
     }
@@ -18,6 +19,8 @@ abstract public class Piece {
         return piece != null && piece.getColor() != color;
     }
 
+
+    /**Atualiza posição da peça interna e no tabuleiro baseado na jogada */
     public void apply(Piece[][] board, Move move){
 
         // Ao sair da posição, coloca ela como nula no tabuleiro
@@ -28,6 +31,21 @@ abstract public class Piece {
 
         
         position = move.destination;
+    }
+
+    private void treatSideEffects(Piece[][] board, Move move){
+
+        switch(move.event){
+            case EN_PASSANT -> {
+                
+                Piece victim = move.event.target;
+
+                board[victim.position.x][victim.position.y] = null;
+            }
+            default -> {
+
+            }
+        }
     }
 }
 

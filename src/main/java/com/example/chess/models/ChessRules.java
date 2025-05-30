@@ -109,15 +109,22 @@ public class ChessRules {
 
         if (isEnPassantOpportunity(pawn, lastMove)) {
 
+            //Consegue posição do peão assassino no enpassant
             Direction forward = pawn.getDirection(Direction.NORTH);
 
             Position  targetTile = pawn.position.neighbourTile(forward);
 
             Move move = new Move(pawn.position, targetTile);
 
-            move.setEvent(Move.Event.EN_PASSANT); //Deixar para computar ataque depois
+            //Adiciona a vitima do enpassant como target dele, e adiciona jogada às jogadas válidas
+            Position attackedPawnPosition = lastMove.destination;
+
+            Piece attackedPawn = match.getPiece(attackedPawnPosition);
+
+            move.setEvent(Move.Event.EN_PASSANT.setTarget(attackedPawn)); 
 
             moves.add(move);
+
         }
     }
 
@@ -243,8 +250,6 @@ public class ChessRules {
     }
 
     //Consegue simular jogadas e a reverter
-    //TODO: Ver possível bug que jogadas simuladas de rei e torre podem setar elas como hasMoved
-    //Tratar casos de En-passant, Castle usando o event do simulatedMoves (não vale a pena separar ataque de movimento)
     private class MoveSimulator{
 
         private Stack<Move>  simulatedMoves = new Stack<>();
@@ -276,6 +281,13 @@ public class ChessRules {
             movedPiece.apply(board, moveBack);
 
             board[x][y] = attackedPiece;
+        }
+
+        //TODO: Ver possível bug que jogadas simuladas de rei e torre podem setar elas como hasMoved
+        //Tratar casos de En-passant, Castle usando o event do simulatedMoves (não vale a pena separar ataque de movimento)
+        private void treatSideEffects(Piece[][] board, Piece piece, Move move){
+            
+            
         }
     }
 }
