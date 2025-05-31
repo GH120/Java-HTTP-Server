@@ -11,7 +11,6 @@ public class Player {
     public String     name;
     public Integer    ELO;
     public String     address;
-    public Set<Piece> pieces;
 
     //Refazer para novo campo 
     public static Player fromRequest(HttpMessage request) throws Exception{

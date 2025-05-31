@@ -9,6 +9,9 @@ import com.example.chess.models.Move;
 import com.example.chess.models.Piece;
 import com.example.chess.models.PieceColor;
 import com.example.chess.models.Position;
+import com.example.http.HttpMessage;
+import com.example.json.Json;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.example.chess.models.Move.Event;
 
 public class Pawn extends Piece{
@@ -17,7 +20,7 @@ public class Pawn extends Piece{
         KNIGHT,
         QUEEN,
         BISHOP,
-        ROOK
+        ROOK,
     }
 
     public Pawn(Position position, PieceColor color){
@@ -100,5 +103,13 @@ public class Pawn extends Piece{
     //NOTE: depende da suposição que os peões que estão na segunda fileira nunca se moveram
     private boolean hasMoved(){
         return (getColor() == PieceColor.WHITE)? position.y == 1 : position.y == 7;
+    }
+
+    //Criar uma fábrica para isso
+    public static Promotion PromotionFromRequest(HttpMessage request) throws Exception{
+            System.out.println(request.getBody());
+            JsonNode info = Json.parse(request.getBody());
+
+            return Json.fromJson(info, Promotion.class);
     }
 }

@@ -3,7 +3,6 @@ package com.example.chess.controlers;
 import java.util.LinkedList;
 import java.util.Queue;
 
-import com.example.chess.models.ChessModel;
 import com.example.chess.models.Player;
 
 public class ChessMatchMaker {

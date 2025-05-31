@@ -13,6 +13,7 @@ import com.example.chess.controlers.ChessMatch;
 import com.example.chess.models.Move;
 import com.example.chess.models.Player;
 import com.example.chess.models.Position;
+import com.example.chess.models.chesspieces.Pawn;
 import com.example.config.Configuration;
 import com.example.config.ConfigurationManager;
 import com.example.core.HttpRouter;
@@ -52,6 +53,8 @@ public class HttpChessRouter extends HttpRouter{
                 switch(request.getMethod()){
                     
                     case GET: handleGet(request, output); break;
+
+                    default: break;
                 }
             }
         }
@@ -109,7 +112,7 @@ public class HttpChessRouter extends HttpRouter{
                 //Transformar isso numa thread
                 //Fazer alguma maneira de recuperar a thread do ChessMatchManager
                 //Thread teria uma função playMove sincronizada
-                ChessMatchManager.getInstance().getMatchFromPlayer(player).playMove(player, move);
+                match.playMove(player, move);
 
                 //Escreve resposta dizendo que foi um sucesso
                 
@@ -124,14 +127,25 @@ public class HttpChessRouter extends HttpRouter{
                 
                 Position position = Position.fromRequest(request);
 
-                List<Move> allowedPositions = ChessMatchManager.getInstance().getMatchFromPlayer(player).seePossibleMoves(position);
+                List<Move> allowedPositions = match.seePossibleMoves(position);
 
                 //Escreve resposta com a lista de movimentos
                 
                 break;
             }
 
-            case "/api/state":{
+            case "/api/ChoosePromotion":{
+
+                Player player = Player.fromRequest(request);
+                
+                ChessMatch match = ChessMatchManager.getInstance().getMatchFromPlayer(player);
+                
+                //Talvez criar uma fábrica de objetos por meio de requests
+                Pawn.Promotion promotion = Pawn.PromotionFromRequest(request);
+
+                match.choosePromotion(promotion);
+
+                //Escreve resposta aqui
 
                 break;
             }

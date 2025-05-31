@@ -7,77 +7,58 @@ import com.example.chess.models.ChessModel;
 import com.example.chess.models.ChessRules;
 import com.example.chess.models.Move;
 import com.example.chess.models.Piece;
-import com.example.chess.models.PieceColor;
 import com.example.chess.models.Player;
 import com.example.chess.models.Position;
-import com.example.chess.models.chesspieces.Bishop;
-import com.example.chess.models.chesspieces.Knight;
+import com.example.chess.models.Move.Event;
 import com.example.chess.models.chesspieces.Pawn;
-import com.example.chess.models.chesspieces.Queen;
-import com.example.chess.models.chesspieces.Rook;
+
 
 //Transformar ele numa thread?
 //Controlaria as ações do usuário, como escolher jogadas ou sair da partida
 //Teria um validador de jogadas baseado no estado de jogo, estado de jogo armazenado
 public class ChessMatch {
 
+    private GameState  state;
     private Player     white;
     private Player     black;
-    private ChessRules chessRules;
-    private ChessModel chessModel;
-    private GameState  state;
+
+    private final MatchNotifier notifier;
+    private final ChessRules    chessRules;
+    private final ChessModel    chessModel;
 
     private HashMap<Position, List<Move>> moveCache;
     
-    private enum GameState {
-        NORMAL, 
-        CHECK, 
-        CHECKMATE, 
-        DRAW, 
-        PROMOTION, //Para partida enquanto usuário não escolher a promoção
-        EXITED
-    }
+    public enum GameState {NORMAL, CHECK, CHECKMATE, DRAW, PROMOTION, EXITED}
 
     public ChessMatch(Player player, Player opponent) {
         moveCache  = new HashMap<>();
         chessRules = new ChessRules();
         chessModel = new ChessModel();
+        notifier   = new MatchNotifier();
         white = player;
         black = opponent;
     }
 
-    public void choosePromotion(Pawn.Promotion promotion) throws NoPromotionEvent{
-
-        if(state != GameState.PROMOTION) 
-            throw new NoPromotionEvent();
-
-        chessModel.choosePromotion(promotion);
-
-        updateGameState();
-    }
-
     //Controls
-    public void playMove(Player player, Move move) throws InvalidMove, NotPlayerTurn, PendingPromotion{
+    public void playMove(Player player, Move move) throws ChessError{
 
-
-        if(state == GameState.PROMOTION)
-            throw new PendingPromotion();
+        //Verifica inconsistências na requisição da jogada
+        if(state == GameState.PROMOTION) throw new PendingPromotion();
 
         List<Move> moves = seePossibleMoves(move.origin);
 
-        if(!moves.contains(move)) 
-            throw new InvalidMove();
+        if(!moves.contains(move)) throw new InvalidMove();
 
         Piece piece = chessModel.getPiece(move.origin);
 
-        if(piece.color == chessModel.getCurrentColor())
-            throw new NotPlayerTurn();
+        if(piece.color == chessModel.getCurrentColor())throw new NotPlayerTurn();
 
+        //Uma vez validada, registra jogada no modelo, atualiza estado do jogo e notifica aos observadores
         chessModel.play(piece, move);
 
-        updateGameState();
+        updateGameState(move);
         
-        handleResponses(move);
+        notifier.notifyMove(move, chessModel.getCurrentColor());
 
         moveCache.clear();
     }
@@ -96,37 +77,42 @@ public class ChessMatch {
         });
     }
 
-    /** Responde com base no evento do movimento */
-    private void handleResponses(Move move){
+    public void choosePromotion(Pawn.Promotion promotion) throws NoPromotionEvent{
 
-        switch(move.event){
-            case PROMOTION -> {
-                state = GameState.PROMOTION;
-                //Colocar resposta especial aqui
-            }
-            default ->{
-                //Resposta padrão
-            }
-        }
+        if(state != GameState.PROMOTION) 
+            throw new NoPromotionEvent();
+
+        chessModel.choosePromotion(promotion);
+
+        updateGameState(null);
     }
 
-    private void updateGameState(){
+    public void quit(){
+        state = GameState.EXITED;
+
+        notifier.notifyStateChange(state);
+    }
+
+
+    private void updateGameState(Move move){
 
         if(chessRules.isInCheckMate(chessModel, chessModel.getCurrentColor())){
             state = GameState.CHECKMATE;
         }
-        else if(chessRules.isInCheck(chessModel, chessModel.getCurrentColor())){
-            state = GameState.CHECK;
-        }
         else if(chessRules.isDraw(chessModel, chessModel.getCurrentColor())){
             state = GameState.DRAW;
         }
+        else if (move != null && move.event == Event.PROMOTION){
+            state = GameState.PROMOTION;
+        }
+        else if(chessRules.isInCheck(chessModel, chessModel.getCurrentColor())){
+            state = GameState.CHECK;
+        }
+        else{
+            state = GameState.NORMAL;
+        }
 
-        state = GameState.NORMAL;
-    }
-
-    private void sendResponse(){
-        
+        notifier.notifyStateChange(state);
     }
 
     public Player getBlack() {
@@ -137,22 +123,28 @@ public class ChessMatch {
         return white;
     }
 
-    private class InvalidMove extends Exception{
+    private class ChessError extends Exception{
 
-        InvalidMove(){
+        ChessError(){
             super("Jogada inválida");
+
+            notifier.notifyError(getLocalizedMessage());
         }
     }
 
-    private class NotPlayerTurn extends Exception{
+    private class InvalidMove extends ChessError{
 
     }
 
-    private class PendingPromotion extends Exception{
+    private class NotPlayerTurn extends ChessError{
 
     }
 
-    private class NoPromotionEvent extends Exception{
+    private class PendingPromotion extends ChessError{
+
+    }
+
+    private class NoPromotionEvent extends ChessError{
 
     }
 

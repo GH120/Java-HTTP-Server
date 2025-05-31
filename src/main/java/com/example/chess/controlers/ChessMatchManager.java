@@ -1,7 +1,6 @@
 package com.example.chess.controlers;
 
 import java.util.concurrent.ConcurrentHashMap;
-import com.example.chess.models.ChessModel;
 import com.example.chess.models.Player;
 
 public class ChessMatchManager {
