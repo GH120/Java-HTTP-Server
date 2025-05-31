@@ -48,7 +48,7 @@ public class ChessRules {
     // Roque (pequeno e grande)
     private void addCastlingMoves(ChessMatch match, King king, List<Move> moves) {
 
-        if (king.hasMoved() || isInCheck(match, king.getColor())) return;
+        if (match.hasMoved(king) || isInCheck(match, king.getColor())) return;
 
         Position KingsideRookPosition  = new Position(king.position.x, 7);
         Position QueensideRookPosition = new Position(king.position.x, 0);
@@ -78,7 +78,7 @@ public class ChessRules {
 
         Piece rook = board[rookPosition.x][rookPosition.y];
 
-        if (!(rook instanceof Rook) || ((Rook) rook).hasMoved()) return false;
+        if (!(rook instanceof Rook) || (match.hasMoved(rook))) return false;
 
         boolean queenSide = rookPosition.y == 0;
 
@@ -178,13 +178,13 @@ public class ChessRules {
     private boolean causesCheck(ChessMatch match, Piece piece, Move move) {
         
         // 1. Simula o movimento
-        simulator.simulateMove(match.getBoard(), piece, move);
+        simulator.simulateMove(match, piece, move);
         
         // 2. Verifica se o rei oposto está em xeque
         boolean causesCheck = isInCheck(match, piece.getColor().opposite());
         
         // 3. Reverte a simulação
-        simulator.revert(match.getBoard());
+        simulator.revert(match);
         
         return causesCheck;
     }
@@ -195,11 +195,11 @@ public class ChessRules {
 
         PieceColor enemyColor = piece.getColor().opposite();
 
-        simulator.simulateMove(match.getBoard(), piece, move);
+        simulator.simulateMove(match, piece, move);
 
         causesCheckMate = isInCheckMate(match, enemyColor);
 
-        simulator.revert(match.getBoard());
+        simulator.revert(match);
 
         return causesCheckMate;
     }
@@ -208,12 +208,12 @@ public class ChessRules {
     private boolean wouldCauseSelfCheck(ChessMatch match, Piece piece, Move move) {
 
         //Simula jogada, guardando estado inicial
-        simulator.simulateMove(match.getBoard(), piece, move); 
+        simulator.simulateMove(match, piece, move); 
 
         boolean inCheck = isInCheck(match, piece.getColor());
 
         //Retorna tabuleiro e peça ao estado inicial
-        simulator.revert(match.getBoard()); 
+        simulator.revert(match); 
 
         return inCheck;
     }
@@ -256,34 +256,33 @@ public class ChessRules {
         private Stack<Piece> attackedPieces = new Stack<>();
         private Stack<Piece> movedPieces    = new Stack<>();
 
-        public void simulateMove(Piece[][] board, Piece piece, Move move){
+        public void simulateMove(ChessMatch match, Piece piece, Move move){
 
             simulatedMoves.push(move);
 
             movedPieces.push(piece);
 
-            attackedPieces.push(board[move.destination.x][move.destination.y]);
+            attackedPieces.push(match.getPiece(move.destination));
 
-            piece.apply(board, move);
+            match.play(piece, move);
         }
 
-        public void revert(Piece[][] board){
+        public void revert(ChessMatch match){
 
             Piece attackedPiece = attackedPieces.pop();
             Piece movedPiece    = movedPieces.pop();
             Move  simulatedMove = simulatedMoves.pop();
 
-            int x = simulatedMove.destination.x;
-            int y = simulatedMove.destination.y;
-
             Move moveBack = new Move(simulatedMove.destination, simulatedMove.origin);
 
-            movedPiece.apply(board, moveBack);
+            match.placePiece(attackedPiece, simulatedMove.destination);
 
-            board[x][y] = attackedPiece;
+            match.play(movedPiece, moveBack);
+
+            match.forgetMove()
+                 .forgetMove(); //Esquece os dois movimentos simulados
         }
 
-        //TODO: Ver possível bug que jogadas simuladas de rei e torre podem setar elas como hasMoved
         //Tratar casos de En-passant, Castle usando o event do simulatedMoves (não vale a pena separar ataque de movimento)
         private void treatSideEffects(Piece[][] board, Piece piece, Move move){
             

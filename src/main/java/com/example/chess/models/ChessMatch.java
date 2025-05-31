@@ -1,5 +1,7 @@
 package com.example.chess.models;
 
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Set;
 import java.util.Stack;
@@ -14,6 +16,8 @@ public class ChessMatch{
     Stack<Move>   history;
     Integer       turn;
     Piece[][]     board;
+    
+    HashMap<Piece, Integer> moveCount; //Responsabilidade separada, mover para outra classe?
 
     Player        white;
     Player        black;
@@ -55,21 +59,59 @@ public class ChessMatch{
         return color == PieceColor.WHITE ? whitePieces : blackPieces;
     }
 
+    public void placePiece(Piece piece, Position position){
+        piece.position = position;
+
+        board[position.x][position.y] = piece;
+        
+        getAllPieces(piece.color).add(piece);
+    }
+
     //OBS: não valida jogada, apenas joga ela assumindo que foi validada
     public void play(Piece piece, Move move){
 
-        piece.apply(getBoard(), move);
+        piece.position = move.destination;
 
         board[move.destination.x][move.destination.y] = piece;
 
+        treatSideEffects(piece, move);
+
         history.add(move);
-        
-        turn++;
+    }
+
+    //Pensando em fazer isso no ChessMatch
+    //Provavelmente a responsabilidade deveria estar no ChessMatch mesmo
+    private void treatSideEffects(Piece piece, Move move){
+
+        switch(move.event){
+            case EN_PASSANT -> {
+                
+                Piece victim = move.event.target;
+
+                board[victim.position.x][victim.position.y] = null;
+            }
+            default -> {
+
+            }
+        }
     }
 
     public Move getLastMove(){
         return history.peek();
     }
+
+    public ChessMatch forgetMove(){
+
+        //Decrementa o número de jogadas da peça movida
+        Piece piece = getPiece(getLastMove().origin);
+
+        moveCount.compute(piece, (p, i) -> i - 1);
+
+        history.pop();
+
+        return this;
+    }
+
 
     public King findKing(PieceColor color){
 
@@ -84,6 +126,10 @@ public class ChessMatch{
         Integer length = board.length;
 
         return position.x > 0 && position.y > 0 && position.x < length && position.y < length;
+    }
+
+    public boolean hasMoved(Piece piece){
+        return moveCount.get(piece) > 0;
     }
 
     private void populateGameStart(){

@@ -11,9 +11,6 @@ import com.example.chess.models.Position;
 
 public class Rook extends Piece{
 
-    //Transformar isso num decorator?
-    private boolean hasMoved = false;
-
     private final Direction[] attackDirections = {
                                                     Direction.NORTH, 
                                                     Direction.SOUTH,
@@ -60,15 +57,5 @@ public class Rook extends Piece{
             // Move para a próxima posição na diagonal
             tile = tile.neighbourTile(direction);
         }
-    }
-
-    public void apply(Piece[][] board, Move move){
-        super.apply(board, move);
-
-        hasMoved = true;
-    }
-
-    public boolean hasMoved(){
-        return hasMoved;
     }
 }

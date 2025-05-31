@@ -8,10 +8,8 @@ import com.example.chess.models.ChessMatch;
 import com.example.chess.models.ChessRules;
 import com.example.chess.models.Move;
 import com.example.chess.models.Piece;
-import com.example.chess.models.PieceColor;
 import com.example.chess.models.Player;
 import com.example.chess.models.Position;
-import com.example.chess.models.chesspieces.King;
 
 //Transformar ele numa thread?
 public class GameController {
@@ -44,7 +42,7 @@ public class GameController {
 
         Piece piece = match.getPiece(move.origin);
 
-        piece.apply(match.getBoard(), move);
+        match.play(piece, move);
 
         handleEvents(move);
     }
