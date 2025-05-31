@@ -19,7 +19,7 @@ public class ChessRules {
     ///////////////////////////
 
     /** Adiciona jogadas especiais e filtra as que causam autoxeque*/
-    public List<Move> validateMoves(ChessMatch match, Piece piece, List<Move> moves) {
+    public List<Move> validateMoves(ChessModel match, Piece piece, List<Move> moves) {
 
         attackCache.clear();
 
@@ -39,7 +39,7 @@ public class ChessRules {
     ////////////////////////////
     
     // Roque (pequeno e grande)
-    private void addCastlingMoves(ChessMatch match, King king, List<Move> moves) {
+    private void addCastlingMoves(ChessModel match, King king, List<Move> moves) {
 
         if (match.hasMoved(king) || isInCheck(match, king.getColor())) return;
 
@@ -67,7 +67,7 @@ public class ChessRules {
         }
     }
 
-    private boolean canCastle(ChessMatch match, Piece[][] board, Position rookPosition) {
+    private boolean canCastle(ChessModel match, Piece[][] board, Position rookPosition) {
 
         Piece rook = board[rookPosition.x][rookPosition.y];
 
@@ -95,7 +95,7 @@ public class ChessRules {
     }
 
     // En passant
-    private void addEnPassantMoves(ChessMatch match, Pawn pawn, List<Move> moves) {
+    private void addEnPassantMoves(ChessModel match, Pawn pawn, List<Move> moves) {
         Move lastMove = match.getLastMove();
         
         if (lastMove == null) return;
@@ -140,7 +140,7 @@ public class ChessRules {
     
 
     // Promoção
-    private void addPromotionMove(ChessMatch match, Pawn pawn, List<Move> moves){
+    private void addPromotionMove(ChessModel match, Pawn pawn, List<Move> moves){
 
         int lastRow = pawn.getColor() == PieceColor.WHITE ? 7 : 0; //Adicionar enum chessPositions?
 
@@ -156,7 +156,7 @@ public class ChessRules {
     // -- Validações de Xeque -- //
     ///////////////////////////////
     
-    public boolean isInCheck(ChessMatch match, PieceColor color) {
+    public boolean isInCheck(ChessModel match, PieceColor color) {
 
         Position kingPos = match.findKing(color).position;
 
@@ -164,7 +164,7 @@ public class ChessRules {
     }
     
     //Não leva em conta o en-passant
-    private boolean isSquareUnderAttack(ChessMatch match, Position square, PieceColor byColor) {
+    private boolean isSquareUnderAttack(ChessModel match, Position square, PieceColor byColor) {
 
         //Nenhum movimento especial é um ataque, salvo o en-passant
         //Para o caso de movimento do pawn, levar em conta se o Event do move é um ataque ou movimento
@@ -183,7 +183,7 @@ public class ChessRules {
     }
 
     //Verifica se jogada não deixa o rei exposto a um ataque
-    private boolean wouldCauseSelfCheck(ChessMatch match, Piece piece, Move move) {
+    private boolean wouldCauseSelfCheck(ChessModel match, Piece piece, Move move) {
 
         //Simula jogada, guardando estado inicial
         match.play(piece, move); 
@@ -196,7 +196,7 @@ public class ChessRules {
         return inCheck;
     }
 
-    public boolean isDraw(ChessMatch match, PieceColor color){
+    public boolean isDraw(ChessModel match, PieceColor color){
 
         King king = match.findKing(color);
         
@@ -219,7 +219,7 @@ public class ChessRules {
     }
 
     //Ineficiente, poderia verificar apenas as peças atacando o quadrado do rei
-    public boolean isInCheckMate(ChessMatch match, PieceColor color){
+    public boolean isInCheckMate(ChessModel match, PieceColor color){
 
         return isInCheck(match, color) && isDraw(match, color);
     }

@@ -3,7 +3,7 @@ package com.example.chess.models.chesspieces;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.example.chess.models.ChessMatch;
+import com.example.chess.models.ChessModel;
 import com.example.chess.models.Direction;
 import com.example.chess.models.Move;
 import com.example.chess.models.Piece;
@@ -42,7 +42,7 @@ public class Pawn extends Piece{
         Position tile = position.neighbourTile(getDirection(Direction.NORTH));
 
         //Se posição está fora do tabuleiro, é inválida
-        if(!ChessMatch.withinBoard(board, tile)) return;
+        if(!ChessModel.withinBoard(board, tile)) return;
 
         Piece neighbour = board[tile.x][tile.y];
 
@@ -60,11 +60,11 @@ public class Pawn extends Piece{
 
        Position firstStep  = position .neighbourTile(getDirection(Direction.NORTH));
 
-       if(!ChessMatch.withinBoard(board, firstStep)) return;
+       if(!ChessModel.withinBoard(board, firstStep)) return;
 
        Position secondStep = firstStep.neighbourTile(getDirection(Direction.NORTH));
        
-       if(!ChessMatch.withinBoard(board, secondStep)) return;
+       if(!ChessModel.withinBoard(board, secondStep)) return;
 
        if(board[firstStep.x][firstStep.y] == null && board[secondStep.x][secondStep.y] == null){
 

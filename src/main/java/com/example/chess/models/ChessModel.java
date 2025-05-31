@@ -1,6 +1,7 @@
 package com.example.chess.models;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.Stack;
 
@@ -14,23 +15,25 @@ import com.example.chess.models.chesspieces.Rook;
 //Classe primariamente de dados e acesso a dados
 //Comportamento de jogada tratada em GameController
 //Validação de regras feita em ChessRules
-public class ChessMatch{
+public class ChessModel{
     
     private Stack<Move>   history;
     private Piece[][]     board;
-    private Player        white;
-    private Player        black;
+    private Set<Piece>    whitePieces;
+    private Set<Piece>    blackPieces;
     private Stack<Piece>  casualties;
     
     private HashMap<Piece, Integer> moveCount; //Responsabilidade separada, mover para outra classe?
 
-    public ChessMatch(Player player1, Player player2){
-        white      = player1;
-        black      = player2;
-        history    = new Stack<Move>();
-        board      = new Piece[8][8];
-        moveCount  = new HashMap<>();
-        casualties = new Stack<>();
+    public ChessModel(){
+        history     = new Stack<Move>();
+        board       = new Piece[8][8];
+        moveCount   = new HashMap<>();
+        whitePieces = new HashSet<>();
+        blackPieces = new HashSet<>();
+        casualties  = new Stack<>();
+
+        populateGameStart();
     }
 
     //////////////////////////////////////
@@ -80,7 +83,7 @@ public class ChessMatch{
     /**Esquece última jogada do histórico, 
      * decrementa o número de movimentos da peça que se moveu, 
      * revive peça morta no último turno */
-    public ChessMatch revertLastMove(){
+    public ChessModel revertLastMove(){
 
         Move lastMove = getLastMove();
 
@@ -124,14 +127,6 @@ public class ChessMatch{
     // -- Métodos que Retornam Estado -- //
     ///////////////////////////////////////
 
-    public Player getBlack() {
-        return black;
-    }
-
-    public Player getWhite() {
-        return white;
-    }
-
     public Piece getPiece(Position position){
         return board[position.x][position.y];
     }
@@ -153,7 +148,7 @@ public class ChessMatch{
     }
 
     public Set<Piece> getAllPieces(PieceColor color){
-        return color == PieceColor.WHITE ? white.pieces : black.pieces;
+        return color == PieceColor.WHITE ? whitePieces : blackPieces;
     }
 
     public Move getLastMove(){

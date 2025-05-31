@@ -3,7 +3,7 @@ package com.example.chess.models.chesspieces;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.example.chess.models.ChessMatch;
+import com.example.chess.models.ChessModel;
 import com.example.chess.models.Direction;
 import com.example.chess.models.Move;
 import com.example.chess.models.Piece;
@@ -40,7 +40,7 @@ public class King extends Piece{
             Piece    neighbour = board[tile.x][tile.y];
 
             //Saiu do tabuleiro, ignora
-            if(!ChessMatch.withinBoard(board, tile)) continue;
+            if(!ChessModel.withinBoard(board, tile)) continue;
 
             //Só adiciona se for inimigo ou quadrante vazio, peças amigas não são adicionadas
             if(enemyPiece(neighbour) || neighbour == null){

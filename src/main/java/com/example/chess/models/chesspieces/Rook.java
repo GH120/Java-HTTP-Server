@@ -3,7 +3,7 @@ package com.example.chess.models.chesspieces;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.example.chess.models.ChessMatch;
+import com.example.chess.models.ChessModel;
 import com.example.chess.models.Direction;
 import com.example.chess.models.Move;
 import com.example.chess.models.Piece;
@@ -41,7 +41,7 @@ public class Rook extends Piece{
         
         Position tile = position.neighbourTile(direction);
     
-        while(ChessMatch.withinBoard(board, tile)) {
+        while(ChessModel.withinBoard(board, tile)) {
             
             Piece piece = board[tile.x][tile.y];
             

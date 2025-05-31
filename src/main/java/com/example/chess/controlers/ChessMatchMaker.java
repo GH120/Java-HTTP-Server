@@ -3,7 +3,7 @@ package com.example.chess.controlers;
 import java.util.LinkedList;
 import java.util.Queue;
 
-import com.example.chess.models.ChessMatch;
+import com.example.chess.models.ChessModel;
 import com.example.chess.models.Player;
 
 public class ChessMatchMaker {
@@ -32,8 +32,7 @@ public class ChessMatchMaker {
             Player opponent = waitingPlayers.poll();
             System.out.println("Match found: " + player.name + " vs " + opponent.name);
 
-            ChessMatch match = new ChessMatch(player, opponent);
-            ChessMatchManager.getInstance().addMatch(match);
+            ChessMatchManager.getInstance().addMatch(new ChessMatch(player,opponent));
 
             //Mandar página html
 

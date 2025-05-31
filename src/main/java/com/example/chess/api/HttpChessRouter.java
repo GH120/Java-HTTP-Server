@@ -9,8 +9,7 @@ import java.util.List;
 
 import com.example.chess.controlers.ChessMatchMaker;
 import com.example.chess.controlers.ChessMatchManager;
-import com.example.chess.controlers.GameController;
-import com.example.chess.models.ChessMatch;
+import com.example.chess.controlers.ChessMatch;
 import com.example.chess.models.Move;
 import com.example.chess.models.Player;
 import com.example.chess.models.Position;
@@ -110,7 +109,7 @@ public class HttpChessRouter extends HttpRouter{
                 //Transformar isso numa thread
                 //Fazer alguma maneira de recuperar a thread do ChessMatchManager
                 //Thread teria uma função playMove sincronizada
-                GameController.getInstance().playMove(player, match, move);
+                ChessMatchManager.getInstance().getMatchFromPlayer(player).playMove(player, move);
 
                 //Escreve resposta dizendo que foi um sucesso
                 
@@ -125,8 +124,7 @@ public class HttpChessRouter extends HttpRouter{
                 
                 Position position = Position.fromRequest(request);
 
-                List<Move> allowedPositions = GameController.getInstance()
-                                                            .seePossibleMoves(match, position);
+                List<Move> allowedPositions = ChessMatchManager.getInstance().getMatchFromPlayer(player).seePossibleMoves(position);
 
                 //Escreve resposta com a lista de movimentos
                 

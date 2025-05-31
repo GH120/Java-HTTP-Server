@@ -3,7 +3,7 @@ package com.example.chess.controlers;
 import java.util.HashMap;
 import java.util.List;
 
-import com.example.chess.models.ChessMatch;
+import com.example.chess.models.ChessModel;
 import com.example.chess.models.ChessRules;
 import com.example.chess.models.Move;
 import com.example.chess.models.Piece;
@@ -17,16 +17,18 @@ import com.example.chess.models.chesspieces.Queen;
 import com.example.chess.models.chesspieces.Rook;
 
 //Transformar ele numa thread?
-public class GameController {
+//Controlaria as ações do usuário, como escolher jogadas ou sair da partida
+//Teria um validador de jogadas baseado no estado de jogo, estado de jogo armazenado
+public class ChessMatch {
 
-    //Controlaria as ações do usuário, como escolher jogadas ou sair da partida
-    //Teria um validador de jogadas baseado no estado de jogo, estado de jogo armazenado
-    private static GameController instance;
-
-    private HashMap<Position, List<Move>> moveCache;
-    private ChessRules rules;
+    private Player     white;
+    private Player     black;
+    private ChessRules chessRules;
+    private ChessModel chessModel;
     private GameState  state;
 
+    private HashMap<Position, List<Move>> moveCache;
+    
     private enum GameState {
         NORMAL, 
         CHECK, 
@@ -36,61 +38,59 @@ public class GameController {
         EXITED
     }
 
-    private GameController() {
-        moveCache = new HashMap<>();
-        rules = new ChessRules();
+    public ChessMatch(Player player, Player opponent) {
+        moveCache  = new HashMap<>();
+        chessRules = new ChessRules();
+        chessModel = new ChessModel();
+        white = player;
+        black = opponent;
     }
 
-    public static GameController getInstance() {
-        if (instance == null) {
-            instance = new GameController();
-        }
-        return instance;
-    }
-
-    public void choosePromotion(ChessMatch match, Pawn.Promotion promotion) throws NoPromotionEvent{
+    public void choosePromotion(Pawn.Promotion promotion) throws NoPromotionEvent{
 
         if(state != GameState.PROMOTION) 
             throw new NoPromotionEvent();
 
-        match.choosePromotion(promotion);
+        chessModel.choosePromotion(promotion);
 
-        updateGameState(match);
+        updateGameState();
     }
 
     //Controls
-    public void playMove(Player player, ChessMatch match, Move move) throws InvalidMove, NotPlayerTurn, PendingPromotion{
+    public void playMove(Player player, Move move) throws InvalidMove, NotPlayerTurn, PendingPromotion{
 
 
         if(state == GameState.PROMOTION)
             throw new PendingPromotion();
 
-        List<Move> moves = seePossibleMoves(match, move.origin);
+        List<Move> moves = seePossibleMoves(move.origin);
 
         if(!moves.contains(move)) 
             throw new InvalidMove();
 
-        Piece piece = match.getPiece(move.origin);
+        Piece piece = chessModel.getPiece(move.origin);
 
-        if(piece.color == match.getCurrentColor())
+        if(piece.color == chessModel.getCurrentColor())
             throw new NotPlayerTurn();
 
-        match.play(piece, move);
+        chessModel.play(piece, move);
 
+        updateGameState();
+        
         handleResponses(move);
 
         moveCache.clear();
     }
 
-    public List<Move> seePossibleMoves(ChessMatch match, Position position){
+    public List<Move> seePossibleMoves(Position position){
 
         return moveCache.computeIfAbsent(position, pos ->{
         
-            Piece piece = match.getPiece(position);
+            Piece piece = chessModel.getPiece(position);
 
-            List<Move> defaultMoves = piece.defaultMoves(match.getBoard());
+            List<Move> defaultMoves = piece.defaultMoves(chessModel.getBoard());
 
-            List<Move> allowedMoves = this.rules.validateMoves(match, piece, defaultMoves);
+            List<Move> allowedMoves = this.chessRules.validateMoves(chessModel, piece, defaultMoves);
 
             return allowedMoves;
         });
@@ -110,15 +110,15 @@ public class GameController {
         }
     }
 
-    private void updateGameState(ChessMatch match){
+    private void updateGameState(){
 
-        if(rules.isInCheckMate(match, match.getCurrentColor())){
+        if(chessRules.isInCheckMate(chessModel, chessModel.getCurrentColor())){
             state = GameState.CHECKMATE;
         }
-        else if(rules.isInCheck(match, match.getCurrentColor())){
+        else if(chessRules.isInCheck(chessModel, chessModel.getCurrentColor())){
             state = GameState.CHECK;
         }
-        else if(rules.isDraw(match, match.getCurrentColor())){
+        else if(chessRules.isDraw(chessModel, chessModel.getCurrentColor())){
             state = GameState.DRAW;
         }
 
@@ -127,6 +127,14 @@ public class GameController {
 
     private void sendResponse(){
         
+    }
+
+    public Player getBlack() {
+        return black;
+    }
+
+    public Player getWhite() {
+        return white;
     }
 
     private class InvalidMove extends Exception{
