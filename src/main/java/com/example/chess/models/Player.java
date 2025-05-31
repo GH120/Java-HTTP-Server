@@ -1,15 +1,19 @@
 package com.example.chess.models;
 
+import java.util.Set;
+
 import com.example.http.HttpMessage;
 import com.example.json.Json;
 import com.fasterxml.jackson.databind.JsonNode;
 
 public class Player {
     
-    public String  name;
-    public Integer ELO;
-    public String  address;
+    public String     name;
+    public Integer    ELO;
+    public String     address;
+    public Set<Piece> pieces;
 
+    //Refazer para novo campo 
     public static Player fromRequest(HttpMessage request) throws Exception{
         System.out.println(request.getBody());
         JsonNode info = Json.parse(request.getBody());

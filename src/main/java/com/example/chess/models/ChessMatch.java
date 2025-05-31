@@ -13,16 +13,12 @@ import com.example.chess.models.chesspieces.King;
 //Validação de regras feita em ChessRules
 public class ChessMatch{
     
-    Stack<Move>   history;
-    Integer       turn;
-    Piece[][]     board;
+    private Stack<Move>   history;
+    private Piece[][]     board;
+    private Player        white;
+    private Player        black;
     
-    HashMap<Piece, Integer> moveCount; //Responsabilidade separada, mover para outra classe?
-
-    Player        white;
-    Player        black;
-    Set<Piece>    blackPieces; //Colocar peças no player?
-    Set<Piece>    whitePieces;
+    private HashMap<Piece, Integer> moveCount; //Responsabilidade separada, mover para outra classe?
 
     public ChessMatch(Player player1, Player player2){
         white   = player1;
@@ -47,16 +43,20 @@ public class ChessMatch{
         return board;
     }
 
-    public PieceColor getCurrentPlayer(){
-        return turn % 2 == 0 ? PieceColor.WHITE : PieceColor.BLACK;
+    public int getTurn(){
+        return history.size();
     }
 
-    public PieceColor getOpponent(){
-        return turn % 2 == 0 ? PieceColor.BLACK : PieceColor.WHITE;
+    public PieceColor getCurrentColor(){
+        return getTurn() % 2 == 0 ? PieceColor.WHITE : PieceColor.BLACK;
+    }
+
+    public PieceColor getOpponentColor(){
+        return getTurn() % 2 == 0 ? PieceColor.BLACK : PieceColor.WHITE;
     }
 
     public Set<Piece> getAllPieces(PieceColor color){
-        return color == PieceColor.WHITE ? whitePieces : blackPieces;
+        return color == PieceColor.WHITE ? white.pieces : black.pieces;
     }
 
     public void placePiece(Piece piece, Position position){
@@ -77,6 +77,7 @@ public class ChessMatch{
         treatSideEffects(piece, move);
 
         history.add(move);
+
     }
 
     //Pensando em fazer isso no ChessMatch
@@ -125,7 +126,7 @@ public class ChessMatch{
 
         Integer length = board.length;
 
-        return position.x > 0 && position.y > 0 && position.x < length && position.y < length;
+        return position.x >= 0 && position.y >= 0 && position.x < length && position.y < length;
     }
 
     public boolean hasMoved(Piece piece){

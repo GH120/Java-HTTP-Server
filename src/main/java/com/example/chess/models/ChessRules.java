@@ -29,7 +29,7 @@ public class ChessRules {
         return moves;
     }
 
-    public List<Move> populateCheckEvents(ChessMatch match, Piece piece, List<Move> moves){
+    public List<Move> evaluateCheckEvents(ChessMatch match, Piece piece, List<Move> moves){
         //Adiciona evento de cheque caso exista (verificar conflito onde várias jogadas especiais ocorrem)
         for(Move move : moves){
 
@@ -85,7 +85,7 @@ public class ChessRules {
         int step = queenSide ? -1 : 1;
         int end  = queenSide ?  1 : 6;
 
-        Piece king = match.findKing(match.getCurrentPlayer());
+        Piece king = match.findKing(match.getCurrentColor());
 
         // Verifica casas vazias e não atacadas
         for (int col = king.position.y + step; col != end; col += step) {
@@ -94,7 +94,7 @@ public class ChessRules {
                 return false;
             }
 
-            if(isSquareUnderAttack(match, new Position(king.position.x, col), match.getOpponent())){
+            if(isSquareUnderAttack(match, new Position(king.position.x, col), match.getOpponentColor())){
                 return false;
             }
         }
