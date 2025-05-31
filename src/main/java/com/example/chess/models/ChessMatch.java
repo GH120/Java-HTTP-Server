@@ -1,8 +1,6 @@
 package com.example.chess.models;
 
 import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedList;
 import java.util.Set;
 import java.util.Stack;
 
@@ -21,12 +19,47 @@ public class ChessMatch{
     private HashMap<Piece, Integer> moveCount; //Responsabilidade separada, mover para outra classe?
 
     public ChessMatch(Player player1, Player player2){
-        white   = player1;
-        black   = player2;
-        history = new Stack<Move>();
-        board   = new Piece[8][8];
+        white     = player1;
+        black     = player2;
+        history   = new Stack<Move>();
+        board     = new Piece[8][8];
+        moveCount = new HashMap<>();
     }
 
+    /** Não valida jogada, apenas joga ela assumindo que foi validada */
+    public void play(Piece piece, Move move){
+
+        kill(getPiece(move.destination)); 
+
+        piece.position = move.destination;
+
+        board[move.destination.x][move.destination.y] = piece;
+
+        treatSideEffects(piece, move);
+
+        history.add(move);
+
+    }
+
+    public void placePiece(Piece piece, Position position){
+        piece.position = position;
+
+        board[position.x][position.y] = piece;
+        
+        getAllPieces(piece.color).add(piece);
+    }
+
+    public void kill(Piece attackedPiece){
+
+        if(attackedPiece == null) return;
+
+        getAllPieces(attackedPiece.getColor()).remove(attackedPiece);
+
+        board[attackedPiece.position.x][attackedPiece.position.y] = null;
+
+    }
+
+    //Getters
     public Player getBlack() {
         return black;
     }
@@ -59,48 +92,11 @@ public class ChessMatch{
         return color == PieceColor.WHITE ? white.pieces : black.pieces;
     }
 
-    public void placePiece(Piece piece, Position position){
-        piece.position = position;
-
-        board[position.x][position.y] = piece;
-        
-        getAllPieces(piece.color).add(piece);
-    }
-
-    //OBS: não valida jogada, apenas joga ela assumindo que foi validada
-    public void play(Piece piece, Move move){
-
-        piece.position = move.destination;
-
-        board[move.destination.x][move.destination.y] = piece;
-
-        treatSideEffects(piece, move);
-
-        history.add(move);
-
-    }
-
-    //Pensando em fazer isso no ChessMatch
-    //Provavelmente a responsabilidade deveria estar no ChessMatch mesmo
-    private void treatSideEffects(Piece piece, Move move){
-
-        switch(move.event){
-            case EN_PASSANT -> {
-                
-                Piece victim = move.event.target;
-
-                board[victim.position.x][victim.position.y] = null;
-            }
-            default -> {
-
-            }
-        }
-    }
-
     public Move getLastMove(){
         return history.peek();
     }
 
+    //**Esquece última jogada do histórico e decrementa o número de movimentos da peça afetada */
     public ChessMatch forgetMove(){
 
         //Decrementa o número de jogadas da peça movida
@@ -131,6 +127,22 @@ public class ChessMatch{
 
     public boolean hasMoved(Piece piece){
         return moveCount.get(piece) > 0;
+    }
+
+    /**Lida com os efeitos colaterais de jogadas como o en passant */
+    private void treatSideEffects(Piece piece, Move move){
+
+        switch(move.event){
+            case EN_PASSANT -> {
+                
+                Piece victim = move.event.target;
+
+                kill(victim);
+            }
+            default -> {
+
+            }
+        }
     }
 
     private void populateGameStart(){

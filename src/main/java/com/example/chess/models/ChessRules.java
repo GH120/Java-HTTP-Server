@@ -15,6 +15,12 @@ public class ChessRules {
     MoveSimulator              simulator   = new MoveSimulator();
     HashMap<Position, Boolean> attackCache = new HashMap<>();
 
+
+    ///////////////////////////
+    // -- Métodos Públicos --//
+    ///////////////////////////
+
+    /** Adiciona jogadas especiais e filtra as que causam autoxeque*/
     public List<Move> validateMoves(ChessMatch match, Piece piece, List<Move> moves) {
 
         attackCache.clear();
@@ -22,6 +28,7 @@ public class ChessRules {
         //Adiciona jogadas especiais
         if (piece instanceof King) addCastlingMoves(match,  (King) piece, moves);
         if (piece instanceof Pawn) addEnPassantMoves(match, (Pawn) piece, moves);
+        if (piece instanceof Pawn) addPromotionMove(match,  (Pawn) piece, moves);
 
         //Filtra todas as jogadas que deixam o rei exposto
         moves.removeIf(move -> wouldCauseSelfCheck(match, piece, move));
@@ -29,8 +36,9 @@ public class ChessRules {
         return moves;
     }
 
+    //**Guarda o evento de xeque e xeque-mate no movimento que realizá-lo para posterior avaliação*/
     public List<Move> evaluateCheckEvents(ChessMatch match, Piece piece, List<Move> moves){
-        //Adiciona evento de cheque caso exista (verificar conflito onde várias jogadas especiais ocorrem)
+        //TODO:(verificar conflito onde várias jogadas especiais ocorrem)
         for(Move move : moves){
 
             if(causesCheck(match, piece, move)){
@@ -45,12 +53,16 @@ public class ChessRules {
         return moves;
     }
 
+    ////////////////////////////
+    // -- Jogadas Especiais --//
+    ////////////////////////////
+    
     // Roque (pequeno e grande)
     private void addCastlingMoves(ChessMatch match, King king, List<Move> moves) {
 
         if (match.hasMoved(king) || isInCheck(match, king.getColor())) return;
 
-        Position KingsideRookPosition  = new Position(king.position.x, 7);
+        Position KingsideRookPosition  = new Position(king.position.x, 7); //Adicionar enum chesspositions?
         Position QueensideRookPosition = new Position(king.position.x, 0);
 
         // Roque pequeno (torre direita)
@@ -145,6 +157,20 @@ public class ChessRules {
         return false;
     }
     
+
+    // Promoção
+    private void addPromotionMove(ChessMatch match, Pawn pawn, List<Move> moves){
+
+        int lastRow = pawn.getColor() == PieceColor.WHITE ? 7 : 0; //Adicionar enum chessPositions?
+
+        for(Move move : moves){
+
+            if(move.destination.x == lastRow){
+                move.setEvent(Event.PROMOTION);
+            }
+        }
+    }
+
     ///////////////////////////////
     // -- Validações de Xeque -- //
     ///////////////////////////////
@@ -248,6 +274,10 @@ public class ChessRules {
         //Se não existir nenhum movimento que salva o rei, é xeque-mate
         return true;
     }
+
+    ////////////////////////////////
+    // -- Simulador de Jogadas -- //
+    ////////////////////////////////
 
     //Consegue simular jogadas e a reverter
     private class MoveSimulator{

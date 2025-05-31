@@ -7,6 +7,7 @@ import com.example.chess.models.ChessMatch;
 import com.example.chess.models.Direction;
 import com.example.chess.models.Move;
 import com.example.chess.models.Piece;
+import com.example.chess.models.PieceColor;
 import com.example.chess.models.Position;
 
 public class King extends Piece{
@@ -21,6 +22,10 @@ public class King extends Piece{
                                                     Direction.EAST,
                                                     Direction.WEST
                                                 };
+
+    public King(Position position, PieceColor color){
+        super(position, color);
+    }
 
     //Retorna os movimentos permitidos
     //Dúvida: realizar verificação de cheque aqui ou no tabuleiro?

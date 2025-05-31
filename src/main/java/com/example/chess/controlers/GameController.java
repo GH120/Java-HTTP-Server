@@ -1,7 +1,6 @@
 package com.example.chess.controlers;
 
 import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
 
 import com.example.chess.models.ChessMatch;
@@ -10,6 +9,11 @@ import com.example.chess.models.Move;
 import com.example.chess.models.Piece;
 import com.example.chess.models.Player;
 import com.example.chess.models.Position;
+import com.example.chess.models.chesspieces.Bishop;
+import com.example.chess.models.chesspieces.Knight;
+import com.example.chess.models.chesspieces.Pawn;
+import com.example.chess.models.chesspieces.Queen;
+import com.example.chess.models.chesspieces.Rook;
 
 //Transformar ele numa thread?
 public class GameController {
@@ -33,6 +37,22 @@ public class GameController {
         return instance;
     }
 
+    public void choosePromotion(ChessMatch match, Pawn pawn, Pawn.Promotion promotion){
+
+        match.kill(pawn);
+        
+        Piece promotedPiece = null;
+
+        switch(promotion){
+            case KNIGHT -> promotedPiece = new Knight(pawn.position, pawn.color);
+            case QUEEN ->  promotedPiece = new Queen(pawn.position, pawn.color);
+            case ROOK ->   promotedPiece = new Rook(pawn.position, pawn.color);
+            case BISHOP -> promotedPiece = new Bishop(pawn.position, pawn.color);
+        }
+
+        match.placePiece(promotedPiece, pawn.position);
+    }
+
     //Controls
     public void playMove(Player player, ChessMatch match, Move move) throws InvalidMoveException{
 
@@ -45,6 +65,8 @@ public class GameController {
         match.play(piece, move);
 
         handleEvents(move);
+
+        moveCache.clear();
     }
 
     public List<Move> seePossibleMoves(ChessMatch match, Position position){
@@ -68,6 +90,9 @@ public class GameController {
 
             }
             case CHECKMATE -> {
+
+            }
+            default ->{
 
             }
         }

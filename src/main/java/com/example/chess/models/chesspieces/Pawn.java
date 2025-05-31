@@ -13,6 +13,17 @@ import com.example.chess.models.Move.Event;
 
 public class Pawn extends Piece{
 
+    public enum Promotion{
+        KNIGHT,
+        QUEEN,
+        BISHOP,
+        ROOK
+    }
+
+    public Pawn(Position position, PieceColor color){
+        super(position, color);
+    }
+
     //TODO: verificar se movimentos estão withinBoard
     public List<Move> allowedMoves(Piece[][] board){
 

@@ -9,6 +9,11 @@ abstract public class Piece {
 
     abstract public List<Move>     allowedMoves(Piece[][] board);
 
+    public Piece(Position position, PieceColor color){
+        this.position = position;
+        this.color = color;
+    }
+
     //Util
     public PieceColor getColor(){
         return color;
