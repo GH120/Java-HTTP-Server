@@ -28,7 +28,12 @@ public class GameController {
     private GameState  state;
 
     private enum GameState {
-        NORMAL, CHECK, CHECKMATE, DRAW, EXITED
+        NORMAL, 
+        CHECK, 
+        CHECKMATE, 
+        DRAW, 
+        PROMOTION, //Para partida enquanto usuário não escolher a promoção
+        EXITED
     }
 
     private GameController() {
@@ -43,24 +48,22 @@ public class GameController {
         return instance;
     }
 
-    public void choosePromotion(ChessMatch match, Pawn pawn, Pawn.Promotion promotion){
+    public void choosePromotion(ChessMatch match, Pawn.Promotion promotion) throws NoPromotionEvent{
 
-        match.kill(pawn);
-        
-        Piece promotedPiece = null;
+        if(state != GameState.PROMOTION) 
+            throw new NoPromotionEvent();
 
-        switch(promotion){
-            case KNIGHT -> promotedPiece = new Knight(pawn.position, pawn.color);
-            case QUEEN  -> promotedPiece = new Queen (pawn.position, pawn.color);
-            case ROOK   -> promotedPiece = new Rook  (pawn.position, pawn.color);
-            case BISHOP -> promotedPiece = new Bishop(pawn.position, pawn.color);
-        }
+        match.choosePromotion(promotion);
 
-        match.insertPiece(promotedPiece, pawn.position);
+        updateGameState(match);
     }
 
     //Controls
-    public void playMove(Player player, ChessMatch match, Move move) throws InvalidMove, NotPlayerTurn{
+    public void playMove(Player player, ChessMatch match, Move move) throws InvalidMove, NotPlayerTurn, PendingPromotion{
+
+
+        if(state == GameState.PROMOTION)
+            throw new PendingPromotion();
 
         List<Move> moves = seePossibleMoves(match, move.origin);
 
@@ -74,7 +77,7 @@ public class GameController {
 
         match.play(piece, move);
 
-        handleEvents(move);
+        handleResponses(move);
 
         moveCache.clear();
     }
@@ -93,21 +96,33 @@ public class GameController {
         });
     }
 
-    //TODO: Adicionar verificação de cheque
-
-    private void handleEvents(Move move){
+    /** Responde com base no evento do movimento */
+    private void handleResponses(Move move){
 
         switch(move.event){
-            case CHECK -> {
-
-            }
-            case CHECKMATE -> {
-
+            case PROMOTION -> {
+                state = GameState.PROMOTION;
+                //Colocar resposta especial aqui
             }
             default ->{
-
+                //Resposta padrão
             }
         }
+    }
+
+    private void updateGameState(ChessMatch match){
+
+        if(rules.isInCheckMate(match, match.getCurrentColor())){
+            state = GameState.CHECKMATE;
+        }
+        else if(rules.isInCheck(match, match.getCurrentColor())){
+            state = GameState.CHECK;
+        }
+        else if(rules.isDraw(match, match.getCurrentColor())){
+            state = GameState.DRAW;
+        }
+
+        state = GameState.NORMAL;
     }
 
     private void sendResponse(){
@@ -122,6 +137,14 @@ public class GameController {
     }
 
     private class NotPlayerTurn extends Exception{
+
+    }
+
+    private class PendingPromotion extends Exception{
+
+    }
+
+    private class NoPromotionEvent extends Exception{
 
     }
 

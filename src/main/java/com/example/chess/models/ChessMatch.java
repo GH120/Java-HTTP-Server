@@ -1,12 +1,15 @@
 package com.example.chess.models;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Set;
 import java.util.Stack;
 
+import com.example.chess.models.chesspieces.Bishop;
 import com.example.chess.models.chesspieces.King;
+import com.example.chess.models.chesspieces.Knight;
+import com.example.chess.models.chesspieces.Pawn;
+import com.example.chess.models.chesspieces.Queen;
+import com.example.chess.models.chesspieces.Rook;
 
 //Classe primariamente de dados e acesso a dados
 //Comportamento de jogada tratada em GameController
@@ -74,7 +77,9 @@ public class ChessMatch{
 
     }
 
-    /**Esquece última jogada do histórico e decrementa o número de movimentos da peça afetada */
+    /**Esquece última jogada do histórico, 
+     * decrementa o número de movimentos da peça que se moveu, 
+     * revive peça morta no último turno */
     public ChessMatch revertLastMove(){
 
         Move lastMove = getLastMove();
@@ -95,6 +100,24 @@ public class ChessMatch{
         history.pop();
 
         return this;
+    }
+
+    public void choosePromotion(Pawn.Promotion promotion){
+
+        Pawn pawn = (Pawn) getPiece(getLastMove().destination);
+
+        kill(pawn);
+        
+        Piece promotedPiece = null;
+
+        switch(promotion){
+            case KNIGHT -> promotedPiece = new Knight(pawn.position, pawn.color);
+            case QUEEN  -> promotedPiece = new Queen (pawn.position, pawn.color);
+            case ROOK   -> promotedPiece = new Rook  (pawn.position, pawn.color);
+            case BISHOP -> promotedPiece = new Bishop(pawn.position, pawn.color);
+        }
+
+        insertPiece(promotedPiece, pawn.position);
     }
 
     ///////////////////////////////////////
@@ -180,15 +203,16 @@ public class ChessMatch{
         }
     }
 
-    //Tratar casos de En-passant, Castle usando o event do simulatedMoves (não vale a pena separar ataque de movimento)
+    /** Tratar casos de En-passant, Castle*/
     private void revertSideEffects(Piece piece, Move move){
         
         switch(move.event){
             case EN_PASSANT -> {
                 
-                Piece victim = move.event.target;
+                //Acabou sendo desnecessário, pois o forgetMove já revive a última peça morta
+                // Piece victim = move.event.target;
 
-                insertPiece(victim, move.origin);
+                // insertPiece(victim, move.origin);
             }
             default -> {
 

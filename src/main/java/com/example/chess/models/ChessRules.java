@@ -34,23 +34,6 @@ public class ChessRules {
         return moves;
     }
 
-    //**Guarda o evento de xeque e xeque-mate no movimento que realizá-lo para posterior avaliação*/
-    public List<Move> evaluateCheckEvents(ChessMatch match, Piece piece, List<Move> moves){
-        //TODO:(verificar conflito onde várias jogadas especiais ocorrem)
-        for(Move move : moves){
-
-            if(causesCheck(match, piece, move)){
-                move.setEvent(Event.CHECK);
-            }
-
-            if(causesCheckMate(match, piece, move)){
-                move.setEvent(Event.CHECKMATE);
-            }
-        }
-
-        return moves;
-    }
-
     ////////////////////////////
     // -- Jogadas Especiais --//
     ////////////////////////////
@@ -173,7 +156,7 @@ public class ChessRules {
     // -- Validações de Xeque -- //
     ///////////////////////////////
     
-    private boolean isInCheck(ChessMatch match, PieceColor color) {
+    public boolean isInCheck(ChessMatch match, PieceColor color) {
 
         Position kingPos = match.findKing(color).position;
 
@@ -197,35 +180,6 @@ public class ChessRules {
                                          .anyMatch(m -> m.destination.equals(square))
                                 );
         });
-    }
-
-    private boolean causesCheck(ChessMatch match, Piece piece, Move move) {
-        
-        // 1. Simula o movimento
-        match.play(piece, move);
-        
-        // 2. Verifica se o rei oposto está em xeque
-        boolean causesCheck = isInCheck(match, piece.getColor().opposite());
-        
-        // 3. Reverte a simulação
-        match.revertLastMove();
-        
-        return causesCheck;
-    }
-
-    private boolean causesCheckMate(ChessMatch match, Piece piece, Move move){
-
-        Boolean causesCheckMate;
-
-        PieceColor enemyColor = piece.getColor().opposite();
-
-        match.play(piece, move);
-
-        causesCheckMate = isInCheckMate(match, enemyColor);
-
-        match.revertLastMove();
-
-        return causesCheckMate;
     }
 
     //Verifica se jogada não deixa o rei exposto a um ataque

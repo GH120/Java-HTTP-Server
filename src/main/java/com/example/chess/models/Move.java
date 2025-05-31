@@ -10,11 +10,9 @@ public class Move {
 
     public enum Event {
         ATTACK,       // Movimento padrão, conta como ataque em outra peça
-        CHECK,        // Causa xeque
         CASTLING,     // Roque
         EN_PASSANT,   // En passant
         PROMOTION,    // Promoção de peão
-        CHECKMATE,    // Xeque-mate
         MOVEMENT,     // Movimento Inofensivo do peão
         TWOTILESKIP;  // Movimento de pulo do peão
 
