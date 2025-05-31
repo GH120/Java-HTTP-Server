@@ -11,8 +11,6 @@ import com.example.chess.models.chesspieces.Rook;
 
 public class ChessRules {
 
-    //Usado no caso de Cheque a si mesmo (jogada deixa rei exposto)
-    MoveSimulator              simulator   = new MoveSimulator();
     HashMap<Position, Boolean> attackCache = new HashMap<>();
 
 
@@ -204,13 +202,13 @@ public class ChessRules {
     private boolean causesCheck(ChessMatch match, Piece piece, Move move) {
         
         // 1. Simula o movimento
-        simulator.simulateMove(match, piece, move);
+        match.play(piece, move);
         
         // 2. Verifica se o rei oposto está em xeque
         boolean causesCheck = isInCheck(match, piece.getColor().opposite());
         
         // 3. Reverte a simulação
-        simulator.revert(match);
+        match.revertLastMove();
         
         return causesCheck;
     }
@@ -221,11 +219,11 @@ public class ChessRules {
 
         PieceColor enemyColor = piece.getColor().opposite();
 
-        simulator.simulateMove(match, piece, move);
+        match.play(piece, move);
 
         causesCheckMate = isInCheckMate(match, enemyColor);
 
-        simulator.revert(match);
+        match.revertLastMove();
 
         return causesCheckMate;
     }
@@ -234,12 +232,12 @@ public class ChessRules {
     private boolean wouldCauseSelfCheck(ChessMatch match, Piece piece, Move move) {
 
         //Simula jogada, guardando estado inicial
-        simulator.simulateMove(match, piece, move); 
+        match.play(piece, move); 
 
         boolean inCheck = isInCheck(match, piece.getColor());
 
         //Retorna tabuleiro e peça ao estado inicial
-        simulator.revert(match); 
+        match.revertLastMove(); 
 
         return inCheck;
     }
@@ -270,50 +268,5 @@ public class ChessRules {
     public boolean isInCheckMate(ChessMatch match, PieceColor color){
 
         return isInCheck(match, color) && isDraw(match, color);
-    }
-
-    ////////////////////////////////
-    // -- Simulador de Jogadas -- //
-    ////////////////////////////////
-
-    //Consegue simular jogadas e a reverter
-    private class MoveSimulator{
-
-        private Stack<Move>  simulatedMoves = new Stack<>();
-        private Stack<Piece> attackedPieces = new Stack<>();
-        private Stack<Piece> movedPieces    = new Stack<>();
-
-        public void simulateMove(ChessMatch match, Piece piece, Move move){
-
-            simulatedMoves.push(move);
-
-            movedPieces.push(piece);
-
-            attackedPieces.push(match.getPiece(move.destination));
-
-            match.play(piece, move);
-        }
-
-        public void revert(ChessMatch match){
-
-            Piece attackedPiece = attackedPieces.pop();
-            Piece movedPiece    = movedPieces.pop();
-            Move  simulatedMove = simulatedMoves.pop();
-
-            Move moveBack = new Move(simulatedMove.destination, simulatedMove.origin);
-
-            match.play(movedPiece, moveBack);
-            
-            match.insertPiece(attackedPiece, simulatedMove.destination);
-
-            match.forgetMove()
-                 .forgetMove(); //Esquece os dois movimentos simulados
-        }
-
-        //Tratar casos de En-passant, Castle usando o event do simulatedMoves (não vale a pena separar ataque de movimento)
-        private void treatSideEffects(Piece[][] board, Piece piece, Move move){
-            
-            
-        }
     }
 }

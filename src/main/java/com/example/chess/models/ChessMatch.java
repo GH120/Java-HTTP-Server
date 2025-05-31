@@ -1,6 +1,8 @@
 package com.example.chess.models;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Set;
 import java.util.Stack;
 
@@ -15,16 +17,23 @@ public class ChessMatch{
     private Piece[][]     board;
     private Player        white;
     private Player        black;
+    private Stack<Piece>  casualties;
     
     private HashMap<Piece, Integer> moveCount; //Responsabilidade separada, mover para outra classe?
 
     public ChessMatch(Player player1, Player player2){
-        white     = player1;
-        black     = player2;
-        history   = new Stack<Move>();
-        board     = new Piece[8][8];
-        moveCount = new HashMap<>();
+        white      = player1;
+        black      = player2;
+        history    = new Stack<Move>();
+        board      = new Piece[8][8];
+        moveCount  = new HashMap<>();
+        casualties = new Stack<>();
     }
+
+    //////////////////////////////////////
+    // -- Métodos que Alteram Estado -- //
+    //////////////////////////////////////
+    
 
     /** Não valida jogada, apenas joga ela assumindo que foi validada 
      *  Se houver peça no quadrado do destino, mata ela
@@ -61,9 +70,37 @@ public class ChessMatch{
 
         board[attackedPiece.position.x][attackedPiece.position.y] = null;
 
+        casualties.add(attackedPiece);
+
     }
 
-    //Getters
+    /**Esquece última jogada do histórico e decrementa o número de movimentos da peça afetada */
+    public ChessMatch revertLastMove(){
+
+        Move lastMove = getLastMove();
+
+        Piece piece = getPiece(lastMove.origin);
+
+        Move moveBack = new Move(lastMove.destination, lastMove.origin);
+
+        play(piece, moveBack);
+
+        revertSideEffects(piece, moveBack);
+
+        insertPiece(casualties.pop(), lastMove.destination);
+
+        //Remove as duas jogadas (ida e volta) da peça movida
+        moveCount.compute(piece, (p, i) -> i - 2);
+        history.pop();
+        history.pop();
+
+        return this;
+    }
+
+    ///////////////////////////////////////
+    // -- Métodos que Retornam Estado -- //
+    ///////////////////////////////////////
+
     public Player getBlack() {
         return black;
     }
@@ -103,19 +140,6 @@ public class ChessMatch{
         return history.peek();
     }
 
-    //**Esquece última jogada do histórico e decrementa o número de movimentos da peça afetada */
-    public ChessMatch forgetMove(){
-
-        //Decrementa o número de jogadas da peça movida
-        Piece piece = getPiece(getLastMove().origin);
-
-        moveCount.compute(piece, (p, i) -> i - 1);
-
-        history.pop();
-
-        return this;
-    }
-
 
     public King findKing(PieceColor color){
 
@@ -136,6 +160,10 @@ public class ChessMatch{
         return moveCount.get(piece) > 0;
     }
 
+    ////////////////////////////
+    // -- Métodos Privados -- //
+    ////////////////////////////
+
     /**Lida com os efeitos colaterais de jogadas como o en passant */
     private void treatSideEffects(Piece piece, Move move){
 
@@ -150,6 +178,23 @@ public class ChessMatch{
 
             }
         }
+    }
+
+    //Tratar casos de En-passant, Castle usando o event do simulatedMoves (não vale a pena separar ataque de movimento)
+    private void revertSideEffects(Piece piece, Move move){
+        
+        switch(move.event){
+            case EN_PASSANT -> {
+                
+                Piece victim = move.event.target;
+
+                insertPiece(victim, move.origin);
+            }
+            default -> {
+
+            }
+        }
+        
     }
 
     private void populateGameStart(){
