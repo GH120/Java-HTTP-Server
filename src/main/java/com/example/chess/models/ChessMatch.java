@@ -26,7 +26,9 @@ public class ChessMatch{
         moveCount = new HashMap<>();
     }
 
-    /** Não valida jogada, apenas joga ela assumindo que foi validada */
+    /** Não valida jogada, apenas joga ela assumindo que foi validada 
+     *  Se houver peça no quadrado do destino, mata ela
+    */
     public void play(Piece piece, Move move){
 
         kill(getPiece(move.destination)); 
@@ -37,11 +39,13 @@ public class ChessMatch{
 
         treatSideEffects(piece, move);
 
+        moveCount.compute(piece, (p,i) -> i + 1);
+
         history.add(move);
 
     }
 
-    public void placePiece(Piece piece, Position position){
+    public void insertPiece(Piece piece, Position position){
         piece.position = position;
 
         board[position.x][position.y] = piece;
@@ -93,6 +97,9 @@ public class ChessMatch{
     }
 
     public Move getLastMove(){
+
+        if(history.empty()) return null;
+
         return history.peek();
     }
 

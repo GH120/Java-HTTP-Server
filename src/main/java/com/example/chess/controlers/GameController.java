@@ -7,6 +7,7 @@ import com.example.chess.models.ChessMatch;
 import com.example.chess.models.ChessRules;
 import com.example.chess.models.Move;
 import com.example.chess.models.Piece;
+import com.example.chess.models.PieceColor;
 import com.example.chess.models.Player;
 import com.example.chess.models.Position;
 import com.example.chess.models.chesspieces.Bishop;
@@ -24,6 +25,11 @@ public class GameController {
 
     private HashMap<Position, List<Move>> moveCache;
     private ChessRules rules;
+    private GameState  state;
+
+    private enum GameState {
+        NORMAL, CHECK, CHECKMATE, DRAW, EXITED
+    }
 
     private GameController() {
         moveCache = new HashMap<>();
@@ -45,22 +51,26 @@ public class GameController {
 
         switch(promotion){
             case KNIGHT -> promotedPiece = new Knight(pawn.position, pawn.color);
-            case QUEEN ->  promotedPiece = new Queen(pawn.position, pawn.color);
-            case ROOK ->   promotedPiece = new Rook(pawn.position, pawn.color);
+            case QUEEN  -> promotedPiece = new Queen (pawn.position, pawn.color);
+            case ROOK   -> promotedPiece = new Rook  (pawn.position, pawn.color);
             case BISHOP -> promotedPiece = new Bishop(pawn.position, pawn.color);
         }
 
-        match.placePiece(promotedPiece, pawn.position);
+        match.insertPiece(promotedPiece, pawn.position);
     }
 
     //Controls
-    public void playMove(Player player, ChessMatch match, Move move) throws InvalidMoveException{
+    public void playMove(Player player, ChessMatch match, Move move) throws InvalidMove, NotPlayerTurn{
 
         List<Move> moves = seePossibleMoves(match, move.origin);
 
-        if(!moves.contains(move)) throw new InvalidMoveException();
+        if(!moves.contains(move)) 
+            throw new InvalidMove();
 
         Piece piece = match.getPiece(move.origin);
+
+        if(piece.color == match.getCurrentColor())
+            throw new NotPlayerTurn();
 
         match.play(piece, move);
 
@@ -75,13 +85,15 @@ public class GameController {
         
             Piece piece = match.getPiece(position);
 
-            List<Move> defaultMoves = piece.allowedMoves(match.getBoard());
+            List<Move> defaultMoves = piece.defaultMoves(match.getBoard());
 
             List<Move> allowedMoves = this.rules.validateMoves(match, piece, defaultMoves);
 
             return allowedMoves;
         });
     }
+
+    //TODO: Adicionar verificação de cheque
 
     private void handleEvents(Move move){
 
@@ -102,11 +114,15 @@ public class GameController {
         
     }
 
-    private class InvalidMoveException extends Exception{
+    private class InvalidMove extends Exception{
 
-        InvalidMoveException(){
+        InvalidMove(){
             super("Jogada inválida");
         }
+    }
+
+    private class NotPlayerTurn extends Exception{
+
     }
 
 }

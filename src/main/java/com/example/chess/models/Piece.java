@@ -7,7 +7,7 @@ abstract public class Piece {
     public  Position    position;
     public  PieceColor  color;
 
-    abstract public List<Move>     allowedMoves(Piece[][] board);
+    abstract public List<Move>  defaultMoves(Piece[][] board);
 
     public Piece(Position position, PieceColor color){
         this.position = position;

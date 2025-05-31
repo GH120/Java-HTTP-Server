@@ -23,7 +23,7 @@ public class Bishop extends Piece{
         super(position, color);
     }
 
-    public List<Move> allowedMoves(Piece[][] board){
+    public List<Move> defaultMoves(Piece[][] board){
 
         ArrayList<Move> moves = new ArrayList<Move>();
 

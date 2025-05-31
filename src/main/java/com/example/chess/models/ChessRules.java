@@ -97,7 +97,7 @@ public class ChessRules {
         int step = queenSide ? -1 : 1;
         int end  = queenSide ?  1 : 6;
 
-        Piece king = match.findKing(match.getCurrentColor());
+        Piece king = match.findKing(rook.getColor());
 
         // Verifica casas vazias e não atacadas
         for (int col = king.position.y + step; col != end; col += step) {
@@ -193,7 +193,7 @@ public class ChessRules {
                     return match.getAllPieces(byColor)
                                 .stream()
                                 .anyMatch(
-                                    p -> p.allowedMoves(match.getBoard())
+                                    p -> p.defaultMoves(match.getBoard())
                                          .stream()
                                          .filter(  m -> m.event == Event.ATTACK) //Ignora os movimentos de peão
                                          .anyMatch(m -> m.destination.equals(square))
@@ -244,35 +244,32 @@ public class ChessRules {
         return inCheck;
     }
 
-    //Ineficiente, poderia verificar apenas as peças atacando o quadrado do rei
-    public boolean isInCheckMate(ChessMatch match, PieceColor color){
-
-        //1. Primeiro verifica se o rei está em xeque
-        if(!isInCheck(match, color)){
-            return false;
-        }
+    public boolean isDraw(ChessMatch match, PieceColor color){
 
         King king = match.findKing(color);
         
-        //2. verifica se o rei pode escapar
-        for (Move move : king.allowedMoves(match.getBoard())) {
+        //1. verifica se o rei pode escapar
+        for (Move move : king.defaultMoves(match.getBoard())) {
             if (!wouldCauseSelfCheck(match, king, move)) {
                 return false;
             }
         }
 
-        //3. Verifica se existe algum movimento de ataque que tira do xeque
+        //2. Verifica se existe algum movimento de ataque que tira do xeque
         for(Piece piece : match.getAllPieces(color)){
-            for(Move move : piece.allowedMoves(match.getBoard())){
-                if(!wouldCauseSelfCheck(match, piece, move)){
-                    return false;
-                }
-            }
+
+            List<Move> validMoves = validateMoves(match, piece, piece.defaultMoves(match.getBoard()));
+
+            if(validMoves.size() > 0) return false;
         }
 
-
-        //Se não existir nenhum movimento que salva o rei, é xeque-mate
         return true;
+    }
+
+    //Ineficiente, poderia verificar apenas as peças atacando o quadrado do rei
+    public boolean isInCheckMate(ChessMatch match, PieceColor color){
+
+        return isInCheck(match, color) && isDraw(match, color);
     }
 
     ////////////////////////////////
@@ -305,9 +302,9 @@ public class ChessRules {
 
             Move moveBack = new Move(simulatedMove.destination, simulatedMove.origin);
 
-            match.placePiece(attackedPiece, simulatedMove.destination);
-
             match.play(movedPiece, moveBack);
+            
+            match.insertPiece(attackedPiece, simulatedMove.destination);
 
             match.forgetMove()
                  .forgetMove(); //Esquece os dois movimentos simulados

@@ -30,7 +30,7 @@ public class King extends Piece{
     //Retorna os movimentos permitidos
     //Dúvida: realizar verificação de cheque aqui ou no tabuleiro?
     //TODO: decidir como vai funcionar a verificação de cheque
-    public List<Move> allowedMoves(Piece[][] board){
+    public List<Move> defaultMoves(Piece[][] board){
 
         ArrayList<Move> moves = new ArrayList<Move>();
 
