@@ -43,15 +43,16 @@ public class ChessMatch {
     public void playMove(Player player, Move move) throws ChessError{
 
         //Verifica inconsistências na requisição da jogada
+        if(state == GameState.CHECKMATE) throw new GameHasAlreadyEnded();
+        if(state == GameState.DRAW)      throw new GameHasAlreadyEnded();
+        if(state == GameState.EXITED)    throw new GameHasAlreadyEnded();
         if(state == GameState.PROMOTION) throw new PendingPromotion();
 
         List<Move> moves = seePossibleMoves(move.origin);
+        Piece      piece = chessModel.getPiece(move.origin);
 
-        if(!moves.contains(move)) throw new InvalidMove();
-
-        Piece piece = chessModel.getPiece(move.origin);
-
-        if(piece.color == chessModel.getCurrentColor())throw new NotPlayerTurn();
+        if(!moves.contains(move))                       throw new InvalidMove();
+        if(piece.color == chessModel.getCurrentColor()) throw new NotPlayerTurn();
 
         //Uma vez validada, registra jogada no modelo, atualiza estado do jogo e notifica aos observadores
         chessModel.play(piece, move);
@@ -102,9 +103,6 @@ public class ChessMatch {
         else if(chessRules.isDraw(chessModel, chessModel.getCurrentColor())){
             state = GameState.DRAW;
         }
-        else if (move != null && move.event == Event.PROMOTION){
-            state = GameState.PROMOTION;
-        }
         else if(chessRules.isInCheck(chessModel, chessModel.getCurrentColor())){
             state = GameState.CHECK;
         }
@@ -113,6 +111,13 @@ public class ChessMatch {
         }
 
         notifier.notifyStateChange(state);
+
+        //Depois de avisar se houve cheque ou o jogo acabou, verifica promoção
+        if(move != null && move.event == Event.PROMOTION){
+            notifier.notifyPromotionRequired(move.destination);
+
+            state = GameState.PROMOTION;
+        }
     }
 
     public Player getBlack() {
@@ -145,6 +150,10 @@ public class ChessMatch {
     }
 
     private class NoPromotionEvent extends ChessError{
+
+    }
+
+    private class GameHasAlreadyEnded extends ChessError{
 
     }
 

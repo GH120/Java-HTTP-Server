@@ -26,7 +26,7 @@ public class MatchNotifier {
         }
     }
 
-    public void notifyPromotion(Position pawnPos) {
+    public void notifyPromotionRequired(Position pawnPos) {
         for (MatchObserver obs : observers) {
             obs.onPromotionRequired(pawnPos);
         }
