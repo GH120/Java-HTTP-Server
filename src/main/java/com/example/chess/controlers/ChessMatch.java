@@ -26,7 +26,7 @@ public class ChessMatch {
     private final ChessRules    chessRules;
     private final ChessModel    chessModel;
 
-    private HashMap<Position, List<Move>> moveCache;
+    private final HashMap<Position, List<Move>> moveCache;
     
     public enum GameState {NORMAL, CHECK, CHECKMATE, DRAW, PROMOTION, EXITED}
 
@@ -39,7 +39,7 @@ public class ChessMatch {
         black = opponent;
     }
 
-    //Controls
+    /**Controle para efetuar jogada de Xadrez, solta erros se jogada for inconsistente */
     public void playMove(Player player, Move move) throws ChessError{
 
         //Verifica inconsistências na requisição da jogada
@@ -48,7 +48,7 @@ public class ChessMatch {
         if(state == GameState.EXITED)    throw new GameHasAlreadyEnded();
         if(state == GameState.PROMOTION) throw new PendingPromotion();
 
-        List<Move> moves = seePossibleMoves(move.origin);
+        List<Move> moves = getAllPossibleMoves(move.origin);
         Piece      piece = chessModel.getPiece(move.origin);
 
         if(!moves.contains(move))                       throw new InvalidMove();
@@ -64,19 +64,12 @@ public class ChessMatch {
         moveCache.clear();
     }
 
-    public List<Move> seePossibleMoves(Position position){
+    /** Notifica todas as jogadas possíveis para os observers */
+    public void showPossibleMoves(Position position){
 
-        return moveCache.computeIfAbsent(position, pos ->{
-        
-            Piece piece = chessModel.getPiece(position);
-
-            List<Move> defaultMoves = piece.defaultMoves(chessModel.getBoard());
-
-            List<Move> allowedMoves = this.chessRules.validateMoves(chessModel, piece, defaultMoves);
-
-            return allowedMoves;
-        });
+        notifier.notifyPossibleMoves(getAllPossibleMoves(position));
     }
+
 
     public void choosePromotion(Pawn.Promotion promotion) throws NoPromotionEvent{
 
@@ -118,6 +111,20 @@ public class ChessMatch {
 
             state = GameState.PROMOTION;
         }
+    }
+
+    private List<Move> getAllPossibleMoves(Position position){
+
+        return moveCache.computeIfAbsent(position, pos ->{
+        
+            Piece piece = chessModel.getPiece(position);
+
+            List<Move> defaultMoves = piece.defaultMoves(chessModel.getBoard());
+
+            List<Move> allowedMoves = this.chessRules.validateMoves(chessModel, piece, defaultMoves);
+
+            return allowedMoves;
+        });
     }
 
     public Player getBlack() {

@@ -38,6 +38,12 @@ public class MatchNotifier {
         }
     }
 
+    public void notifyPossibleMoves(List<Move> moves){
+        for (MatchObserver obs : observers) {
+            obs.onShowPossibleMoves(moves);
+        }
+    }
+
     public void notifyError(String error) {
         for (MatchObserver obs : observers) {
             obs.onError(error);

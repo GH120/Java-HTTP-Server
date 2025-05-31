@@ -51,6 +51,8 @@ class ExampleRouter extends HttpRouter{
             switch(request.getMethod()){
 
                 case GET: handleGet(request, output); break;
+
+                default: break;
             }
         }
         catch(Exception e){
