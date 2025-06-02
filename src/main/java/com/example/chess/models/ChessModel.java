@@ -65,15 +65,15 @@ public class ChessModel{
 
         kill(getPiece(move.destination)); 
 
-        piece.position = move.destination;
+        piece.position = move.destination; //Informação interna da posição
 
-        board[move.destination.x][move.destination.y] = piece;
+        board[move.destination.x][move.destination.y] = piece; //Onde ele vai 
 
-        board[move.origin.x][move.origin.y] = null;
+        board[move.origin.x][move.origin.y] = null; //Onde ele veio fica nulo
 
         treatSideEffects(piece, move);
 
-        moveCount.compute(piece, (p,i) -> i + 1);
+        moveCount.compute(piece, (p,i) -> i + 1); //Incrementa número de jogadas dessa peça
 
         history.add(move);
 
@@ -100,7 +100,7 @@ public class ChessModel{
     public void kill(Piece attackedPiece){
 
         if(attackedPiece == null){
-            attackMove.push(false);
+            attackMove.push(false); //Coloca na pilha que movimento não causou mortes
             
             return;
         }
@@ -110,6 +110,7 @@ public class ChessModel{
         board[attackedPiece.position.x][attackedPiece.position.y] = null;
 
         //Efeito colateral, propício a bugs
+        //Pensando em unificar casualties e attackMove numa pilha só, adicionando null para quando não houver ataques
         casualties.add(attackedPiece);
 
         attackMove.push(true);
@@ -126,7 +127,7 @@ public class ChessModel{
 
         Move moveBack = new Move(lastMove.destination, lastMove.origin);
 
-        play(piece, moveBack);
+        play(piece, moveBack); //Move de volta a peça, mas tem efeitos colaterais a serem tratados
         
 
         //Remove efeito colateral desse último play (pilha de casualties não é alterada)
@@ -136,7 +137,7 @@ public class ChessModel{
         //Remove as duas jogadas (ida e volta) da peça movida
         moveCount.compute(piece, (p, i) -> i - 2);
 
-        revertSideEffects(piece, moveBack);
+        revertSideEffects(piece, lastMove);
 
         
 

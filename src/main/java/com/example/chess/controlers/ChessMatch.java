@@ -136,11 +136,19 @@ public class ChessMatch {
         return white;
     }
 
+    public ChessModel getChessModel() {
+        return chessModel;
+    }
+
+    public GameState getState() {
+        return state;
+    }
+
     public void addObserver(MatchObserver observer){
         notifier.addObserver(observer);
     }
 
-    private class ChessError extends Exception{
+    public class ChessError extends Exception{
 
         ChessError(){
             super("Jogada inválida");
@@ -149,23 +157,23 @@ public class ChessMatch {
         }
     }
 
-    private class InvalidMove extends ChessError{
+    public class InvalidMove extends ChessError{
 
     }
 
-    private class NotPlayerTurn extends ChessError{
+    public class NotPlayerTurn extends ChessError{
 
     }
 
-    private class PendingPromotion extends ChessError{
+    public class PendingPromotion extends ChessError{
 
     }
 
-    private class NoPromotionEvent extends ChessError{
+    public class NoPromotionEvent extends ChessError{
 
     }
 
-    private class GameHasAlreadyEnded extends ChessError{
+    public class GameHasAlreadyEnded extends ChessError{
 
     }
 
