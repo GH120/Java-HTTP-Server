@@ -25,7 +25,6 @@ public class ChessModel{
 
     //Verifica as peças abatidas nas jogadas
     private Stack<Piece>    casualties;
-    private Stack<Boolean>  attackMove;
     
     //Responsabilidade separada, mover para outra classe? Serve para saber se a peça se moveu
     private HashMap<Piece, Integer> moveCount;
@@ -37,7 +36,6 @@ public class ChessModel{
         whitePieces = new HashSet<>();
         blackPieces = new HashSet<>();
         casualties  = new Stack<>();
-        attackMove  = new Stack<>();
 
         pieces.populateBoard(this); //Tabuleiro de xadrez padrão, extrair depois método separado em uma classe Factory
     }
@@ -49,7 +47,6 @@ public class ChessModel{
         whitePieces = new HashSet<>();
         blackPieces = new HashSet<>();
         casualties  = new Stack<>();
-        attackMove  = new Stack<>();
     }
 
     //////////////////////////////////////
@@ -99,21 +96,16 @@ public class ChessModel{
      */
     public void kill(Piece attackedPiece){
 
-        if(attackedPiece == null){
-            attackMove.push(false); //Coloca na pilha que movimento não causou mortes
-            
-            return;
-        }
+        //Adiciona a pilha de casualties, mesmo se for nulo (não tinha peça atacada)
+        //Propício a bugs, efeito colateral indesejado
+        casualties.add(attackedPiece);
+
+        if(attackedPiece == null) return;
 
         getAllPieces(attackedPiece.getColor()).remove(attackedPiece);
 
         board[attackedPiece.position.x][attackedPiece.position.y] = null;
 
-        //Efeito colateral, propício a bugs
-        //Pensando em unificar casualties e attackMove numa pilha só, adicionando null para quando não houver ataques
-        casualties.add(attackedPiece);
-
-        attackMove.push(true);
     }
 
     /**Esquece última jogada do histórico, 
@@ -123,32 +115,24 @@ public class ChessModel{
 
         Move lastMove = getLastMove();
 
-        Piece piece = getPiece(lastMove.destination);
+        Piece piece  = getPiece(lastMove.destination);
 
         Move moveBack = new Move(lastMove.destination, lastMove.origin);
 
-        play(piece, moveBack); //Move de volta a peça, mas tem efeitos colaterais a serem tratados
-        
-
-        //Remove efeito colateral desse último play (pilha de casualties não é alterada)
-        history.pop();
-        attackMove.pop();
+        play(piece, moveBack); //Move de volta a peça
 
         //Remove as duas jogadas (ida e volta) da peça movida
+        history.pop();    //Remove movimento desse último play
+        casualties.pop(); //Remove ataque    desse último play
+        history.pop();    //Remove última jogada 
         moveCount.compute(piece, (p, i) -> i - 2);
 
+        //Se houve vitima na última jogada, reinsere no tabuleiro
+        Piece victim = casualties.pop(); //Muito propício a bugs
+        
+        if(victim != null) insertPiece(victim, lastMove.destination);
+
         revertSideEffects(piece, lastMove);
-
-        
-
-        //Esquece última jogada e suas consequências
-        history.pop();
-        
-        //ele tem que saber se na última jogada houve morte ou não
-        //Se houver, reinsere peça
-        if(attackMove.pop()){
-            insertPiece(casualties.pop(), lastMove.destination); 
-        }
 
         return this;
     }

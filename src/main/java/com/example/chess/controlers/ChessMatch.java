@@ -53,7 +53,7 @@ public class ChessMatch {
         Piece      piece = chessModel.getPiece(move.origin);
 
         if(!moves.contains(move))                       throw new InvalidMove();
-        if(piece.color == chessModel.getCurrentColor()) throw new NotPlayerTurn();
+        if(piece.color != chessModel.getCurrentColor()) throw new NotPlayerTurn();
 
         //Uma vez validada, registra jogada no modelo, atualiza estado do jogo e notifica aos observadores
         chessModel.play(piece, move);

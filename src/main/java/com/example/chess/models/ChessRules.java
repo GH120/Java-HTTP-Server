@@ -195,16 +195,6 @@ public class ChessRules {
 
         //Nenhum movimento especial é um ataque, salvo o en-passant
         //Para o caso de movimento do pawn, levar em conta se o Event do move é um ataque ou movimento
-        
-        Set<Piece> pieces = model.getAllPieces(byColor);
-
-        //Alguém tá matando a rainha
-        for(Piece piece : pieces){
-            for(Move move : piece.defaultMoves(model.getBoard())){
-                if(move.destination.equals(square)) System.out.println("YES");
-            }
-        }
-
         return attackCache.computeIfAbsent(square, pos -> {
 
                     return model.getAllPieces(byColor)
