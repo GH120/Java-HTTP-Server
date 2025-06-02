@@ -9,19 +9,14 @@ import com.example.chess.models.Move;
 import com.example.chess.models.Piece;
 import com.example.chess.models.PieceColor;
 import com.example.chess.models.Position;
-import com.example.http.HttpMessage;
+import com.example.http.HttpRequest;
 import com.example.json.Json;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.example.chess.models.Move.Event;
 
 public class Pawn extends Piece{
 
-    public enum Promotion{
-        KNIGHT,
-        QUEEN,
-        BISHOP,
-        ROOK,
-    }
+    public enum Promotion{ KNIGHT, QUEEN, BISHOP, ROOK }
 
     public Pawn(Position position, PieceColor color){
         super(position, color);
@@ -42,7 +37,7 @@ public class Pawn extends Piece{
     private void addSingleForwardMove(Piece[][] board, List<Move> moves){
 
         //Avança uma casa para frente
-        Position tile = position.neighbourTile(getDirection(Direction.NORTH));
+        Position tile = position.moveTo(getDirection(Direction.NORTH));
 
         //Se posição está fora do tabuleiro, é inválida
         if(!ChessModel.withinBoard(board, tile)) return;
@@ -61,11 +56,11 @@ public class Pawn extends Piece{
 
        if(hasMoved()) return;
 
-       Position firstStep  = position .neighbourTile(getDirection(Direction.NORTH));
+       Position firstStep  = position .moveTo(getDirection(Direction.NORTH));
 
        if(!ChessModel.withinBoard(board, firstStep)) return;
 
-       Position secondStep = firstStep.neighbourTile(getDirection(Direction.NORTH));
+       Position secondStep = firstStep.moveTo(getDirection(Direction.NORTH));
        
        if(!ChessModel.withinBoard(board, secondStep)) return;
 
@@ -85,7 +80,7 @@ public class Pawn extends Piece{
     private void addDiagonalCapture(Piece[][] board, List<Move> moves, Direction direction){
 
         //Ataque diagonal direita
-        Position tile = position.neighbourTile(getDirection(direction));
+        Position tile = position.moveTo(getDirection(direction));
 
         Piece neighbour = board[tile.x][tile.y];
 
@@ -106,7 +101,7 @@ public class Pawn extends Piece{
     }
 
     //Criar uma fábrica para isso
-    public static Promotion PromotionFromRequest(HttpMessage request) throws Exception{
+    public static Promotion PromotionFromRequest(HttpRequest request) throws Exception{
             System.out.println(request.getBody());
             JsonNode info = Json.parse(request.getBody());
 

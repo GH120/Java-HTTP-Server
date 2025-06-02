@@ -41,14 +41,14 @@ public class Knight extends Piece{
     private void addAttackDirection(Piece[][] board, List<Move> moves, Direction direction){
 
         //Movimento em L: dois na direção e um na perpendicular (sentido antihorário)
-        Position leftHook      = position.neighbourTile(direction)
-                                         .neighbourTile(direction)
-                                         .neighbourTile(direction.rotate90Degrees(false));
+        Position leftHook      = position.moveTo(direction)
+                                         .moveTo(direction)
+                                         .moveTo(direction.rotate90Degrees(false));
 
         //Movimento em L: dois na direção e um na perpendicular (sentido horário)
-        Position rightHook     = position.neighbourTile(direction)
-                                         .neighbourTile(direction)
-                                         .neighbourTile(direction.rotate90Degrees(true));
+        Position rightHook     = position.moveTo(direction)
+                                         .moveTo(direction)
+                                         .moveTo(direction.rotate90Degrees(true));
 
 
         //Dois ataques na direção escolhida, um pra direita e outro pra esquerda

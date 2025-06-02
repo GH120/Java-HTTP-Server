@@ -5,6 +5,8 @@ import java.util.Queue;
 
 import com.example.chess.models.Player;
 
+//Precisa receber também outputstream
+//Pensando em criar objeto que contém o jogador, seu endereço e seu socket...
 public class ChessMatchMaker {
 
     private static ChessMatchMaker instance;

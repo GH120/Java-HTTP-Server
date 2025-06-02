@@ -3,7 +3,7 @@ package com.example.http;
 import java.util.Map;
 
 
-public class HttpMessage {
+public class HttpRequest {
 
     private HttpMethod method;
     private String path;
@@ -11,11 +11,11 @@ public class HttpMessage {
     private Map<String, String> headers; //Talvez criar um enum de headers
     private String body;
 
-    public HttpMessage(){
+    public HttpRequest(){
         
     }
 
-    public HttpMessage(HttpMethod method, String path){
+    public HttpRequest(HttpMethod method, String path){
         setMethod(HttpMethod.GET);
         setVersion("HTTP/1.1");
         setPath(path);
@@ -28,6 +28,7 @@ public class HttpMessage {
     public void setMethod(HttpMethod method) {
         this.method = method;
     }
+    
 
     public String getPath() {
         return path;
@@ -75,6 +76,19 @@ public class HttpMessage {
         if (body != null && !body.isEmpty()) {
             System.out.println(body);
         }
+    }
+
+    public String getContentType(){
+
+        if (path.endsWith(".html")) return "text/html";
+        if (path.endsWith(".css")) return "text/css";
+        if (path.endsWith(".js")) return "application/javascript";
+        if (path.endsWith(".png")) return "image/png";
+        if (path.endsWith(".jpg") || path.endsWith(".jpeg")) return "image/jpeg";
+        if (path.endsWith(".svg")) return "image/svg+xml";
+        if (path.endsWith(".json")) return "application/json";
+
+        return "application/octet-stream";
     }
 
 }

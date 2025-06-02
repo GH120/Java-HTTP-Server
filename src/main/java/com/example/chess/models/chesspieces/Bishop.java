@@ -38,7 +38,7 @@ public class Bishop extends Piece{
     //Mesma função em rook e queen, só muda o nome
     private void factorDiagonal(Piece[][] board, List<Move> moves, Direction direction){
         
-        Position tile = position.neighbourTile(direction);
+        Position tile = position.moveTo(direction);
     
         while(ChessModel.withinBoard(board, tile)) {
 
@@ -57,7 +57,7 @@ public class Bishop extends Piece{
             else break;
             
             // Move para a próxima posição na diagonal
-            tile = tile.neighbourTile(direction);
+            tile = tile.moveTo(direction);
         }
     }
 }

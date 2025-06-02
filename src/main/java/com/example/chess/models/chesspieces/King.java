@@ -36,7 +36,7 @@ public class King extends Piece{
 
         for(Direction attackDirection : attackDirections){
             
-            Position tile      = position.neighbourTile(attackDirection);
+            Position tile      = position.moveTo(attackDirection);
             Piece    neighbour = board[tile.x][tile.y];
 
             //Saiu do tabuleiro, ignora

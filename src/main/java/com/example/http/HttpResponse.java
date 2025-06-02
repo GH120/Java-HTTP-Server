@@ -8,7 +8,7 @@ public class HttpResponse{
     private HttpStatusCode status;
     private String version;
     private Map<String, String> headers;
-    private String body;
+    private byte[] body;
     private final String CRLF = "\r\n";
 
     public String toString(){
@@ -26,7 +26,7 @@ public class HttpResponse{
 
     }
 
-    public HttpResponse setCode(int code) {
+    public HttpResponse setStatusCode(int code) {
         this.status = HttpStatusCode.fromCode(code);
 
         return this;
@@ -50,36 +50,41 @@ public class HttpResponse{
         return headers;
     }
 
+    public void addHeader(String name, String content){
+        this.headers.put(name, content);
+    }
+
     public HttpResponse setHeaders(Map<String, String> headers) {
         this.headers = headers;
 
         return this;
     }
 
-    public String getBody() {
+    public byte[] getBody() {
         return body;
     }
 
-    public HttpResponse setBody(String body) {
+    public HttpResponse setBody(byte[] body) {
         this.body = body;
 
         return this;
     }
 
-    public static HttpResponse OK(Integer length, String contentType){
+    public static HttpResponse OK(byte[] body, String contentType){
 
         var headers = new HashMap<String,String>();
 
-        headers.put("Content-Length", "" + length);
+        headers.put("Content-Length", "" + body.length);
 
         if(contentType != null){
             headers.put("Content-Type", contentType);
         }
 
          HttpResponse response =  new HttpResponse()
-                                    .setCode(200)
+                                    .setStatusCode(200)
                                     .setVersion("HTTP/1.1")
-                                    .setHeaders(headers);
+                                    .setHeaders(headers)
+                                    .setBody(body);
 
         return response;
     }

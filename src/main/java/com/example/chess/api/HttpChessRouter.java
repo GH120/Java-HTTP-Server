@@ -11,8 +11,9 @@ import com.example.config.ConfigurationManager;
 import com.example.core.HttpRouter;
 import com.example.core.io.WebRootHandler;
 import com.example.core.io.WebRootNotFoundException;
-import com.example.http.HttpMessage;
+import com.example.http.HttpRequest;
 import com.example.http.HttpResponse;
+import com.example.parser.HttpStreamWriter;
 
 public class HttpChessRouter extends HttpRouter{
 
@@ -24,7 +25,7 @@ public class HttpChessRouter extends HttpRouter{
         super(); 
     }
 
-    public void handleRequest(HttpMessage request, OutputStream output){
+    public void handleRequest(HttpRequest request, OutputStream output){
 
         configuration = ConfigurationManager.getInstance().getCurrentConfiguration();
 
@@ -63,10 +64,10 @@ public class HttpChessRouter extends HttpRouter{
         }
     }
 
-    private void handleGet(HttpMessage request, OutputStream output) throws IOException, WebRootNotFoundException{
+    private void handleGet(HttpRequest request, OutputStream output) throws IOException, WebRootNotFoundException{
         
         String path        = request.getPath();
-        String contentType = getContentType(path);
+        String contentType = request.getContentType();
 
         File file = handler.getFile(path);
 
@@ -74,28 +75,7 @@ public class HttpChessRouter extends HttpRouter{
         System.out.println(file);
 
         byte[] body     = Files.readAllBytes(file.toPath());
-        var    response = HttpResponse.OK(body.length, contentType);
 
-        //Escreve o cabeçário
-        output.write(response.toString().getBytes());
-
-        //Escreve o corpo
-        output.write(body);
-        output.flush();
-    }
-
-    
-
-    private String getContentType(String path){
-
-        if (path.endsWith(".html")) return "text/html";
-        if (path.endsWith(".css")) return "text/css";
-        if (path.endsWith(".js")) return "application/javascript";
-        if (path.endsWith(".png")) return "image/png";
-        if (path.endsWith(".jpg") || path.endsWith(".jpeg")) return "image/jpeg";
-        if (path.endsWith(".svg")) return "image/svg+xml";
-        if (path.endsWith(".json")) return "application/json";
-
-        return "application/octet-stream";
+        HttpStreamWriter.send(HttpResponse.OK(body, contentType), output);
     }
 }

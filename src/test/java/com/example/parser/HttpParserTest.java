@@ -4,7 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.util.LinkedList;
 
-import com.example.http.HttpMessage;
+import com.example.http.HttpRequest;
 import com.example.http.HttpParseException;
 import com.example.http.HttpStatusCode;
 

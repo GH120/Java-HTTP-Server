@@ -39,7 +39,7 @@ public class Rook extends Piece{
     //Mesma função em queen e bishop, só muda o nome
     private void addAttackRows(Piece[][] board, List<Move> moves, Direction direction){
         
-        Position tile = position.neighbourTile(direction);
+        Position tile = position.moveTo(direction);
     
         while(ChessModel.withinBoard(board, tile)) {
             
@@ -57,8 +57,8 @@ public class Rook extends Piece{
             // Se tiver uma peça aliada, apenas para
             else break;
             
-            // Move para a próxima posição na diagonal
-            tile = tile.neighbourTile(direction);
+            // Move para a próxima posição na linha/coluna
+            tile = tile.moveTo(direction);
         }
     }
 }

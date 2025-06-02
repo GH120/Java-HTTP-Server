@@ -1,6 +1,6 @@
 package com.example.chess.models;
 
-import com.example.http.HttpMessage;
+import com.example.http.HttpRequest;
 
 public class Position {
 
@@ -18,11 +18,11 @@ public class Position {
     }
 
     //TODO
-    public static Position fromRequest(HttpMessage request){
+    public static Position fromRequest(HttpRequest request){
         return new Position(0,0);
     }
 
-    public Position neighbourTile(Direction direction){
+    public Position moveTo(Direction direction){
         return new Position(x + direction.x, y + direction.y);
     }
    

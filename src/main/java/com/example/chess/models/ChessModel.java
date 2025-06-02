@@ -192,6 +192,18 @@ public class ChessModel{
 
                 kill(victim);
             }
+            case CASTLING -> {
+
+                Piece rook = move.event.target;
+
+                boolean isKingside = rook.position.x == 7;
+
+                Position destination = new Position(isKingside? 5 : 3, rook.position.y);
+
+                piece.position = destination;
+
+                board[destination.x][destination.y] = piece;
+            }
             default -> {
 
             }
@@ -208,6 +220,18 @@ public class ChessModel{
                 // Piece victim = move.event.target;
 
                 // insertPiece(victim, move.origin);
+            }
+            case CASTLING -> {
+
+                Piece rook = move.event.target;
+
+                boolean isKingside = rook.position.x == 5;
+
+                Position destination = new Position(isKingside? 7 : 0, rook.position.y);
+
+                piece.position = destination;
+
+                board[destination.x][destination.y] = piece;
             }
             default -> {
 

@@ -9,12 +9,13 @@ import com.example.config.Configuration;
 import com.example.config.ConfigurationManager;
 import com.example.core.io.WebRootHandler;
 import com.example.core.io.WebRootNotFoundException;
-import com.example.http.HttpMessage;
+import com.example.http.HttpRequest;
 import com.example.http.HttpResponse;
+import com.example.parser.HttpStreamWriter;
 
 abstract public class HttpRouter {
 
-    abstract public void handleRequest(HttpMessage message, OutputStream output);
+    abstract public void handleRequest(HttpRequest message, OutputStream output);
 }
 
 
@@ -37,7 +38,7 @@ class ExampleRouter extends HttpRouter{
     Configuration  configuration;
     WebRootHandler handler;
 
-    public void handleRequest(HttpMessage request, OutputStream output){
+    public void handleRequest(HttpRequest request, OutputStream output){
 
         configuration = ConfigurationManager.getInstance().getCurrentConfiguration();
         
@@ -61,7 +62,7 @@ class ExampleRouter extends HttpRouter{
         }
     }
 
-    private void handleGet(HttpMessage request, OutputStream output) throws IOException, WebRootNotFoundException{
+    private void handleGet(HttpRequest request, OutputStream output) throws IOException, WebRootNotFoundException{
         
         String path = request.getPath();
 
@@ -77,14 +78,7 @@ class ExampleRouter extends HttpRouter{
 
         System.out.println(body.length);
 
-        var response = HttpResponse.OK(body.length, contentType);
-
-        //Escreve o cabeçário
-        output.write(response.toString().getBytes());
-
-        //Escreve o corpo
-        output.write(body);
-        output.flush();
+        HttpStreamWriter.send(HttpResponse.OK(body, contentType), output);
     }
 
     private void printFilePaths(String directoryPath){

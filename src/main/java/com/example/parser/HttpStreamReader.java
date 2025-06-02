@@ -1,6 +1,6 @@
 package com.example.parser;
 
-import com.example.http.HttpMessage;
+import com.example.http.HttpRequest;
 import com.example.http.HttpMethod;
 
 import java.io.ByteArrayOutputStream;
@@ -14,9 +14,9 @@ import java.util.Map;
 public class HttpStreamReader {
 
 
-    public HttpMessage process(InputStream inputStream){
+    public HttpRequest process(InputStream inputStream){
 
-        var message = new HttpMessage();
+        var message = new HttpRequest();
 
         try{
 
@@ -41,7 +41,7 @@ public class HttpStreamReader {
         return message;
     }
 
-    private void populateRequestLine(HttpMessage message, TreeNode AST) {
+    private void populateRequestLine(HttpRequest message, TreeNode AST) {
         TreeNode requestLine = (TreeNode) AST.getNodeByType("REQUEST_LINE").get(0);
 
         String methodStr = requestLine.getNodeByType("METHOD").get(0).getExpression();
@@ -57,7 +57,7 @@ public class HttpStreamReader {
         message.setVersion(version);
     }
 
-    private void populateHeaders(HttpMessage message, TreeNode AST) {
+    private void populateHeaders(HttpRequest message, TreeNode AST) {
         List<Node> headers = AST.getNodeByType("HEADER");
 
         Map<String, String> headerMap = new HashMap<>();
@@ -75,7 +75,7 @@ public class HttpStreamReader {
         message.setHeaders(headerMap);
     }
 
-    private void populateBody(HttpMessage message, TreeNode AST) {
+    private void populateBody(HttpRequest message, TreeNode AST) {
         List<Node> bodyNodes = AST.getNodeByType("BODY");
         if (!bodyNodes.isEmpty()) {
             TreeNode bodyNode = (TreeNode) bodyNodes.get(0);
@@ -110,7 +110,7 @@ public class HttpStreamReader {
     }
 
     //Lê separadamente a parte do corpo da mensagem, considerando que o header content length já foi populado
-    private String readRawHttpBody(InputStream inputStream, HttpMessage message) throws IOException{
+    private String readRawHttpBody(InputStream inputStream, HttpRequest message) throws IOException{
 
         ByteArrayOutputStream byteBuffer = new ByteArrayOutputStream();
 

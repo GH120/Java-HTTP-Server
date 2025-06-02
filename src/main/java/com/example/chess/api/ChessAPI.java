@@ -4,6 +4,8 @@ import java.io.OutputStream;
 import java.util.Arrays;
 import java.util.List;
 
+import javax.imageio.plugins.bmp.BMPImageWriteParam;
+
 import com.example.chess.controlers.ChessMatch;
 import com.example.chess.controlers.ChessMatchMaker;
 import com.example.chess.controlers.ChessMatchManager;
@@ -11,20 +13,21 @@ import com.example.chess.models.Move;
 import com.example.chess.models.Player;
 import com.example.chess.models.Position;
 import com.example.chess.models.chesspieces.Pawn;
-import com.example.http.HttpMessage;
+import com.example.http.HttpRequest;
 import com.example.http.HttpResponse;
+import com.example.parser.HttpStreamWriter;
 
 public class ChessAPI {
 
-    private final List<String> apiRoute = Arrays.asList(
-                                    "/api/findMatch",
-                                    "/api/move",
-                                    "/api/state",
-                                    "/api/reset"
-                                );
+    private final List<String>     apiRoute = Arrays.asList(
+                                                "/api/findMatch",
+                                                "/api/move",
+                                                "/api/state",
+                                                "/api/reset"
+                                            );
 
 
-    public void handleRoute(HttpMessage request, OutputStream output) throws Exception{
+    public void handleRoute(HttpRequest request, OutputStream output) throws Exception{
 
         System.out.println("API ativada");
 
@@ -35,6 +38,9 @@ public class ChessAPI {
         switch(request.getPath()){
 
             case "/api/findMatch":{
+
+                //Criar classe HttpClient com o output e input streams
+                //Criar o MatchWatcher passando a partida e o outputStream
 
                 ChessMatchMaker.getInstance().findDuel(player);
 
@@ -93,10 +99,7 @@ public class ChessAPI {
             }
         }
 
-        var response = HttpResponse.OK(0, null);
-
-        output.write(response.toString().getBytes());
-        output.flush();
+        HttpStreamWriter.send(HttpResponse.OK(new byte[0],null), output);
     }
 
     public boolean hasEndpoint(String endpoint){

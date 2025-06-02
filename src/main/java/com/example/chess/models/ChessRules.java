@@ -17,18 +17,23 @@ public class ChessRules {
     // -- Métodos Públicos --//
     ///////////////////////////
 
-    /** Adiciona jogadas especiais e filtra as que causam autoxeque*/
-    public List<Move> validateMoves(ChessModel match, Piece piece, List<Move> moves) {
+    /** Adiciona jogadas especiais e filtra as que causam autoxeque
+     *  Efeitos colaterais das jogadas especiais ->NÃO<- são calculados, 
+     *  e são executados apenas quando a jogada é efetuada no chessModel 
+     *  ex: matar peão no enpassant e mover torre no castle
+     *  retorna lista enriquecida e filtrada de todas as jogadas possíveis 
+    */
+    public List<Move> validateMoves(ChessModel model, Piece piece, List<Move> moves) {
 
         attackCache.clear();
 
         //Adiciona jogadas especiais
-        if (piece instanceof King) addCastlingMoves(match,  (King) piece, moves);
-        if (piece instanceof Pawn) addEnPassantMoves(match, (Pawn) piece, moves);
-        if (piece instanceof Pawn) addPromotionMove(match,  (Pawn) piece, moves);
+        if (piece instanceof King) addCastlingMoves(model,  (King) piece, moves);
+        if (piece instanceof Pawn) addEnPassantMoves(model, (Pawn) piece, moves);
+        if (piece instanceof Pawn) addPromotionMove(model,  (Pawn) piece, moves);
 
         //Filtra todas as jogadas que deixam o rei exposto
-        moves.removeIf(move -> wouldCauseSelfCheck(match, piece, move));
+        moves.removeIf(move -> wouldCauseSelfCheck(model, piece, move));
 
         return moves;
     }
@@ -38,55 +43,53 @@ public class ChessRules {
     ////////////////////////////
     
     // Roque (pequeno e grande)
-    private void addCastlingMoves(ChessModel match, King king, List<Move> moves) {
+    private void addCastlingMoves(ChessModel model, King king, List<Move> moves) {
 
-        if (match.hasMoved(king) || isInCheck(match, king.getColor())) return;
+        if (model.hasMoved(king) || isInCheck(model, king.getColor())) return;
 
-        Position KingsideRookPosition  = new Position(king.position.x, 7); //Adicionar enum chesspositions?
-        Position QueensideRookPosition = new Position(king.position.x, 0);
+        Piece kingsideRook  = model.getPiece(new Position(king.position.x, 7)); //Adicionar enum chesspositions?
+        Piece queensideRook = model.getPiece(new Position(king.position.x, 0));
 
         // Roque pequeno (torre direita)
-        if (canCastle(match, match.getBoard(), KingsideRookPosition)) {
+        if (canCastle(model, king, kingsideRook)) {
 
             Position kingDestination = new Position(king.position.x, king.position.y + 2);
 
             Move move = new Move(king.position, kingDestination);
 
-            moves.add(move.setEvent(Event.CASTLING));
+            moves.add(move.setEvent(Event.CASTLING.setTarget(kingsideRook)));
         }
 
         // Roque grande (torre esquerda)
-        if (canCastle(match, match.getBoard(),  QueensideRookPosition)) {
+        if (canCastle(model, king, queensideRook)) {
 
             Position kingDestination = new Position(king.position.x, king.position.y - 2);
 
             Move move = new Move(king.position, kingDestination);
 
-            moves.add(move.setEvent(Event.CASTLING));
+            moves.add(move.setEvent(Event.CASTLING.setTarget(queensideRook)));
         }
     }
 
-    private boolean canCastle(ChessModel match, Piece[][] board, Position rookPosition) {
+    private boolean canCastle(ChessModel model, Piece king, Piece rook) {
 
-        Piece rook = board[rookPosition.x][rookPosition.y];
+        if (!(rook instanceof Rook) || (model.hasMoved(rook))) return false;
 
-        if (!(rook instanceof Rook) || (match.hasMoved(rook))) return false;
-
-        boolean queenSide = rookPosition.y == 0;
+        boolean queenSide = rook.position.y == 0;
 
         int step = queenSide ? -1 : 1;
         int end  = queenSide ?  1 : 6;
 
-        Piece king = match.findKing(rook.getColor());
-
         // Verifica casas vazias e não atacadas
         for (int col = king.position.y + step; col != end; col += step) {
+
+            Position square = new Position(king.position.x, col);
             
-            if (board[king.position.x][col] != null) {
+            if (model.getBoard()[king.position.x][col] != null) {
                 return false;
             }
 
-            if(isSquareUnderAttack(match, new Position(king.position.x, col), match.getOpponentColor())){
+            if(isSquareUnderAttack(model, square, model.getOpponentColor())){ //Verificar se esse getOpponentColor não gera bugs 
                 return false;
             }
         }
@@ -94,8 +97,8 @@ public class ChessRules {
     }
 
     // En passant
-    private void addEnPassantMoves(ChessModel match, Pawn pawn, List<Move> moves) {
-        Move lastMove = match.getLastMove();
+    private void addEnPassantMoves(ChessModel model, Pawn pawn, List<Move> moves) {
+        Move lastMove = model.getLastMove();
         
         if (lastMove == null) return;
 
@@ -104,14 +107,14 @@ public class ChessRules {
             //Consegue posição do peão assassino no enpassant
             Direction forward = pawn.getDirection(Direction.NORTH);
 
-            Position  targetTile = pawn.position.neighbourTile(forward);
+            Position  targetTile = pawn.position.moveTo(forward);
 
             Move move = new Move(pawn.position, targetTile);
 
             //Adiciona a vitima do enpassant como target dele, e adiciona jogada às jogadas válidas
             Position attackedPawnPosition = lastMove.destination;
 
-            Piece attackedPawn = match.getPiece(attackedPawnPosition);
+            Piece attackedPawn = model.getPiece(attackedPawnPosition);
 
             move.setEvent(Move.Event.EN_PASSANT.setTarget(attackedPawn)); 
 
@@ -139,7 +142,7 @@ public class ChessRules {
     
 
     // Promoção
-    private void addPromotionMove(ChessModel match, Pawn pawn, List<Move> moves){
+    private void addPromotionMove(ChessModel model, Pawn pawn, List<Move> moves){
 
         int lastRow = pawn.getColor() == PieceColor.WHITE ? 7 : 0; //Adicionar enum chessPositions?
 
@@ -155,25 +158,25 @@ public class ChessRules {
     // -- Validações de Xeque -- //
     ///////////////////////////////
     
-    public boolean isInCheck(ChessModel match, PieceColor color) {
+    public boolean isInCheck(ChessModel model, PieceColor color) {
 
-        Position kingPos = match.findKing(color).position;
+        Position kingPos = model.findKing(color).position;
 
-        return isSquareUnderAttack(match, kingPos, color.opposite());
+        return isSquareUnderAttack(model, kingPos, color.opposite());
     }
     
     //Não leva em conta o en-passant
-    private boolean isSquareUnderAttack(ChessModel match, Position square, PieceColor byColor) {
+    private boolean isSquareUnderAttack(ChessModel model, Position square, PieceColor byColor) {
 
         //Nenhum movimento especial é um ataque, salvo o en-passant
         //Para o caso de movimento do pawn, levar em conta se o Event do move é um ataque ou movimento
         
         return attackCache.computeIfAbsent(square, pos -> {
 
-                    return match.getAllPieces(byColor)
+                    return model.getAllPieces(byColor)
                                 .stream()
                                 .anyMatch(
-                                    p -> p.defaultMoves(match.getBoard())
+                                    p -> p.defaultMoves(model.getBoard())
                                          .stream()
                                          .filter(  m -> m.event == Event.ATTACK) //Ignora os movimentos de peão
                                          .anyMatch(m -> m.destination.equals(square))
@@ -182,34 +185,34 @@ public class ChessRules {
     }
 
     //Verifica se jogada não deixa o rei exposto a um ataque
-    private boolean wouldCauseSelfCheck(ChessModel match, Piece piece, Move move) {
+    private boolean wouldCauseSelfCheck(ChessModel model, Piece piece, Move move) {
 
         //Simula jogada, guardando estado inicial
-        match.play(piece, move); 
+        model.play(piece, move); 
 
-        boolean inCheck = isInCheck(match, piece.getColor());
+        boolean inCheck = isInCheck(model, piece.getColor());
 
         //Retorna tabuleiro e peça ao estado inicial
-        match.revertLastMove(); 
+        model.revertLastMove(); 
 
         return inCheck;
     }
 
-    public boolean isDraw(ChessModel match, PieceColor color){
+    public boolean isDraw(ChessModel model, PieceColor color){
 
-        King king = match.findKing(color);
+        King king = model.findKing(color);
         
         //1. verifica se o rei pode escapar
-        for (Move move : king.defaultMoves(match.getBoard())) {
-            if (!wouldCauseSelfCheck(match, king, move)) {
+        for (Move move : king.defaultMoves(model.getBoard())) {
+            if (!wouldCauseSelfCheck(model, king, move)) {
                 return false;
             }
         }
 
         //2. Verifica se existe algum movimento de ataque que tira do xeque
-        for(Piece piece : match.getAllPieces(color)){
+        for(Piece piece : model.getAllPieces(color)){
 
-            List<Move> validMoves = validateMoves(match, piece, piece.defaultMoves(match.getBoard()));
+            List<Move> validMoves = validateMoves(model, piece, piece.defaultMoves(model.getBoard()));
 
             if(validMoves.size() > 0) return false;
         }
@@ -218,8 +221,8 @@ public class ChessRules {
     }
 
     //Ineficiente, poderia verificar apenas as peças atacando o quadrado do rei
-    public boolean isInCheckMate(ChessModel match, PieceColor color){
+    public boolean isInCheckMate(ChessModel model, PieceColor color){
 
-        return isInCheck(match, color) && isDraw(match, color);
+        return isInCheck(model, color) && isDraw(model, color);
     }
 }

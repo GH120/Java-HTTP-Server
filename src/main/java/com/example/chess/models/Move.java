@@ -1,6 +1,6 @@
 package com.example.chess.models;
 
-import com.example.http.HttpMessage;
+import com.example.http.HttpRequest;
 
 public class Move {
 
@@ -35,7 +35,7 @@ public class Move {
         return this;
     }
 
-    public static Move fromRequest(HttpMessage request){
+    public static Move fromRequest(HttpRequest request){
 
         return new Move(null, null);
     }

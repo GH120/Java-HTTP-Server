@@ -28,7 +28,7 @@ public class ChessMatch {
 
     private final HashMap<Position, List<Move>> moveCache;
     
-    public enum GameState {NORMAL, CHECK, CHECKMATE, DRAW, PROMOTION, EXITED}
+    public enum GameState {NORMAL, CHECK, CHECKMATE, DRAW, PROMOTION, STARTED, EXITED}
 
     public ChessMatch(Player player, Player opponent) {
         moveCache  = new HashMap<>();
