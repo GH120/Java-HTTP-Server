@@ -25,6 +25,7 @@ public class HttpChessRouter extends HttpRouter{
         super(); 
     }
 
+    /**CRUD básico para requisições comuns, requisições de API redirecionadas a ChessAPI*/
     public void handleRequest(HttpRequest request, OutputStream output){
 
         configuration = ConfigurationManager.getInstance().getCurrentConfiguration();
@@ -64,6 +65,7 @@ public class HttpChessRouter extends HttpRouter{
         }
     }
 
+    /**Retorna arquivos hospedados no webroot do servidor */
     private void handleGet(HttpRequest request, OutputStream output) throws IOException, WebRootNotFoundException{
         
         String path        = request.getPath();

@@ -39,4 +39,9 @@ public class Move {
 
         return new Move(null, null);
     }
+
+    @Override
+    public boolean equals(Object move){
+        return ((Move) move).origin.equals(origin) && ((Move) move).destination.equals(destination);
+    }
 }

@@ -17,11 +17,14 @@ import com.example.chess.models.chesspieces.Rook;
 //Validação de regras feita em ChessRules
 public class ChessModel{
     
-    private Stack<Move>   history;
-    private Piece[][]     board;
-    private Set<Piece>    whitePieces;
-    private Set<Piece>    blackPieces;
-    private Stack<Piece>  casualties;
+    private Piece[][]       board;
+    private Set<Piece>      whitePieces;
+    private Set<Piece>      blackPieces;
+    private Stack<Move>     history;
+
+    //Verifica as peças abatidas nas jogadas
+    private Stack<Piece>    casualties;
+    private Stack<Boolean>  attackMove;
     
     private HashMap<Piece, Integer> moveCount; //Responsabilidade separada, mover para outra classe?
 
@@ -32,8 +35,12 @@ public class ChessModel{
         whitePieces = new HashSet<>();
         blackPieces = new HashSet<>();
         casualties  = new Stack<>();
+        attackMove  = new Stack<>();
 
         populateGameStart(); //Tabuleiro de xadrez padrão, extrair depois método separado em uma classe Factory
+
+        whitePieces.forEach(p -> moveCount.put(p, 0));
+        blackPieces.forEach(p -> moveCount.put(p, 0));
     }
 
     //////////////////////////////////////
@@ -52,6 +59,8 @@ public class ChessModel{
 
         board[move.destination.x][move.destination.y] = piece;
 
+        board[move.origin.x][move.origin.y] = null;
+
         treatSideEffects(piece, move);
 
         moveCount.compute(piece, (p,i) -> i + 1);
@@ -68,9 +77,18 @@ public class ChessModel{
         getAllPieces(piece.color).add(piece);
     }
 
+    // Método auxiliar para simplificar a inserção
+    public void insertPiece(Piece piece) {
+        insertPiece(piece, piece.position);
+    }
+
     public void kill(Piece attackedPiece){
 
-        if(attackedPiece == null) return;
+        if(attackedPiece == null){
+            attackMove.push(false);
+            
+            return;
+        }
 
         getAllPieces(attackedPiece.getColor()).remove(attackedPiece);
 
@@ -78,6 +96,7 @@ public class ChessModel{
 
         casualties.add(attackedPiece);
 
+        attackMove.push(true);
     }
 
     /**Esquece última jogada do histórico, 
@@ -87,7 +106,7 @@ public class ChessModel{
 
         Move lastMove = getLastMove();
 
-        Piece piece = getPiece(lastMove.origin);
+        Piece piece = getPiece(lastMove.destination);
 
         Move moveBack = new Move(lastMove.destination, lastMove.origin);
 
@@ -95,7 +114,10 @@ public class ChessModel{
 
         revertSideEffects(piece, moveBack);
 
-        insertPiece(casualties.pop(), lastMove.destination);
+        //ele tem que saber se na última jogada houve morte ou não
+        if(attackMove.pop()){
+            insertPiece(casualties.pop(), lastMove.destination); 
+        }
 
         //Remove as duas jogadas (ida e volta) da peça movida
         moveCount.compute(piece, (p, i) -> i - 2);
@@ -158,6 +180,9 @@ public class ChessModel{
         return history.peek();
     }
 
+    public Stack<Piece> getCasualties(){
+        return this.casualties;
+    }
 
     public King findKing(PlayerColor color){
 
@@ -240,42 +265,36 @@ public class ChessModel{
         
     }
 
-    private void populateGameStart(){
-        //Insere todas as peças do tabuleiro na partida
+   private void populateGameStart() {
+        // Peças brancas (linha 0 - peças principais)
+        insertPiece(new Rook(new Position(0, 0), PlayerColor.WHITE));       // Torre a1
+        insertPiece(new Knight(new Position(1, 0), PlayerColor.WHITE));     // Cavalo b1
+        insertPiece(new Bishop(new Position(2, 0), PlayerColor.WHITE));     // Bispo c1
+        insertPiece(new Queen(new Position(3, 0), PlayerColor.WHITE));      // Rainha d1
+        insertPiece(new King(new Position(4, 0), PlayerColor.WHITE));       // Rei e1
+        insertPiece(new Bishop(new Position(5, 0), PlayerColor.WHITE));     // Bispo f1
+        insertPiece(new Knight(new Position(6, 0), PlayerColor.WHITE));     // Cavalo g1
+        insertPiece(new Rook(new Position(7, 0), PlayerColor.WHITE));       // Torre h1
 
-        // Peças brancas (linha 0 e 1)
-        insertPiece(new Rook(new Position(0, 0), PlayerColor.WHITE));
-        insertPiece(new Knight(new Position(0, 1), PlayerColor.WHITE));
-        insertPiece(new Bishop(new Position(0, 2), PlayerColor.WHITE));
-        insertPiece(new Queen(new Position(0, 3), PlayerColor.WHITE));
-        insertPiece(new King(new Position(0, 4), PlayerColor.WHITE));
-        insertPiece(new Bishop(new Position(0, 5), PlayerColor.WHITE));
-        insertPiece(new Knight(new Position(0, 6), PlayerColor.WHITE));
-        insertPiece(new Rook(new Position(0, 7), PlayerColor.WHITE));
-        
         // Peões brancos (linha 1)
         for (int col = 0; col < 8; col++) {
-            insertPiece(new Pawn(new Position(1, col), PlayerColor.WHITE));
+            insertPiece(new Pawn(new Position(col, 1), PlayerColor.WHITE)); // a2-h2
         }
 
-        // Peças pretas (linha 7 e 6)
-        insertPiece(new Rook(new Position(7, 0), PlayerColor.BLACK));
-        insertPiece(new Knight(new Position(7, 1), PlayerColor.BLACK));
-        insertPiece(new Bishop(new Position(7, 2), PlayerColor.BLACK));
-        insertPiece(new Queen(new Position(7, 3), PlayerColor.BLACK));
-        insertPiece(new King(new Position(7, 4), PlayerColor.BLACK));
-        insertPiece(new Bishop(new Position(7, 5), PlayerColor.BLACK));
-        insertPiece(new Knight(new Position(7, 6), PlayerColor.BLACK));
-        insertPiece(new Rook(new Position(7, 7), PlayerColor.BLACK));
-        
+        // Peças pretas (linha 7 - peças principais)
+        insertPiece(new Rook(new Position(0, 7), PlayerColor.BLACK));       // Torre a8
+        insertPiece(new Knight(new Position(1, 7), PlayerColor.BLACK));     // Cavalo b8
+        insertPiece(new Bishop(new Position(2, 7), PlayerColor.BLACK));     // Bispo c8
+        insertPiece(new Queen(new Position(3, 7), PlayerColor.BLACK));      // Rainha d8
+        insertPiece(new King(new Position(4, 7), PlayerColor.BLACK));       // Rei e8
+        insertPiece(new Bishop(new Position(5, 7), PlayerColor.BLACK));     // Bispo f8
+        insertPiece(new Knight(new Position(6, 7), PlayerColor.BLACK));     // Cavalo g8
+        insertPiece(new Rook(new Position(7, 7), PlayerColor.BLACK));       // Torre h8
+
         // Peões pretos (linha 6)
         for (int col = 0; col < 8; col++) {
-            insertPiece(new Pawn(new Position(6, col), PlayerColor.BLACK));
+            insertPiece(new Pawn(new Position(col, 6), PlayerColor.BLACK)); // a7-h7
         }
     }
 
-    // Método auxiliar para simplificar a inserção
-    private void insertPiece(Piece piece) {
-        insertPiece(piece, piece.position);
-    }
 }

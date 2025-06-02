@@ -52,6 +52,7 @@ public class Pawn extends Piece{
 
     }
 
+    //Talvez mover esse daqui para ChessRules, onde pode usar o estado da partida para verificar se moveu ou não o peão
     private void addDoubleForwardMove(Piece[][] board, List<Move> moves){
 
        if(hasMoved()) return;
@@ -82,6 +83,8 @@ public class Pawn extends Piece{
         //Ataque diagonal direita
         Position tile = position.moveTo(getDirection(direction));
 
+        if(!ChessModel.withinBoard(board, tile)) return;
+
         Piece neighbour = board[tile.x][tile.y];
 
         if(neighbour != null && enemyPiece(neighbour)){
@@ -97,7 +100,7 @@ public class Pawn extends Piece{
 
     //NOTE: depende da suposição que os peões que estão na segunda fileira nunca se moveram
     private boolean hasMoved(){
-        return (getColor() == PlayerColor.WHITE)? position.y == 1 : position.y == 7;
+        return !((getColor() == PlayerColor.WHITE)? position.y == 1 : position.y == 7);
     }
 
     //Criar uma fábrica para isso

@@ -2,9 +2,12 @@ package com.example.chess.models;
 
 import java.util.HashMap;
 import java.util.List;
+import java.util.Set;
 
 import com.example.chess.models.Move.Event;
+import com.example.chess.models.chesspieces.Bishop;
 import com.example.chess.models.chesspieces.King;
+import com.example.chess.models.chesspieces.Knight;
 import com.example.chess.models.chesspieces.Pawn;
 import com.example.chess.models.chesspieces.Rook;
 
@@ -13,9 +16,9 @@ public class ChessRules {
     HashMap<Position, Boolean> attackCache = new HashMap<>();
 
 
-    ///////////////////////////
-    // -- Métodos Públicos --//
-    ///////////////////////////
+    //////////////////////////
+    // -- Método Público -- //
+    //////////////////////////
 
     /** Adiciona jogadas especiais e filtra as que causam autoxeque
      *  Efeitos colaterais das jogadas especiais ->NÃO<- são calculados, 
@@ -47,13 +50,13 @@ public class ChessRules {
 
         if (model.hasMoved(king) || isInCheck(model, king.getColor())) return;
 
-        Piece kingsideRook  = model.getPiece(new Position(king.position.x, 7)); //Adicionar enum chesspositions?
-        Piece queensideRook = model.getPiece(new Position(king.position.x, 0));
+        Piece kingsideRook  = model.getPiece(new Position(7, king.position.y)); //Adicionar enum chesspositions?
+        Piece queensideRook = model.getPiece(new Position(0, king.position.y));
 
         // Roque pequeno (torre direita)
         if (canCastle(model, king, kingsideRook)) {
 
-            Position kingDestination = new Position(king.position.x, king.position.y + 2);
+            Position kingDestination = new Position(king.position.x + 2, king.position.y);
 
             Move move = new Move(king.position, kingDestination);
 
@@ -63,7 +66,7 @@ public class ChessRules {
         // Roque grande (torre esquerda)
         if (canCastle(model, king, queensideRook)) {
 
-            Position kingDestination = new Position(king.position.x, king.position.y - 2);
+            Position kingDestination = new Position(king.position.x - 2, king.position.y);
 
             Move move = new Move(king.position, kingDestination);
 
@@ -75,17 +78,17 @@ public class ChessRules {
 
         if (!(rook instanceof Rook) || (model.hasMoved(rook))) return false;
 
-        boolean queenSide = rook.position.y == 0;
+        boolean queenSide = rook.position.x == 0;
 
         int step = queenSide ? -1 : 1;
         int end  = queenSide ?  1 : 6;
 
         // Verifica casas vazias e não atacadas
-        for (int col = king.position.y + step; col != end; col += step) {
+        for (int col = king.position.x + step; col != end; col += step) {
 
-            Position square = new Position(king.position.x, col);
+            Position square = new Position(col, king.position.y);
             
-            if (model.getBoard()[king.position.x][col] != null) {
+            if (model.getBoard()[col][king.position.y] != null) {
                 return false;
             }
 
@@ -154,9 +157,9 @@ public class ChessRules {
         }
     }
 
-    ///////////////////////////////
-    // -- Validações de Xeque -- //
-    ///////////////////////////////
+    ///////////////////////////////////////////////////////////
+    // -- Validações de Xeque e Empate: Interface Pública -- //
+    ///////////////////////////////////////////////////////////
     
     public boolean isInCheck(ChessModel model, PlayerColor color) {
 
@@ -164,8 +167,30 @@ public class ChessRules {
 
         return isSquareUnderAttack(model, kingPos, color.opposite());
     }
+
+    //Ineficiente, poderia verificar apenas as peças atacando o quadrado do rei
+    public boolean isInCheckMate(ChessModel model, PlayerColor color){
+
+        return isInCheck(model, color) && isStalemate(model, color);
+    }
+
+    public boolean isDraw(ChessModel model, PlayerColor color) {
+
+        if (isStalemate(model, color))     return true;
+        if (isInsufficientMaterial(model)) return true;
+        // 3. Repetição de posição (não implementado aqui)
+        // 4. Regra dos 50 movimentos (não implementado aqui)
+        return false;
+    }
+
+    ///////////////////////////////////////////////////////////
+    // -- Validações de Xeque e Empate: Métodos Privados -- //
+    ///////////////////////////////////////////////////////////
     
-    //Não leva em conta o en-passant
+    /**
+     * Checks if a square is under attack.  
+     * WARNING: Ignores en passant (must be handled separately).  
+     */
     private boolean isSquareUnderAttack(ChessModel model, Position square, PlayerColor byColor) {
 
         //Nenhum movimento especial é um ataque, salvo o en-passant
@@ -184,7 +209,7 @@ public class ChessRules {
         });
     }
 
-    //Verifica se jogada não deixa o rei exposto a um ataque
+    /** Verifica se jogada não deixa o rei exposto a um ataque */
     private boolean wouldCauseSelfCheck(ChessModel model, Piece piece, Move move) {
 
         //Simula jogada, guardando estado inicial
@@ -198,7 +223,7 @@ public class ChessRules {
         return inCheck;
     }
 
-    public boolean isDraw(ChessModel model, PlayerColor color){
+    private boolean isStalemate(ChessModel model, PlayerColor color){
 
         King king = model.findKing(color);
         
@@ -220,9 +245,70 @@ public class ChessRules {
         return true;
     }
 
-    //Ineficiente, poderia verificar apenas as peças atacando o quadrado do rei
-    public boolean isInCheckMate(ChessModel model, PlayerColor color){
 
-        return isInCheck(model, color) && isDraw(model, color);
+    /////////////////////////////////////////////////
+    // -- Condições de Empate: Métodos Privados -- //
+    /////////////////////////////////////////////////
+    
+    private boolean isInsufficientMaterial(ChessModel model) {
+        Set<Piece> whitePieces = model.getAllPieces(PlayerColor.WHITE);
+        Set<Piece> blackPieces = model.getAllPieces(PlayerColor.BLACK);
+
+        // Caso 1: Apenas os dois reis
+        if (whitePieces.size() == 1 && blackPieces.size() == 1) {
+            return true;
+        }
+
+        // Caso 2: Rei + Bispo vs Rei
+        if (whitePieces.size() == 2 && blackPieces.size() == 1) {
+            if (hasOnlyKingAndBishop(whitePieces)) {
+                return true;
+            }
+        }
+        if (blackPieces.size() == 2 && whitePieces.size() == 1) {
+            if (hasOnlyKingAndBishop(blackPieces)) {
+                return true;
+            }
+        }
+
+        // Caso 3: Rei + Cavalo vs Rei
+        if (whitePieces.size() == 2 && blackPieces.size() == 1) {
+            if (hasOnlyKingAndKnight(whitePieces)) {
+                return true;
+            }
+        }
+        if (blackPieces.size() == 2 && whitePieces.size() == 1) {
+            if (hasOnlyKingAndKnight(blackPieces)) {
+                return true;
+            }
+        }
+
+        // Caso 4: Rei + Bispo vs Rei + Bispo (mesma cor)
+        if (whitePieces.size() == 2 && blackPieces.size() == 2) {
+            if (hasOnlyKingAndBishop(whitePieces) && hasOnlyKingAndBishop(blackPieces)) {
+                // Verifica se os bispos são da mesma cor
+                Piece whiteBishop = whitePieces.stream().filter(p -> p instanceof Bishop).findFirst().orElse(null);
+                Piece blackBishop = blackPieces.stream().filter(p -> p instanceof Bishop).findFirst().orElse(null);
+                if (whiteBishop != null && blackBishop != null) {
+                    boolean whiteSquareBishop = (whiteBishop.position.x + whiteBishop.position.y) % 2 == 0;
+                    boolean blackSquareBishop = (blackBishop.position.x + blackBishop.position.y) % 2 == 0;
+                    return whiteSquareBishop == blackSquareBishop;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    private boolean hasOnlyKingAndBishop(Set<Piece> pieces) {
+        return pieces.size() == 2 &&
+            pieces.stream().anyMatch(p -> p instanceof King) &&
+            pieces.stream().anyMatch(p -> p instanceof Bishop);
+    }
+
+    private boolean hasOnlyKingAndKnight(Set<Piece> pieces) {
+        return pieces.size() == 2 &&
+            pieces.stream().anyMatch(p -> p instanceof King) &&
+            pieces.stream().anyMatch(p -> p instanceof Knight);
     }
 }

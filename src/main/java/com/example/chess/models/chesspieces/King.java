@@ -37,16 +37,16 @@ public class King extends Piece{
         for(Direction attackDirection : attackDirections){
             
             Position tile      = position.moveTo(attackDirection);
-            Piece    neighbour = board[tile.x][tile.y];
-
+            
             //Saiu do tabuleiro, ignora
             if(!ChessModel.withinBoard(board, tile)) continue;
-
+            
+            Piece    neighbour = board[tile.x][tile.y];
+            
             //Só adiciona se for inimigo ou quadrante vazio, peças amigas não são adicionadas
             if(enemyPiece(neighbour) || neighbour == null){
                 moves.add(new Move(position, tile));
             }
-
         }
 
         return moves;

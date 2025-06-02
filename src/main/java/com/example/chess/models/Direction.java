@@ -2,9 +2,9 @@ package com.example.chess.models;
 
 public enum Direction {
 
-    NORTH(1,0), NORTHWEST(1,-1), NORTHEAST(1,1),
-    SOUTH(-1,0), SOUTHWEST(1,-1), SOUTHEAST(1,1),
-    WEST(0,-1), EAST(-1,0);
+    NORTH(0,1), NORTHWEST(-1,1), NORTHEAST(1,1),
+    SOUTH(0,-1), SOUTHWEST(-1,-1), SOUTHEAST(1,-1),
+    WEST(-1,0), EAST(1,0);
 
     public final int x;
     public final int y;

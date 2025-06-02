@@ -37,12 +37,12 @@ public class ChessMatchMaker {
             outputConnections.add(output);
             System.out.println("Player added to waiting queue: " + player.name);
 
-            try{
-                HttpStreamWriter.send(waitingResponse(), output);
-            }
-            catch(Exception e){
-                System.err.println("Erro na criação da partida" + e.getMessage());
-            }
+            // try{
+            //     HttpStreamWriter.send(waitingResponse(), output); //Vai dar conflito com a outra mensagem enviada...
+            // }
+            // catch(Exception e){
+            //     System.err.println("Erro na criação da partida" + e.getMessage());
+            // }
         } else {
             // Encontrou adversário
             Player opponent = waitingPlayers.poll();
@@ -74,7 +74,7 @@ public class ChessMatchMaker {
         return HttpResponse.OK("{\"status\":\"match_started\"}".getBytes(), "application/json");
     }
 
-    private HttpResponse waitingResponse(){
-        return HttpResponse.OK("{\"status\":\"waiting\"}".getBytes(), "application/json");
-    }
+    // private HttpResponse waitingResponse(){
+    //     return HttpResponse.OK("{\"status\":\"waiting\"}".getBytes(), "application/json");
+    // }
 }
