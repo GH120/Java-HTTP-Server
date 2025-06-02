@@ -1,7 +1,5 @@
 package com.example.chess.models;
 
-import java.util.Set;
-
 import com.example.http.HttpRequest;
 import com.example.json.Json;
 import com.fasterxml.jackson.databind.JsonNode;

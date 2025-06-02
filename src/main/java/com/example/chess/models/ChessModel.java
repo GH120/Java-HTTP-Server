@@ -17,6 +17,7 @@ import com.example.chess.models.chesspieces.Rook;
 //Validação de regras feita em ChessRules
 public class ChessModel{
     
+    //Estado do jogo
     private Piece[][]       board;
     private Set<Piece>      whitePieces;
     private Set<Piece>      blackPieces;
@@ -26,18 +27,8 @@ public class ChessModel{
     private Stack<Piece>    casualties;
     private Stack<Boolean>  attackMove;
     
-    private HashMap<Piece, Integer> moveCount; //Responsabilidade separada, mover para outra classe?
-
-    public ChessModel(){
-        history     = new Stack<Move>();
-        board       = new Piece[8][8];
-        moveCount   = new HashMap<>();
-        whitePieces = new HashSet<>();
-        blackPieces = new HashSet<>();
-        casualties  = new Stack<>();
-        attackMove  = new Stack<>();
-    }
-
+    //Responsabilidade separada, mover para outra classe? Serve para saber se a peça se moveu
+    private HashMap<Piece, Integer> moveCount;
 
     public ChessModel(StartingPieces pieces){
         history     = new Stack<Move>();
@@ -49,9 +40,16 @@ public class ChessModel{
         attackMove  = new Stack<>();
 
         pieces.populateBoard(this); //Tabuleiro de xadrez padrão, extrair depois método separado em uma classe Factory
+    }
 
-        whitePieces.forEach(p -> moveCount.put(p, 0));
-        blackPieces.forEach(p -> moveCount.put(p, 0));
+    public ChessModel(){
+        history     = new Stack<Move>();
+        board       = new Piece[8][8];
+        moveCount   = new HashMap<>();
+        whitePieces = new HashSet<>();
+        blackPieces = new HashSet<>();
+        casualties  = new Stack<>();
+        attackMove  = new Stack<>();
     }
 
     //////////////////////////////////////
@@ -61,6 +59,7 @@ public class ChessModel{
 
     /** Não valida jogada, apenas joga ela assumindo que foi validada 
      *  Se houver peça no quadrado do destino, mata ela
+     *  efeitos colaterais: adiciona as pilhas attackMove, casualties e history
     */
     public void play(Piece piece, Move move){
 
@@ -86,6 +85,8 @@ public class ChessModel{
         board[position.x][position.y] = piece;
         
         getAllPieces(piece.color).add(piece);
+
+        moveCount.put(piece, 0);
     }
 
     // Método auxiliar para simplificar a inserção
@@ -93,6 +94,9 @@ public class ChessModel{
         insertPiece(piece, piece.position);
     }
 
+    /**Elimina uma peça do tabuleiro e de peças ativas se estiver viva
+     * Nesse caso, adiciona a pilha casualties e true na attackMove
+     */
     public void kill(Piece attackedPiece){
 
         if(attackedPiece == null){
@@ -105,6 +109,7 @@ public class ChessModel{
 
         board[attackedPiece.position.x][attackedPiece.position.y] = null;
 
+        //Efeito colateral, propício a bugs
         casualties.add(attackedPiece);
 
         attackMove.push(true);
@@ -122,18 +127,27 @@ public class ChessModel{
         Move moveBack = new Move(lastMove.destination, lastMove.origin);
 
         play(piece, moveBack);
+        
 
-        revertSideEffects(piece, moveBack);
-
-        //ele tem que saber se na última jogada houve morte ou não
-        if(attackMove.pop()){
-            insertPiece(casualties.pop(), lastMove.destination); 
-        }
+        //Remove efeito colateral desse último play (pilha de casualties não é alterada)
+        history.pop();
+        attackMove.pop();
 
         //Remove as duas jogadas (ida e volta) da peça movida
         moveCount.compute(piece, (p, i) -> i - 2);
+
+        revertSideEffects(piece, moveBack);
+
+        
+
+        //Esquece última jogada e suas consequências
         history.pop();
-        history.pop();
+        
+        //ele tem que saber se na última jogada houve morte ou não
+        //Se houver, reinsere peça
+        if(attackMove.pop()){
+            insertPiece(casualties.pop(), lastMove.destination); 
+        }
 
         return this;
     }
@@ -195,6 +209,7 @@ public class ChessModel{
         return this.casualties;
     }
 
+    /**Cachear depois, busca bruta extremamente ineficiente */
     public King findKing(PlayerColor color){
 
         return (King) getAllPieces(color).stream()

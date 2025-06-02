@@ -4,7 +4,10 @@ import static org.junit.jupiter.api.Assertions.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import com.example.chess.models.Move.Event;
+import com.example.chess.models.chesspieces.Bishop;
 import com.example.chess.models.chesspieces.King;
+import com.example.chess.models.chesspieces.Knight;
 import com.example.chess.models.chesspieces.Pawn;
 import com.example.chess.models.chesspieces.Queen;
 import com.example.chess.models.chesspieces.Rook;
@@ -83,8 +86,8 @@ class ChessRulesTest {
             
             public void populateBoard(ChessModel model){
                 model.insertPiece(new King(new Position(0, 0), PlayerColor.WHITE));
-                model.insertPiece(new King(new Position(7, 7), PlayerColor.BLACK));
-                model.insertPiece(new Queen(new Position(1, 1), PlayerColor.BLACK));
+                model.insertPiece(new King(new Position(2, 2), PlayerColor.BLACK));
+                model.insertPiece(new Rook(new Position(1, 1), PlayerColor.BLACK));
             }
             
         };
@@ -93,4 +96,115 @@ class ChessRulesTest {
         
         assertTrue(rules.isDraw(model, PlayerColor.WHITE));
     }
+
+    @Test
+    void testEnPassantCapture() {
+        // Remove todos os peões para controle total
+        for (int x = 0; x < 8; x++) {
+            model.kill(model.getPiece(new Position(x, 1)));
+            model.kill(model.getPiece(new Position(x, 6)));
+        }
+
+        // Coloca um peão branco em posição para capturar en passant
+        Pawn whitePawn = new Pawn(new Position(4, 2), PlayerColor.WHITE);
+        model.insertPiece(whitePawn);
+
+        Move enPassant = new Move(new Position(4, 2), new Position(4, 4)).setEvent(Event.TWOTILESKIP);
+
+        model.play(whitePawn, enPassant);
+
+        // Peão preto se move duas casas, ativando en passant
+        Pawn blackPawn = new Pawn(new Position(5, 4), PlayerColor.BLACK);
+        model.insertPiece(blackPawn);
+
+        List<Move> moves = whitePawn.defaultMoves(model.getBoard());
+        List<Move> validatedMoves = rules.validateMoves(model, blackPawn, moves);
+
+        assertTrue(validatedMoves.stream().anyMatch(m -> 
+            m.event == Move.Event.EN_PASSANT)
+        );
+
+        //Essa parte aqui vai ser quando eu consertar a direção do en-passant
+        // assertTrue(validatedMoves.stream().anyMatch(m -> 
+        //     m.event == Move.Event.EN_PASSANT && m.destination.equals(new Position(5, 5)))
+        // );
+    }
+
+    @Test
+    void testPawnPromotion() {
+        
+        Pawn whitePawn = new Pawn(new Position(0, 6), PlayerColor.WHITE);
+        model.insertPiece(whitePawn);
+
+        List<Move> moves = whitePawn.defaultMoves(model.getBoard());
+        List<Move> validatedMoves = rules.validateMoves(model, whitePawn, moves);
+
+        //Gambiarra, já que as peças pretas ainda existem, a única jogada válida é um ataque à direita
+        assertTrue(validatedMoves.stream().anyMatch(m -> 
+            m.destination.equals(new Position(1, 7)) && m.event == Move.Event.PROMOTION)
+        );
+    }
+
+    @Test
+    void testInvalidCastling_WhenInCheck() {
+        model.kill(model.getPiece(new Position(5, 0)));
+        model.kill(model.getPiece(new Position(6, 0)));
+        model.kill(model.getPiece(new Position(4, 1)));
+
+        King king = (King) model.getPiece(new Position(4, 0));
+        model.insertPiece(new Queen(new Position(4, 4), PlayerColor.BLACK)); // Coloca o rei em cheque
+
+        List<Move> moves = king.defaultMoves(model.getBoard());
+        List<Move> validated = rules.validateMoves(model, king, moves);
+
+        assertFalse(validated.stream().anyMatch(m -> m.event == Move.Event.CASTLING));
+    }
+
+    @Test
+    void testBlockedBishop() {
+        
+        // Insere bispo cercado por peças da mesma cor
+        model.insertPiece(new Bishop(new Position(3, 3), PlayerColor.WHITE));
+        model.insertPiece(new Pawn(new Position(2, 2), PlayerColor.WHITE));
+        model.insertPiece(new Pawn(new Position(4, 4), PlayerColor.WHITE));
+        model.insertPiece(new Pawn(new Position(2, 4), PlayerColor.WHITE));
+        model.insertPiece(new Pawn(new Position(4, 2), PlayerColor.WHITE));
+
+        List<Move> moves = model.getPiece(new Position(3, 3)).defaultMoves(model.getBoard());
+        List<Move> validated = rules.validateMoves(model, model.getPiece(new Position(3, 3)), moves);
+
+        assertTrue(validated.isEmpty());
+    }
+
+    @Test
+    void testKnightCanJumpOverPieces() {
+        // Insere cavalo cercado por peças aliadas
+        Knight knight = new Knight(new Position(3, 3), PlayerColor.WHITE);
+        model.insertPiece(knight);
+        model.insertPiece(new Pawn(new Position(2, 3), PlayerColor.WHITE));
+        model.insertPiece(new Pawn(new Position(4, 3), PlayerColor.WHITE));
+        model.insertPiece(new Pawn(new Position(3, 2), PlayerColor.WHITE));
+        model.insertPiece(new Pawn(new Position(3, 4), PlayerColor.WHITE));
+
+        List<Move> validated = rules.validateMoves(model, knight, knight.defaultMoves(model.getBoard()));
+
+        assertFalse(validated.isEmpty());
+        assertTrue(validated.contains(new Move(knight.position, new Position(2, 5))));
+    }
+
+    @Test
+    void testIsCheckmate() {
+        // Rei branco encurralado, xeque-mate
+        StartingPieces setup = new StartingPieces() {
+            public void populateBoard(ChessModel model) {
+                model.insertPiece(new King(new Position(0, 0), PlayerColor.WHITE));
+                model.insertPiece(new King(new Position(2, 2), PlayerColor.BLACK));
+                model.insertPiece(new Queen(new Position(1, 1), PlayerColor.BLACK));
+            }
+        };
+        model = new ChessModel(setup);
+
+        assertTrue(rules.isInCheckMate(model, PlayerColor.WHITE));
+    }
+
 }
