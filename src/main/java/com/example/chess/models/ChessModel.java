@@ -15,6 +15,12 @@ import com.example.chess.models.chesspieces.Rook;
 //Classe primariamente de dados e acesso a dados
 //Comportamento de jogada tratada em GameController
 //Validação de regras feita em ChessRules
+
+/** Estado do tabuleiro de Xadrez;
+ * Responsabilidades: 1. Armazenar informações sobre estado das peças, tabuleiro e histórico;
+ * 2. Transicionar entre um estado válido para outro válido por meio dos métodos play e reverse;
+ * 3. Não implementa nem validação nem tratamento de erros
+*/
 public class ChessModel{
     
     //Estado do jogo

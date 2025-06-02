@@ -11,6 +11,12 @@ import com.example.chess.models.chesspieces.Knight;
 import com.example.chess.models.chesspieces.Pawn;
 import com.example.chess.models.chesspieces.Rook;
 
+/** Validador de regras do Xadrez;
+ * Responsabilidades: 
+ * 1. Validar jogadas básicas; 
+ * 2. Adicionar jogadas especiais e eventos
+ * 3. Verifica eventos de mudança do estado do jogo (Cheque, Empate, Promoção...)
+ */
 public class ChessRules {
 
     HashMap<Position, Boolean> attackCache = new HashMap<>();

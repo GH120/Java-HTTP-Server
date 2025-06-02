@@ -17,6 +17,13 @@ import com.example.chess.models.gamestart.DefaultStartingPieces;
 //Transformar ele numa thread?
 //Controlaria as ações do usuário, como escolher jogadas ou sair da partida
 //Teria um validador de jogadas baseado no estado de jogo, estado de jogo armazenado
+
+/**Controlador da partida de xadrez;
+ * Responsabilidades: 
+ * 1. Tratar erros de jogadas do usuário; 
+ * 2. armazenar estado do jogo;
+ * 3. notificar interessados sobre eventos
+ */
 public class ChessMatch {
 
     private GameState  state;
