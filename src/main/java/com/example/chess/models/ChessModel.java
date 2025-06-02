@@ -36,8 +36,19 @@ public class ChessModel{
         blackPieces = new HashSet<>();
         casualties  = new Stack<>();
         attackMove  = new Stack<>();
+    }
 
-        populateGameStart(); //Tabuleiro de xadrez padrão, extrair depois método separado em uma classe Factory
+
+    public ChessModel(StartingPieces pieces){
+        history     = new Stack<Move>();
+        board       = new Piece[8][8];
+        moveCount   = new HashMap<>();
+        whitePieces = new HashSet<>();
+        blackPieces = new HashSet<>();
+        casualties  = new Stack<>();
+        attackMove  = new Stack<>();
+
+        pieces.populateBoard(this); //Tabuleiro de xadrez padrão, extrair depois método separado em uma classe Factory
 
         whitePieces.forEach(p -> moveCount.put(p, 0));
         blackPieces.forEach(p -> moveCount.put(p, 0));
@@ -263,38 +274,6 @@ public class ChessModel{
             }
         }
         
-    }
-
-   private void populateGameStart() {
-        // Peças brancas (linha 0 - peças principais)
-        insertPiece(new Rook(new Position(0, 0), PlayerColor.WHITE));       // Torre a1
-        insertPiece(new Knight(new Position(1, 0), PlayerColor.WHITE));     // Cavalo b1
-        insertPiece(new Bishop(new Position(2, 0), PlayerColor.WHITE));     // Bispo c1
-        insertPiece(new Queen(new Position(3, 0), PlayerColor.WHITE));      // Rainha d1
-        insertPiece(new King(new Position(4, 0), PlayerColor.WHITE));       // Rei e1
-        insertPiece(new Bishop(new Position(5, 0), PlayerColor.WHITE));     // Bispo f1
-        insertPiece(new Knight(new Position(6, 0), PlayerColor.WHITE));     // Cavalo g1
-        insertPiece(new Rook(new Position(7, 0), PlayerColor.WHITE));       // Torre h1
-
-        // Peões brancos (linha 1)
-        for (int col = 0; col < 8; col++) {
-            insertPiece(new Pawn(new Position(col, 1), PlayerColor.WHITE)); // a2-h2
-        }
-
-        // Peças pretas (linha 7 - peças principais)
-        insertPiece(new Rook(new Position(0, 7), PlayerColor.BLACK));       // Torre a8
-        insertPiece(new Knight(new Position(1, 7), PlayerColor.BLACK));     // Cavalo b8
-        insertPiece(new Bishop(new Position(2, 7), PlayerColor.BLACK));     // Bispo c8
-        insertPiece(new Queen(new Position(3, 7), PlayerColor.BLACK));      // Rainha d8
-        insertPiece(new King(new Position(4, 7), PlayerColor.BLACK));       // Rei e8
-        insertPiece(new Bishop(new Position(5, 7), PlayerColor.BLACK));     // Bispo f8
-        insertPiece(new Knight(new Position(6, 7), PlayerColor.BLACK));     // Cavalo g8
-        insertPiece(new Rook(new Position(7, 7), PlayerColor.BLACK));       // Torre h8
-
-        // Peões pretos (linha 6)
-        for (int col = 0; col < 8; col++) {
-            insertPiece(new Pawn(new Position(col, 6), PlayerColor.BLACK)); // a7-h7
-        }
     }
 
 }

@@ -4,14 +4,14 @@ import static org.junit.jupiter.api.Assertions.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import com.example.chess.models.chesspieces.Pawn;
+import com.example.chess.models.gamestart.DefaultStartingPieces;
 
 class ChessModelTest {
     private ChessModel model;
 
     @BeforeEach
     void setUp() {
-        model = new ChessModel();
+        model = new ChessModel(new DefaultStartingPieces());
     }
 
     @Test

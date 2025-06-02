@@ -8,6 +8,7 @@ import com.example.chess.models.chesspieces.King;
 import com.example.chess.models.chesspieces.Pawn;
 import com.example.chess.models.chesspieces.Queen;
 import com.example.chess.models.chesspieces.Rook;
+import com.example.chess.models.gamestart.DefaultStartingPieces;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -18,7 +19,7 @@ class ChessRulesTest {
 
     @BeforeEach
     void setUp() {
-        model = new ChessModel();
+        model = new ChessModel(new DefaultStartingPieces());
         rules = new ChessRules();
     }
 
@@ -76,10 +77,19 @@ class ChessRulesTest {
     @Test
     void testIsDraw_Stalemate() {
         // Configura situação de afogamento
-        model = new ChessModel(); // Tabuleiro limpo
-        model.insertPiece(new King(new Position(0, 0), PlayerColor.WHITE));
-        model.insertPiece(new King(new Position(7, 7), PlayerColor.BLACK));
-        model.insertPiece(new Queen(new Position(1, 1), PlayerColor.BLACK));
+
+
+        StartingPieces setup = new StartingPieces() {
+            
+            public void populateBoard(ChessModel model){
+                model.insertPiece(new King(new Position(0, 0), PlayerColor.WHITE));
+                model.insertPiece(new King(new Position(7, 7), PlayerColor.BLACK));
+                model.insertPiece(new Queen(new Position(1, 1), PlayerColor.BLACK));
+            }
+            
+        };
+
+        model = new ChessModel(setup);
         
         assertTrue(rules.isDraw(model, PlayerColor.WHITE));
     }

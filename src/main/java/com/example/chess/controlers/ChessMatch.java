@@ -11,6 +11,7 @@ import com.example.chess.models.Player;
 import com.example.chess.models.Position;
 import com.example.chess.models.Move.Event;
 import com.example.chess.models.chesspieces.Pawn;
+import com.example.chess.models.gamestart.DefaultStartingPieces;
 
 
 //Transformar ele numa thread?
@@ -33,7 +34,7 @@ public class ChessMatch {
     public ChessMatch(Player player, Player opponent) {
         moveCache  = new HashMap<>();
         chessRules = new ChessRules();
-        chessModel = new ChessModel();
+        chessModel = new ChessModel(new DefaultStartingPieces());
         notifier   = new MatchNotifier();
         white = player;
         black = opponent;
