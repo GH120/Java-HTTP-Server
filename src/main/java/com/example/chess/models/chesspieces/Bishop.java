@@ -7,7 +7,7 @@ import com.example.chess.models.ChessModel;
 import com.example.chess.models.Direction;
 import com.example.chess.models.Move;
 import com.example.chess.models.Piece;
-import com.example.chess.models.PieceColor;
+import com.example.chess.models.PlayerColor;
 import com.example.chess.models.Position;
 
 public class Bishop extends Piece{
@@ -19,7 +19,7 @@ public class Bishop extends Piece{
                                                     Direction.SOUTHWEST
                                                 };
 
-    public Bishop(Position position, PieceColor color){
+    public Bishop(Position position, PlayerColor color){
         super(position, color);
     }
 

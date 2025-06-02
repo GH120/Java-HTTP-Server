@@ -7,7 +7,7 @@ import com.example.chess.models.ChessModel;
 import com.example.chess.models.Direction;
 import com.example.chess.models.Move;
 import com.example.chess.models.Piece;
-import com.example.chess.models.PieceColor;
+import com.example.chess.models.PlayerColor;
 import com.example.chess.models.Position;
 
 public class Queen extends Piece{
@@ -23,7 +23,7 @@ public class Queen extends Piece{
                                                     Direction.WEST
                                                 };
 
-    public Queen(Position position, PieceColor color){
+    public Queen(Position position, PlayerColor color){
         super(position, color);
     }
 

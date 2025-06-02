@@ -31,18 +31,15 @@ public class ChessAPI {
 
         System.out.println("API ativada");
 
-        // request.print();
-
         Player player = Player.fromRequest(request);
 
         switch(request.getPath()){
 
             case "/api/findMatch":{
 
-                //Criar classe HttpClient com o output e input streams
                 //Criar o MatchWatcher passando a partida e o outputStream
-
-                ChessMatchMaker.getInstance().findDuel(player);
+                //Observers são criados no inicio da partida, e serão responsáveis por enviar as mensagens de retorno
+                ChessMatchMaker.getInstance().findDuel(player, output);
 
                 break;
             }
@@ -57,7 +54,7 @@ public class ChessAPI {
                 //Thread teria uma função playMove sincronizada
                 match.playMove(player, move);
 
-                //Escreve resposta dizendo que foi um sucesso -> Adicionar um observer que faz isso
+                //Escreve resposta dizendo que foi um sucesso -> Observer adicionado no começo da partida
                 
                 break;
             }
@@ -70,7 +67,7 @@ public class ChessAPI {
 
                 match.showPossibleMoves(position);
 
-                //Escreve resposta com a lista de movimentos -> adicionar um observer que faz isso
+                //Escreve resposta com a lista de movimentos -> Obsever adcionado no começo da partida
                 
                 break;
             }

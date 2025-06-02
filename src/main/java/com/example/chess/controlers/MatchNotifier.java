@@ -5,7 +5,7 @@ import java.util.List;
 
 import com.example.chess.controlers.ChessMatch.GameState;
 import com.example.chess.models.Move;
-import com.example.chess.models.PieceColor;
+import com.example.chess.models.PlayerColor;
 import com.example.chess.models.Position;
 
 
@@ -20,7 +20,7 @@ public class MatchNotifier {
         observers.remove(observer);
     }
 
-    public void notifyMove(Move move, PieceColor currentPlayer) {
+    public void notifyMove(Move move, PlayerColor currentPlayer) {
         for (MatchObserver obs : observers) {
             obs.onMoveExecuted(move, currentPlayer);
         }

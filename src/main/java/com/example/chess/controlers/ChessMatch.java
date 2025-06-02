@@ -135,6 +135,10 @@ public class ChessMatch {
         return white;
     }
 
+    public void addObserver(MatchObserver observer){
+        notifier.addObserver(observer);
+    }
+
     private class ChessError extends Exception{
 
         ChessError(){

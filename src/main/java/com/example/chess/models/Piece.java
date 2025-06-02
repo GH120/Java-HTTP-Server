@@ -5,17 +5,17 @@ import java.util.List;
 abstract public class Piece {
 
     public  Position    position;
-    public  PieceColor  color;
+    public  PlayerColor  color;
 
     abstract public List<Move>  defaultMoves(Piece[][] board);
 
-    public Piece(Position position, PieceColor color){
+    public Piece(Position position, PlayerColor color){
         this.position = position;
         this.color = color;
     }
 
     //Util
-    public PieceColor getColor(){
+    public PlayerColor getColor(){
         return color;
     }
 

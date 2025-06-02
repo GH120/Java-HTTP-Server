@@ -1,9 +1,9 @@
 package com.example.chess.models;
 
-public enum PieceColor {
+public enum PlayerColor {
     BLACK, WHITE;
 
-    public PieceColor opposite(){
+    public PlayerColor opposite(){
         return (this == BLACK)? WHITE : BLACK;
     }
 }

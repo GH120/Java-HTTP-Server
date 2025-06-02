@@ -7,7 +7,7 @@ import com.example.chess.models.ChessModel;
 import com.example.chess.models.Direction;
 import com.example.chess.models.Move;
 import com.example.chess.models.Piece;
-import com.example.chess.models.PieceColor;
+import com.example.chess.models.PlayerColor;
 import com.example.chess.models.Position;
 import com.example.http.HttpRequest;
 import com.example.json.Json;
@@ -18,7 +18,7 @@ public class Pawn extends Piece{
 
     public enum Promotion{ KNIGHT, QUEEN, BISHOP, ROOK }
 
-    public Pawn(Position position, PieceColor color){
+    public Pawn(Position position, PlayerColor color){
         super(position, color);
     }
 
@@ -92,12 +92,12 @@ public class Pawn extends Piece{
     }
 
     public Direction getDirection(Direction direction){
-        return (getColor() == PieceColor.WHITE)? direction : direction.invert();
+        return (getColor() == PlayerColor.WHITE)? direction : direction.invert();
     }
 
     //NOTE: depende da suposição que os peões que estão na segunda fileira nunca se moveram
     private boolean hasMoved(){
-        return (getColor() == PieceColor.WHITE)? position.y == 1 : position.y == 7;
+        return (getColor() == PlayerColor.WHITE)? position.y == 1 : position.y == 7;
     }
 
     //Criar uma fábrica para isso

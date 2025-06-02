@@ -144,7 +144,7 @@ public class ChessRules {
     // Promoção
     private void addPromotionMove(ChessModel model, Pawn pawn, List<Move> moves){
 
-        int lastRow = pawn.getColor() == PieceColor.WHITE ? 7 : 0; //Adicionar enum chessPositions?
+        int lastRow = pawn.getColor() == PlayerColor.WHITE ? 7 : 0; //Adicionar enum chessPositions?
 
         for(Move move : moves){
 
@@ -158,7 +158,7 @@ public class ChessRules {
     // -- Validações de Xeque -- //
     ///////////////////////////////
     
-    public boolean isInCheck(ChessModel model, PieceColor color) {
+    public boolean isInCheck(ChessModel model, PlayerColor color) {
 
         Position kingPos = model.findKing(color).position;
 
@@ -166,7 +166,7 @@ public class ChessRules {
     }
     
     //Não leva em conta o en-passant
-    private boolean isSquareUnderAttack(ChessModel model, Position square, PieceColor byColor) {
+    private boolean isSquareUnderAttack(ChessModel model, Position square, PlayerColor byColor) {
 
         //Nenhum movimento especial é um ataque, salvo o en-passant
         //Para o caso de movimento do pawn, levar em conta se o Event do move é um ataque ou movimento
@@ -198,7 +198,7 @@ public class ChessRules {
         return inCheck;
     }
 
-    public boolean isDraw(ChessModel model, PieceColor color){
+    public boolean isDraw(ChessModel model, PlayerColor color){
 
         King king = model.findKing(color);
         
@@ -221,7 +221,7 @@ public class ChessRules {
     }
 
     //Ineficiente, poderia verificar apenas as peças atacando o quadrado do rei
-    public boolean isInCheckMate(ChessModel model, PieceColor color){
+    public boolean isInCheckMate(ChessModel model, PlayerColor color){
 
         return isInCheck(model, color) && isDraw(model, color);
     }

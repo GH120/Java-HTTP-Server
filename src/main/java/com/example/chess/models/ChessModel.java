@@ -139,16 +139,16 @@ public class ChessModel{
         return history.size();
     }
 
-    public PieceColor getCurrentColor(){
-        return getTurn() % 2 == 0 ? PieceColor.WHITE : PieceColor.BLACK;
+    public PlayerColor getCurrentColor(){
+        return getTurn() % 2 == 0 ? PlayerColor.WHITE : PlayerColor.BLACK;
     }
 
-    public PieceColor getOpponentColor(){
-        return getTurn() % 2 == 0 ? PieceColor.BLACK : PieceColor.WHITE;
+    public PlayerColor getOpponentColor(){
+        return getTurn() % 2 == 0 ? PlayerColor.BLACK : PlayerColor.WHITE;
     }
 
-    public Set<Piece> getAllPieces(PieceColor color){
-        return color == PieceColor.WHITE ? whitePieces : blackPieces;
+    public Set<Piece> getAllPieces(PlayerColor color){
+        return color == PlayerColor.WHITE ? whitePieces : blackPieces;
     }
 
     public Move getLastMove(){
@@ -159,7 +159,7 @@ public class ChessModel{
     }
 
 
-    public King findKing(PieceColor color){
+    public King findKing(PlayerColor color){
 
         return (King) getAllPieces(color).stream()
                                          .filter(p -> p instanceof King)
@@ -244,33 +244,33 @@ public class ChessModel{
         //Insere todas as peças do tabuleiro na partida
 
         // Peças brancas (linha 0 e 1)
-        insertPiece(new Rook(new Position(0, 0), PieceColor.WHITE));
-        insertPiece(new Knight(new Position(0, 1), PieceColor.WHITE));
-        insertPiece(new Bishop(new Position(0, 2), PieceColor.WHITE));
-        insertPiece(new Queen(new Position(0, 3), PieceColor.WHITE));
-        insertPiece(new King(new Position(0, 4), PieceColor.WHITE));
-        insertPiece(new Bishop(new Position(0, 5), PieceColor.WHITE));
-        insertPiece(new Knight(new Position(0, 6), PieceColor.WHITE));
-        insertPiece(new Rook(new Position(0, 7), PieceColor.WHITE));
+        insertPiece(new Rook(new Position(0, 0), PlayerColor.WHITE));
+        insertPiece(new Knight(new Position(0, 1), PlayerColor.WHITE));
+        insertPiece(new Bishop(new Position(0, 2), PlayerColor.WHITE));
+        insertPiece(new Queen(new Position(0, 3), PlayerColor.WHITE));
+        insertPiece(new King(new Position(0, 4), PlayerColor.WHITE));
+        insertPiece(new Bishop(new Position(0, 5), PlayerColor.WHITE));
+        insertPiece(new Knight(new Position(0, 6), PlayerColor.WHITE));
+        insertPiece(new Rook(new Position(0, 7), PlayerColor.WHITE));
         
         // Peões brancos (linha 1)
         for (int col = 0; col < 8; col++) {
-            insertPiece(new Pawn(new Position(1, col), PieceColor.WHITE));
+            insertPiece(new Pawn(new Position(1, col), PlayerColor.WHITE));
         }
 
         // Peças pretas (linha 7 e 6)
-        insertPiece(new Rook(new Position(7, 0), PieceColor.BLACK));
-        insertPiece(new Knight(new Position(7, 1), PieceColor.BLACK));
-        insertPiece(new Bishop(new Position(7, 2), PieceColor.BLACK));
-        insertPiece(new Queen(new Position(7, 3), PieceColor.BLACK));
-        insertPiece(new King(new Position(7, 4), PieceColor.BLACK));
-        insertPiece(new Bishop(new Position(7, 5), PieceColor.BLACK));
-        insertPiece(new Knight(new Position(7, 6), PieceColor.BLACK));
-        insertPiece(new Rook(new Position(7, 7), PieceColor.BLACK));
+        insertPiece(new Rook(new Position(7, 0), PlayerColor.BLACK));
+        insertPiece(new Knight(new Position(7, 1), PlayerColor.BLACK));
+        insertPiece(new Bishop(new Position(7, 2), PlayerColor.BLACK));
+        insertPiece(new Queen(new Position(7, 3), PlayerColor.BLACK));
+        insertPiece(new King(new Position(7, 4), PlayerColor.BLACK));
+        insertPiece(new Bishop(new Position(7, 5), PlayerColor.BLACK));
+        insertPiece(new Knight(new Position(7, 6), PlayerColor.BLACK));
+        insertPiece(new Rook(new Position(7, 7), PlayerColor.BLACK));
         
         // Peões pretos (linha 6)
         for (int col = 0; col < 8; col++) {
-            insertPiece(new Pawn(new Position(6, col), PieceColor.BLACK));
+            insertPiece(new Pawn(new Position(6, col), PlayerColor.BLACK));
         }
     }
 
