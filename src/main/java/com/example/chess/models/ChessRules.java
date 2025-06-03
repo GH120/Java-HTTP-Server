@@ -197,6 +197,7 @@ public class ChessRules {
     /**
      * Checks if a square is under attack.  
      * WARNING: Ignores en passant (must be handled separately).  
+     * Extremamente ineficiente (O(n²)), refatorar depois
      */
     private boolean isSquareUnderAttack(ChessModel model, Position square, PlayerColor byColor) {
 
@@ -225,6 +226,9 @@ public class ChessRules {
 
         //Retorna tabuleiro e peça ao estado inicial
         model.revertLastMove(); 
+
+        //Cache de ataque para a jogada simulada é eliminado (Verificar ineficiência)
+        attackCache.clear();
 
         return inCheck;
     }
