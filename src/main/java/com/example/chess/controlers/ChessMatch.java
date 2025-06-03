@@ -45,6 +45,7 @@ public class ChessMatch {
         notifier   = new MatchNotifier();
         white = player;
         black = opponent;
+        state = GameState.STARTED;
     }
 
     /**Controle para efetuar jogada de Xadrez, solta erros se jogada for inconsistente */
@@ -60,6 +61,7 @@ public class ChessMatch {
         Piece      piece = chessModel.getPiece(move.origin);
 
         if(!moves.contains(move))                       throw new InvalidMove();
+        if(piece == null)                               throw new InvalidMove();
         if(piece.color != chessModel.getCurrentColor()) throw new NotPlayerTurn();
 
         //Uma vez validada, registra jogada no modelo, atualiza estado do jogo e notifica aos observadores

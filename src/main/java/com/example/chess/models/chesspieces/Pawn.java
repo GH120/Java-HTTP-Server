@@ -94,6 +94,7 @@ public class Pawn extends Piece{
 
     }
 
+    /**Corrige a direção dependendo da cor (peças pretas tem direção invertida, norte vira sul) */
     public Direction getDirection(Direction direction){
         return (getColor() == PlayerColor.WHITE)? direction : direction.invert();
     }

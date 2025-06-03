@@ -98,7 +98,7 @@ public class ChessModel{
     }
 
     /**Elimina uma peça do tabuleiro e de peças ativas se estiver viva
-     * Nesse caso, adiciona a pilha casualties e true na attackMove
+     * Adiciona a pilha de casualties (até mesmo se for nula)
      */
     public void kill(Piece attackedPiece){
 

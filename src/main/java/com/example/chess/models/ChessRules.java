@@ -113,17 +113,18 @@ public class ChessRules {
 
         if (isEnPassantOpportunity(pawn, lastMove)) {
 
-            //Consegue posição do peão assassino no enpassant
-            Direction forward = pawn.getDirection(Direction.NORTH);
-
-            Position  targetTile = pawn.position.moveTo(forward);
-
-            Move move = new Move(pawn.position, targetTile);
-
-            //Adiciona a vitima do enpassant como target dele, e adiciona jogada às jogadas válidas
+            //Adiciona a vitima do enpassant como target dele
             Position attackedPawnPosition = lastMove.destination;
 
             Piece attackedPawn = model.getPiece(attackedPawnPosition);
+
+
+            //Consegue direção do peão assassino no enpassant
+            Direction forward = pawn.getDirection(Direction.NORTH);
+
+            Position  targetTile = new Position(attackedPawnPosition.x, pawn.position.y + forward.y);
+
+            Move move = new Move(pawn.position, targetTile);
 
             move.setEvent(Move.Event.EN_PASSANT.setTarget(attackedPawn)); 
 
