@@ -96,7 +96,7 @@ public class ChessAPI {
             }
         }
 
-        HttpStreamWriter.send(HttpResponse.OK(new byte[0],null), output);
+        // HttpStreamWriter.send(HttpResponse.OK(new byte[0],null), output);
     }
 
     public boolean hasEndpoint(String endpoint){

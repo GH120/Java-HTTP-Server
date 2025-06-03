@@ -44,6 +44,9 @@ public class HttpConnectionWorkerThread extends Thread{
             e.printStackTrace();
         }
         finally{
+
+            System.out.println("Terminou " + socket.getInetAddress());
+
             try{
                 inputStream.close();
                 outputStream.close();
