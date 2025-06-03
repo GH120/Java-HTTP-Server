@@ -1,5 +1,6 @@
 package com.example.chess.controlers;
 
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.LinkedList;
 import java.util.Queue;
@@ -8,6 +9,7 @@ import com.example.chess.api.MatchWatcher;
 import com.example.chess.models.Player;
 import com.example.chess.models.PlayerColor;
 import com.example.http.HttpResponse;
+import com.example.parser.HttpStreamReader;
 import com.example.parser.HttpStreamWriter;
 
 //Precisa receber também outputstream
@@ -30,13 +32,17 @@ public class ChessMatchMaker {
         return instance;
     }
 
-    public synchronized void findDuel(Player player, OutputStream output) {
+    public synchronized void findDuel(Player player, InputStream input, OutputStream output) {
         if (waitingPlayers.isEmpty()) {
             // Ninguém esperando, adiciona o player à fila
             waitingPlayers.add(player);
             outputConnections.add(output);
             System.out.println("Player added to waiting queue: " + player.name);
 
+            new HttpStreamReader().process(input);
+
+            System.out.println("Player found a match");
+            
             // try{
             //     HttpStreamWriter.send(waitingResponse(), output); //Vai dar conflito com a outra mensagem enviada...
             // }

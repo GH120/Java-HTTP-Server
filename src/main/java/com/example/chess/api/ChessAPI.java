@@ -1,5 +1,6 @@
 package com.example.chess.api;
 
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Arrays;
 import java.util.List;
@@ -27,7 +28,7 @@ public class ChessAPI {
                                             );
 
 
-    public void handleRoute(HttpRequest request, OutputStream output) throws Exception{
+    public void handleRoute(HttpRequest request, InputStream input, OutputStream output) throws Exception{
 
         System.out.println("API ativada");
 
@@ -39,7 +40,7 @@ public class ChessAPI {
 
                 //Criar o MatchWatcher passando a partida e o outputStream
                 //Observers são criados no inicio da partida, e serão responsáveis por enviar as mensagens de retorno
-                ChessMatchMaker.getInstance().findDuel(player, output);
+                ChessMatchMaker.getInstance().findDuel(player, input, output);
 
                 break;
             }

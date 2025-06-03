@@ -36,7 +36,7 @@ public class HttpConnectionWorkerThread extends Thread{
 
             //Manda mensagem para o router decidir o que fazer com ela
             //Atualmente ele pode só interpretá-la literalmente (como get arquivo) ou direcioná-la para a api baseado em seu endpoint
-            router.handleRequest(message, outputStream);
+            router.handleRequest(message, inputStream, outputStream);
             
         }
         catch(Exception e){

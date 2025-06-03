@@ -2,6 +2,7 @@ package com.example.core;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.Files;
 
@@ -15,7 +16,7 @@ import com.example.parser.HttpStreamWriter;
 
 abstract public class HttpRouter {
 
-    abstract public void handleRequest(HttpRequest message, OutputStream output);
+    abstract public void handleRequest(HttpRequest message, InputStream input, OutputStream output);
 }
 
 
@@ -38,7 +39,7 @@ class ExampleRouter extends HttpRouter{
     Configuration  configuration;
     WebRootHandler handler;
 
-    public void handleRequest(HttpRequest request, OutputStream output){
+    public void handleRequest(HttpRequest request, InputStream input, OutputStream output){
 
         configuration = ConfigurationManager.getInstance().getCurrentConfiguration();
         
