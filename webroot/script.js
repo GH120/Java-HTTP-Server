@@ -8,19 +8,23 @@ function testScript() {
 function createMatch(){
 
     const p1 = {
+        player:{
             name: "Pedro",
             ELO: 1200,
             address: "localhost:8080"
         }
+    }
 
     const p2 = {
-        name: "Álvaro",
-        ELO: 1300,
-        address: "localhost:8080"
+        player: {
+            name: "Álvaro",
+            ELO: 1300,
+            address: "localhost:8080"
+        }
     }
 
     searchAdversary(p1)
-    .then(() => searchAdversary(p2))
+    .then(response => console.log(response))
     .then(() => window.location.href = "chess.html")
 
 }

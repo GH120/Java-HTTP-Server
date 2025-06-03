@@ -22,6 +22,19 @@ public class Position {
         return new Position(0,0);
     }
 
+    public static Position fromNotation(String notation){
+        int x = 0;
+        int y = Integer.parseInt(notation.substring(1));
+
+        for(String letter = numberToChar[x]; !notation.startsWith(letter); letter = numberToChar[x]){
+            x++;
+
+            if(x > 8) break;
+        };
+
+        return new Position(x, y);
+    }
+
     public Position moveTo(Direction direction){
         return new Position(x + direction.x, y + direction.y);
     }

@@ -12,10 +12,11 @@ public class Player {
 
     //Refazer para novo campo 
     public static Player fromRequest(HttpRequest request) throws Exception{
-        System.out.println(request.getBody());
-        JsonNode info = Json.parse(request.getBody());
+        JsonNode node = Json.parse(request.getBody());
 
-        return Json.fromJson(info, Player.class);
+        JsonNode playerInfo = node.get("player");
+
+        return Json.fromJson(playerInfo, Player.class);
     }
 
     public String toString(){

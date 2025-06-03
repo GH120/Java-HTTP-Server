@@ -1,11 +1,107 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Anotador de Xadrez Simples</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 500px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            font-size: 1.5em;
+        }
+        .move-input {
+            width: 100%;
+            padding: 10px;
+            font-size: 16px;
+            border: 2px solid #333;
+            border-radius: 5px;
+            margin-bottom: 10px;
+        }
+        .move-history {
+            background-color: white;
+            border: 1px solid #ddd;
+            padding: 15px;
+            min-height: 200px;
+            font-family: 'Courier New', monospace;
+            white-space: pre-wrap;
+        }
+        button {
+            padding: 10px 15px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            width: 100%;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .instructions {
+            margin-top: 15px;
+            font-size: 0.8em;
+            color: #666;
+        }
+    </style>
 </head>
 <body>
+    <h1></h1>
     
+    <div class="move-history" id="history"></div>
+    
+    <input type="text" class="move-input" id="moveInput" placeholder="Digite um movimento (ex: e4, Nf3, O-O)" autofocus>
+    
+    <button onclick="addMove()">Adicionar Movimento</button>
+    
+    <div class="instructions">
+        <p>Digite um movimento por vez usando notação algébrica.</p>
+        <p>Exemplos: e4, exd5, Nf3, Bb5+, Qxf7#, O-O, 1-0</p>
+    </div>
+
+    <script>
+        let moveCount = 0;
+        const historyElement = document.getElementById('history');
+        
+        function addMove() {
+            const input = document.getElementById('moveInput');
+            const move = input.value.trim();
+            
+            if (move) {
+                moveCount++;
+                
+                // Se for movimento das brancas (ímpar), adiciona o número
+                historyElement.textContent += `${moveCount}. ${move} \n`;
+                
+                input.value = '';
+                input.focus();
+            }
+        }
+
+        function sendMove(move){
+            fetch("/api/sendMove", {
+                    method: "POST",
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({move: move})
+            })
+            .then(response => console.log(response))
+        }
+        
+        // Permitir enviar com Enter
+        document.getElementById('moveInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                addMove();
+            }
+        });
+    </script>
 </body>
 </html>

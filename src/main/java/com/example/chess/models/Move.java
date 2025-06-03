@@ -1,6 +1,8 @@
 package com.example.chess.models;
 
 import com.example.http.HttpRequest;
+import com.example.json.Json;
+import com.fasterxml.jackson.databind.JsonNode;
 
 public class Move {
 
@@ -37,7 +39,29 @@ public class Move {
 
     public static Move fromRequest(HttpRequest request){
 
-        return new Move(null, null);
+        try{
+
+            JsonNode node = Json.parse(request.getBody());
+
+            JsonNode moveInfo = node.get("move");
+
+            System.out.println(moveInfo.asText());
+
+            String[] tilesInNotation =  moveInfo.asText().split(" ");
+
+            return new Move(
+                        Position.fromNotation(tilesInNotation[0]),
+                        Position.fromNotation(tilesInNotation[1])
+                   );
+        }
+        catch(Exception e){
+
+            System.out.println("NÃO FOI POSSÍVEL CRIAR JOGADA");
+
+            e.printStackTrace();
+
+            return null;
+        }
     }
 
     @Override
