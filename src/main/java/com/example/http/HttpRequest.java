@@ -3,13 +3,13 @@ package com.example.http;
 import java.util.Map;
 
 
-public class HttpRequest {
+public class HttpRequest implements HttpMessage{
 
     private HttpMethod method;
     private String path;
     private String version;
     private Map<String, String> headers; //Talvez criar um enum de headers
-    private String body;
+    private byte[] body;
 
     public HttpRequest(){
         
@@ -50,16 +50,20 @@ public class HttpRequest {
         return headers;
     }
 
-    public void setHeaders(Map<String, String> headers) {
+    public HttpRequest setHeaders(Map<String, String> headers) {
         this.headers = headers;
+
+        return this;
     }
 
-    public String getBody() {
+    public byte[] getBody() {
         return body;
     }
 
-    public void setBody(String body) {
+    public HttpRequest setBody(byte[] body) {
         this.body = body;
+
+        return this;
     }
 
     public void print() {
@@ -73,7 +77,7 @@ public class HttpRequest {
 
         System.out.println(); // linha em branco separando cabeçalhos do corpo
 
-        if (body != null && !body.isEmpty()) {
+        if (body != null && body.length > 0) {
             System.out.println(body);
         }
     }

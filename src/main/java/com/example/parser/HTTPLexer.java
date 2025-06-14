@@ -115,6 +115,7 @@ class Lexer {
     }
 }
 
+//Transformar regras em ENUM?
 public class HttpLexer extends Lexer{
 
     public static void main(String[] args) {

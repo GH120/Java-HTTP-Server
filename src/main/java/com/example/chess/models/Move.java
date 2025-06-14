@@ -1,5 +1,7 @@
 package com.example.chess.models;
 
+import java.nio.charset.StandardCharsets;
+
 import com.example.http.HttpRequest;
 import com.example.json.Json;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -41,7 +43,7 @@ public class Move {
 
         try{
 
-            JsonNode node = Json.parse(request.getBody());
+            JsonNode node = Json.parse(new String(request.getBody(), StandardCharsets.US_ASCII));
 
             JsonNode moveInfo = node.get("move");
 

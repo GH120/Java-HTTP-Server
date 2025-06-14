@@ -3,12 +3,13 @@ package com.example.http;
 import java.util.HashMap;
 import java.util.Map;
 
-public class HttpResponse{
+public class HttpResponse implements HttpMessage{
 
     private HttpStatusCode status;
     private String version;
     private Map<String, String> headers;
     private byte[] body;
+    
     private final String CRLF = "\r\n";
 
     public String toString(){

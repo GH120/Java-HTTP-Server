@@ -1,5 +1,6 @@
 package com.example.parser;
 
+import com.example.http.HttpMessage;
 import com.example.http.HttpResponse;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -8,15 +9,15 @@ import java.util.Objects;
 
 public class HttpStreamWriter {
     
-    static public void send(HttpResponse response, OutputStream output) throws IOException {
+    static public void send(HttpMessage response, OutputStream output) throws IOException {
 
         Objects.requireNonNull(response, "HTTP response cannot be null");
         Objects.requireNonNull(output, "Output stream cannot be null");
 
         // Escreve status line
-        String header = response.toString();
+        String httpHeaderString = response.toString();
 
-        output.write(header.getBytes());
+        output.write(httpHeaderString.getBytes());
         
         // Escreve body se existir
         if (response.getBody() != null) {

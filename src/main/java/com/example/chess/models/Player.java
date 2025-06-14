@@ -1,5 +1,7 @@
 package com.example.chess.models;
 
+import java.nio.charset.StandardCharsets;
+
 import com.example.http.HttpRequest;
 import com.example.json.Json;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -12,8 +14,9 @@ public class Player {
 
     //Refazer para novo campo 
     public static Player fromRequest(HttpRequest request) throws Exception{
-        JsonNode node = Json.parse(request.getBody());
-
+        
+        JsonNode node = Json.parse(new String(request.getBody(), StandardCharsets.US_ASCII));
+        
         JsonNode playerInfo = node.get("player");
 
         return Json.fromJson(playerInfo, Player.class);

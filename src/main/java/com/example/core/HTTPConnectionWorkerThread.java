@@ -32,7 +32,7 @@ public class HttpConnectionWorkerThread extends Thread{
             outputStream = socket.getOutputStream();
 
             //Cria uma mensagem http a partir do fluxo de dados de input
-            HttpRequest message = new HttpStreamReader().process(inputStream);
+            HttpRequest message = new HttpStreamReader().processRequest(inputStream);
 
             //Manda mensagem para o router decidir o que fazer com ela
             //Atualmente ele pode só interpretá-la literalmente (como get arquivo) ou direcioná-la para a api baseado em seu endpoint

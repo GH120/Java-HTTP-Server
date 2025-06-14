@@ -1,6 +1,8 @@
 package com.example.parser;
 
 import com.example.http.HttpRequest;
+import com.example.http.HttpResponse;
+import com.example.http.HttpMessage;
 import com.example.http.HttpMethod;
 
 import java.io.ByteArrayOutputStream;
@@ -11,10 +13,15 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+//TODO: Refazer lógica do HttpLexer e parser para adequar ler mensagens de resposta
+//TODO: Refinar interface HttpMessage para métodos compartilhados de HttpResponse e HttpRequest
+//TODO: Adicionar método para processar respostas e requests diferentemente
+//TODO: Transferir responsabilidade de ler o corpo do arquivo pra cá
+//OBS: vai dar um trabalho ó, do caralho
 public class HttpStreamReader {
 
 
-    public HttpRequest process(InputStream inputStream){
+    public HttpRequest processRequest(InputStream inputStream){
 
         var message = new HttpRequest();
 
@@ -26,7 +33,36 @@ public class HttpStreamReader {
 
             TreeNode AbstractSyntaxTree = httpParser.getTree();
 
+            // System.out.println(AbstractSyntaxTree);
+
             populateRequestLine(message, AbstractSyntaxTree);
+            populateHeaders(message, AbstractSyntaxTree);
+
+            //Lê o corpo da mensagem depois de construída com os headers
+            //Refatorar depois, lógica separada de criar mensagem e ler corpo confusa
+            message.setBody(readRawHttpBody(inputStream, message)); 
+
+        }
+        catch(IOException e){
+            e.printStackTrace();
+        }
+
+        return message;
+    }
+
+    public HttpResponse processResponse(InputStream inputStream){
+
+        var message = new HttpResponse();
+
+        try{
+
+            HttpParser httpParser = new HttpParser();
+
+            httpParser.parse(new HttpLexer().tokenize(readRawHttpHeader(inputStream)));
+
+            TreeNode AbstractSyntaxTree = httpParser.getTree();
+
+            populateResponseLine(message, AbstractSyntaxTree);
             populateHeaders(message, AbstractSyntaxTree);
 
             //Lê o corpo da mensagem depois de construída com os headers
@@ -57,7 +93,19 @@ public class HttpStreamReader {
         message.setVersion(version);
     }
 
-    private void populateHeaders(HttpRequest message, TreeNode AST) {
+    private void populateResponseLine(HttpResponse message, TreeNode AST) {
+
+        TreeNode responseLine = (TreeNode) AST.getNodeByType("RESPONSE_LINE").get(0);
+        TreeNode status       = (TreeNode) responseLine.getNodeByType("STATUS_CODE").get(0);
+        String version = responseLine.getNodeByType("VERSION").get(0).getExpression();
+
+
+        message.setVersion(version);
+        message.setStatusCode(Integer.parseInt(status.getExpression()));
+
+    }
+
+    private void populateHeaders(HttpMessage message, TreeNode AST) {
         List<Node> headers = AST.getNodeByType("HEADER");
 
         Map<String, String> headerMap = new HashMap<>();
@@ -80,7 +128,7 @@ public class HttpStreamReader {
         if (!bodyNodes.isEmpty()) {
             TreeNode bodyNode = (TreeNode) bodyNodes.get(0);
             String body = bodyNode.getExpression();
-            message.setBody(body);
+            message.setBody(body.getBytes());
         }
     }
 
@@ -110,7 +158,7 @@ public class HttpStreamReader {
     }
 
     //Lê separadamente a parte do corpo da mensagem, considerando que o header content length já foi populado
-    private String readRawHttpBody(InputStream inputStream, HttpRequest message) throws IOException{
+    private byte[] readRawHttpBody(InputStream inputStream, HttpMessage message) throws IOException{
 
         ByteArrayOutputStream byteBuffer = new ByteArrayOutputStream();
 
@@ -128,6 +176,6 @@ public class HttpStreamReader {
 
         }
 
-        return byteBuffer.toString();
+        return byteBuffer.toByteArray();
     }
 }

@@ -3,6 +3,7 @@ package com.example.parser;
 import java.util.LinkedList;
 import java.util.List;
 
+import com.example.http.HttpMessage;
 import com.example.http.HttpParseException;
 import com.example.http.HttpStatusCode;
 
@@ -16,14 +17,9 @@ public class HttpParser {
         this.tokens = tokens;
 
         try {
-            treeBuilder.startContext("HTTP_MESSAGE"); 
 
             //Símbolos não terminais são métodos recursivos
-            REQUEST_LINE();
-            HEADERS();
-            // BODY(); // opcional
-
-            treeBuilder.endContext();
+            HTTP_MESSAGE();
             
             System.out.println("Parsing concluído com sucesso.");
         } catch (HttpParseException e) {
@@ -53,6 +49,61 @@ public class HttpParser {
     /**********************************************************/
     /*MÉTODOS DOS SÍMBOLOS NÃO TERMINAIS DA GRAMÁTICA DO HTTP */
     /**********************************************************/
+
+    void HTTP_MESSAGE() throws Exception{
+
+        treeBuilder.startContext("HTTP_MESSAGE"); 
+            
+        switch(tokens.peek().type){
+            case "GET", "PUT", "UPDATE","POST", "DELETE" -> REQUEST();
+            case "TRACE", "OPTIONS", "CONNECT", "HEAD"   -> REQUEST();
+            case "VERSION"                               -> RESPONSE();
+        }
+
+        treeBuilder.endContext();
+    }
+
+    void RESPONSE() throws Exception{
+
+        treeBuilder.startContext("RESPONSE");
+
+        RESPONSE_LINE();
+        HEADERS();
+
+        treeBuilder.endContext();
+    }
+
+    void RESPONSE_LINE() throws Exception{
+
+        treeBuilder.startContext("RESPONSE_LINE");
+
+        eat("VERSION"); 
+        eat("SPACE");
+        STATUS_CODE();
+        eat("CRLF");
+
+        treeBuilder.endContext();
+    }
+
+    void STATUS_CODE() throws Exception{
+
+        treeBuilder.startContext("STATUS_CODE");
+
+        eat("NUMBER");
+
+        treeBuilder.endContext();
+    }
+
+    void REQUEST() throws Exception {
+
+        treeBuilder.startContext("REQUEST");
+
+        REQUEST_LINE();
+        HEADERS();
+
+        treeBuilder.endContext();
+    }
+
     void REQUEST_LINE() throws Exception {
         treeBuilder.startContext("REQUEST_LINE");
 

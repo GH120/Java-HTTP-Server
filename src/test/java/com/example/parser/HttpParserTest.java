@@ -1,10 +1,13 @@
 package com.example.parser;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.util.LinkedList;
+import java.util.List;
 
 import com.example.http.HttpRequest;
+import com.example.http.HttpResponse;
 import com.example.http.HttpParseException;
 import com.example.http.HttpStatusCode;
 
@@ -84,6 +87,20 @@ public class HttpParserTest {
         });
 
         assert ex.getStatusCode() == HttpStatusCode.CLIENT_ERROR_414_BAD_REQUEST;
+    }
+
+    @Test
+    void testHttpResponse(){
+        
+        HttpResponse response = HttpResponse.OK(new byte[100], null);
+
+        LinkedList<Token> tokens = new HttpLexer().tokenize(response.toString());
+
+        tokens.stream().forEach(token -> System.out.println(token));
+
+        assertDoesNotThrow(() -> httpParser.parse(tokens));
+
+        System.out.println(httpParser.getTree().toString());
     }
 
     private String generateValidTestCase() {

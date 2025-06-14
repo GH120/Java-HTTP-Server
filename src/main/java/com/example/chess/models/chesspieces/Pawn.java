@@ -107,7 +107,7 @@ public class Pawn extends Piece{
     //Criar uma fábrica para isso
     public static Promotion PromotionFromRequest(HttpRequest request) throws Exception{
             System.out.println(request.getBody());
-            JsonNode info = Json.parse(request.getBody());
+            JsonNode info = Json.parse(request.getBody().toString());
 
             return Json.fromJson(info, Promotion.class);
     }

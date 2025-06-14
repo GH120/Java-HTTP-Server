@@ -39,7 +39,7 @@ public class ChessMatchMaker {
             outputConnections.add(output);
             System.out.println("Player added to waiting queue: " + player.name);
 
-            new HttpStreamReader().process(input);
+            new HttpStreamReader().processRequest(input);
 
             System.out.println("Player found a match");
             
