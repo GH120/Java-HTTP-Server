@@ -1,5 +1,6 @@
 package com.example.chess.controlers;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.LinkedList;
@@ -8,6 +9,7 @@ import java.util.Queue;
 import com.example.chess.api.MatchWatcher;
 import com.example.chess.models.Player;
 import com.example.chess.models.PlayerColor;
+import com.example.http.HttpRequest;
 import com.example.http.HttpResponse;
 import com.example.parser.HttpStreamReader;
 import com.example.parser.HttpStreamWriter;
@@ -19,6 +21,8 @@ public class ChessMatchMaker {
     private static ChessMatchMaker    instance;
     private final Queue<Player>       waitingPlayers;
     private final Queue<OutputStream> outputConnections;
+
+    private final int TIMEOUT = 120;
 
     private ChessMatchMaker() {
         waitingPlayers    = new LinkedList<>();
@@ -39,9 +43,49 @@ public class ChessMatchMaker {
             outputConnections.add(output);
             System.out.println("Player added to waiting queue: " + player.name);
 
-            new HttpStreamReader().processRequest(input);
+            //Espera request do usuário 
+            //Mas na verdade esse request nunca vai vim, porque quem vai realizar a conexão seria o outro usuário 2
+            //Eu poderia fazer meio que uma gambiarra
+            //O usuário 2 iria mandar um aviso para o servidor, e o servidor iria avisar essa thread 
+            //Não funciona...
+            //Melhor assim, ele vai ficar escutando requests do usuário, até ele ter uma partida, mandando sempre a resposta de waiting
 
-            System.out.println("Player found a match");
+            for(int i = 0; i<TIMEOUT; i++){
+                
+
+                try{
+
+                    HttpStreamWriter.send(waitingResponse(), output);
+
+                    Thread.sleep(1000);
+                    
+                    HttpRequest request = new HttpStreamReader().processRequest(input);
+                    
+                    System.out.println(request);
+
+
+                    ChessMatch match = ChessMatchManager.getInstance().getMatchFromPlayer(player);
+
+                    if(match != null){
+                        HttpStreamWriter.send(startResponse(), output);
+                        
+                        System.out.println("Player found a match");
+
+                        return;
+                    }
+
+                }
+                catch(IOException exception){
+                    exception.printStackTrace();
+
+                    System.out.println("Erro na busca de partidas do solicitante");
+                }
+                catch(InterruptedException exception){
+                    exception.printStackTrace();
+                }
+
+                
+            }
             
             // try{
             //     HttpStreamWriter.send(waitingResponse(), output); //Vai dar conflito com a outra mensagem enviada...
@@ -67,7 +111,6 @@ public class ChessMatchMaker {
 
             try{
                 HttpStreamWriter.send(startResponse(), output);
-                HttpStreamWriter.send(startResponse(), opponentOutput);
             }
             catch(Exception e){
                 System.err.println("Erro na criação da partida" + e.getMessage());
@@ -80,7 +123,7 @@ public class ChessMatchMaker {
         return HttpResponse.OK("{\"status\":\"match_started\"}".getBytes(), "application/json");
     }
 
-    // private HttpResponse waitingResponse(){
-    //     return HttpResponse.OK("{\"status\":\"waiting\"}".getBytes(), "application/json");
-    // }
+    private HttpResponse waitingResponse(){
+        return HttpResponse.OK("{\"status\":\"waiting\"}".getBytes(), "application/json");
+    }
 }

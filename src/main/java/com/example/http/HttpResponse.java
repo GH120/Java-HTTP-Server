@@ -51,8 +51,10 @@ public class HttpResponse implements HttpMessage{
         return headers;
     }
 
-    public void addHeader(String name, String content){
+    public HttpResponse addHeader(String name, String content){
         this.headers.put(name, content);
+
+        return this;
     }
 
     public HttpResponse setHeaders(Map<String, String> headers) {
