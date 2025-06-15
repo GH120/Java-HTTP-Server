@@ -67,6 +67,16 @@
     </div>
 
     <script>
+
+        //Temporário, guardar no localStorage
+        const p1 = {
+            player:{
+                name: "Pedro",
+                ELO: 1200,
+                address: "localhost:8080"
+            }
+        }
+
         let moveCount = 0;
         const historyElement = document.getElementById('history');
         
@@ -82,6 +92,8 @@
                 
                 input.value = '';
                 input.focus();
+
+                sendMove(move);
             }
         }
 
@@ -91,9 +103,9 @@
                     headers: {
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({move: move})
+                    body: JSON.stringify({move: move, player: p1})
             })
-            .then(response => console.log(response))
+            .then(response => response.json().then(r => console.log(r)))
         }
         
         // Permitir enviar com Enter

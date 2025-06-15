@@ -58,14 +58,8 @@ public class ChessMatchMaker {
 
                 try{
 
-                    // HttpStreamWriter.send(waitingResponse(), output);
-
                     Thread.sleep(5000);
                     
-                    // HttpRequest request = new HttpStreamReader().processRequest(input);
-                    
-                    // System.out.println(request);
-
                     System.out.println("Esperando retorno...");
 
 

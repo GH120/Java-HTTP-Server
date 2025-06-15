@@ -24,7 +24,8 @@ public class ChessAPI {
                                                 "/api/findMatch",
                                                 "/api/move",
                                                 "/api/state",
-                                                "/api/reset"
+                                                "/api/reset",
+                                                "/api/sendMove"
                                             );
 
 
@@ -36,7 +37,7 @@ public class ChessAPI {
 
         switch(request.getPath()){
 
-            case "/api/findMatch":{
+            case "/api/findMatch" -> {
 
                 //Criar o MatchWatcher passando a partida e o outputStream
                 //Observers são criados no inicio da partida, e serão responsáveis por enviar as mensagens de retorno
@@ -44,7 +45,7 @@ public class ChessAPI {
 
                 break;
             }
-            case "/api/move":{
+            case "/api/move" -> {
 
                 ChessMatch match = ChessMatchManager.getInstance().getMatchFromPlayer(player);
                 
@@ -60,7 +61,7 @@ public class ChessAPI {
                 break;
             }
 
-            case "/api/seeMoves":{
+            case "/api/seeMoves" -> {
 
                 ChessMatch match = ChessMatchManager.getInstance().getMatchFromPlayer(player);
                 
@@ -73,7 +74,7 @@ public class ChessAPI {
                 break;
             }
 
-            case "/api/ChoosePromotion":{
+            case "/api/ChoosePromotion" -> {
 
                 ChessMatch match = ChessMatchManager.getInstance().getMatchFromPlayer(player);
                 
@@ -84,16 +85,21 @@ public class ChessAPI {
 
                 //Escreve resposta aqui -> adicionar um observer que faz isso
 
-                break;
             }
 
-            case "/api/exitMatch":{
+            case "/api/sendMove" -> {
+
+                Move move = Move.fromRequest(request);
+
+                System.out.println(move);
+            }
+
+            case "/api/exitMatch" ->{
 
                 ChessMatch match = ChessMatchManager.getInstance().getMatchFromPlayer(player);
                 
                 match.quit();
 
-                break;
             }
         }
 

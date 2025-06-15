@@ -70,4 +70,8 @@ public class Move {
     public boolean equals(Object move){
         return ((Move) move).origin.equals(origin) && ((Move) move).destination.equals(destination);
     }
+
+    public String toString(){
+        return origin.toString().concat(" ").concat(destination.toString());
+    }
 }
