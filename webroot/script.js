@@ -25,7 +25,7 @@ function createMatch(){
 
     searchAdversary(p1)
     .then(response => console.log(response))
-    .then(() => window.location.href = "chess.html")
+    // .then(() => window.location.href = "chess.html")
 
 }
 

@@ -36,7 +36,10 @@ public class ChessMatchMaker {
         return instance;
     }
 
-    public synchronized void findDuel(Player player, InputStream input, OutputStream output) {
+    public void findDuel(Player player, InputStream input, OutputStream output) {
+
+        System.out.println("IS empty? " + waitingPlayers.isEmpty());
+
         if (waitingPlayers.isEmpty()) {
             // Ninguém esperando, adiciona o player à fila
             waitingPlayers.add(player);
@@ -55,13 +58,15 @@ public class ChessMatchMaker {
 
                 try{
 
-                    HttpStreamWriter.send(waitingResponse(), output);
+                    // HttpStreamWriter.send(waitingResponse(), output);
 
-                    Thread.sleep(1000);
+                    Thread.sleep(5000);
                     
-                    HttpRequest request = new HttpStreamReader().processRequest(input);
+                    // HttpRequest request = new HttpStreamReader().processRequest(input);
                     
-                    System.out.println(request);
+                    // System.out.println(request);
+
+                    System.out.println("Esperando retorno...");
 
 
                     ChessMatch match = ChessMatchManager.getInstance().getMatchFromPlayer(player);
