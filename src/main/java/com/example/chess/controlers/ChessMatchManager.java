@@ -28,6 +28,9 @@ public class ChessMatchManager {
     // métodos para buscar ou gerenciar partidas
     public ChessMatch getMatchFromPlayer(Player player){
 
+        matches.keySet().stream().forEach(key -> System.out.println(key));
+        System.out.println(player);
+
         return matches.get(player.toString());
     }
 }

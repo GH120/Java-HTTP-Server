@@ -11,21 +11,27 @@ import com.example.chess.controlers.ChessMatch;
 import com.example.chess.controlers.ChessMatchMaker;
 import com.example.chess.controlers.ChessMatchManager;
 import com.example.chess.models.Move;
+import com.example.chess.models.Piece;
 import com.example.chess.models.Player;
 import com.example.chess.models.Position;
 import com.example.chess.models.chesspieces.Pawn;
 import com.example.http.HttpRequest;
 import com.example.http.HttpResponse;
+import com.example.json.Json;
 import com.example.parser.HttpStreamWriter;
+import com.fasterxml.jackson.databind.JsonNode;
 
 public class ChessAPI {
 
+    //TODO: ENUM? (muito fácil de esquecer de atualizar a lista caso contrário)
     private final List<String>     apiRoute = Arrays.asList(
                                                 "/api/findMatch",
-                                                "/api/move",
                                                 "/api/state",
                                                 "/api/reset",
-                                                "/api/sendMove"
+                                                "/api/sendMove",
+                                                "/api/seeMove",
+                                                "/api/getBoard",
+                                                "/api/awaitMove"
                                             );
 
 
@@ -45,21 +51,6 @@ public class ChessAPI {
 
                 break;
             }
-            case "/api/move" -> {
-
-                ChessMatch match = ChessMatchManager.getInstance().getMatchFromPlayer(player);
-                
-                Move move = Move.fromRequest(request);
-
-                //Transformar isso numa thread
-                //Fazer alguma maneira de recuperar a thread do ChessMatchManager
-                //Thread teria uma função playMove sincronizada
-                match.playMove(player, move);
-
-                //Escreve resposta dizendo que foi um sucesso -> Observer adicionado no começo da partida
-                
-                break;
-            }
 
             case "/api/seeMoves" -> {
 
@@ -71,7 +62,6 @@ public class ChessAPI {
 
                 //Escreve resposta com a lista de movimentos -> Obsever adcionado no começo da partida
                 
-                break;
             }
 
             case "/api/ChoosePromotion" -> {
@@ -89,9 +79,24 @@ public class ChessAPI {
 
             case "/api/sendMove" -> {
 
+
+                ChessMatch match = ChessMatchManager.getInstance().getMatchFromPlayer(player);
+
+                //Depois criar um move intent que é processado em uma move usando o estado da partida (para movimentos como pawn to e4)
                 Move move = Move.fromRequest(request);
 
+                match.playMove(player, move);
+                
+
+
+
                 System.out.println(move);
+            }
+
+            case "/api/awaitMove" -> {
+                Thread.sleep(30000); //Conseguiria a resposta do adversário até então
+
+                HttpStreamWriter.send(HttpResponse.OK(new byte[0], null), output); //Se não retornaria outra resposta OK
             }
 
             case "/api/exitMatch" ->{
@@ -100,6 +105,19 @@ public class ChessAPI {
                 
                 match.quit();
 
+            }
+
+            case "/api/getBoard" -> {
+
+                ChessMatch match = ChessMatchManager.getInstance().getMatchFromPlayer(player);
+
+                Piece[][] board = match.getChessModel().getBoard();
+
+                JsonNode node = Json.toJson(board);
+
+                HttpResponse response = HttpResponse.OK(Json.stringify(node).getBytes(), "application/json");
+
+                HttpStreamWriter.send(response, output);
             }
         }
 

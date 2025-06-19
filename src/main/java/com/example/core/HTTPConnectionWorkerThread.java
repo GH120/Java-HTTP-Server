@@ -33,32 +33,37 @@ public class HttpConnectionWorkerThread extends Thread{
 
             //Roda 100 loops de esperar request até parar 
                 
-            //Cria uma mensagem http a partir do fluxo de dados de input
-            HttpRequest message = new HttpStreamReader().processRequest(inputStream);
-            
-            //Manda mensagem para o router decidir o que fazer com ela
-            //Atualmente ele pode só interpretá-la literalmente (como get arquivo) ou direcioná-la para a api baseado em seu endpoint
-            
-            router.handleRequest(message, inputStream, outputStream);
+            for(int i = 0; i< 100; i++){
+
+                System.out.println("Mensagem " + i);
+                
+                //Cria uma mensagem http a partir do fluxo de dados de input
+                HttpRequest message = new HttpStreamReader().processRequest(inputStream);
+                
+                //Manda mensagem para o router decidir o que fazer com ela
+                //Atualmente ele pode só interpretá-la literalmente (como get arquivo) ou direcioná-la para a api baseado em seu endpoint
+                
+                router.handleRequest(message, inputStream, outputStream);
+            }
             
         }
         catch(Exception e){
             System.out.println("Erro na comunicação");
             e.printStackTrace();
         }
-        finally{
+        // finally{
 
-            System.out.println("Terminou " + socket.getInetAddress());
+        //     System.out.println("Terminou " + socket.getInetAddress());
 
-            try{
-                inputStream.close();
-                outputStream.close();
-                socket.close();
-            }
-            catch(Exception e){
+        //     try{
+        //         inputStream.close();
+        //         outputStream.close();
+        //         socket.close();
+        //     }
+        //     catch(Exception e){
 
-            }
-        }
+        //     }
+        // }
     }
 
     public void setRouter(HttpRouter router){

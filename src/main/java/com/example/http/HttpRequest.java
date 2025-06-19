@@ -1,5 +1,6 @@
 package com.example.http;
 
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
 
@@ -78,7 +79,7 @@ public class HttpRequest implements HttpMessage{
         System.out.println(); // linha em branco separando cabeçalhos do corpo
 
         if (body != null && body.length > 0) {
-            System.out.println(body);
+            System.out.println(new String(body, StandardCharsets.US_ASCII));
         }
     }
 

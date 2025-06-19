@@ -30,14 +30,18 @@ public class MatchWatcher implements MatchObserver {
     @Override
     public void onMoveExecuted(Move move, PlayerColor player){
 
+        System.out.println("Player ".concat(player.toString()).concat(" played").concat(move.toString()));
+
         executor.execute(() -> {
             try{
                 String eventJson = String.format(
-                    "{\\\"event\\\":\\\"move\\\",\\\"from\\\":\\\"%s\\\",\\\"to\\\":\\\"%s\\\",\\\"player\\\":\\\"%s\\\"}",
+                    "{\"event\":\"move\",\"from\":\"%s\",\"to\":\"%s\",\"player\":\"%s\"}",
                     move.origin.toString(),
                     move.destination.toString(),
                     player.toString()
                 );
+
+                System.out.println(eventJson);
 
                 sendEventToClient(eventJson);
             }
@@ -133,7 +137,7 @@ public class MatchWatcher implements MatchObserver {
         response.addHeader("Connection", "keep-alive");
 
         synchronized (clientOutput){
-            httpWriter.send(response, clientOutput);
+            HttpStreamWriter.send(response, clientOutput);
         }
     }
 }

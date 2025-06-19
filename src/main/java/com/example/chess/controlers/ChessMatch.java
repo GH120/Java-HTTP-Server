@@ -50,26 +50,26 @@ public class ChessMatch {
 
     /**Controle para efetuar jogada de Xadrez, solta erros se jogada for inconsistente */
     public void playMove(Player player, Move move) throws ChessError{
-
+        
+        Piece      piece = chessModel.getPiece(move.origin);
         //Verifica inconsistências na requisição da jogada
         if(state == GameState.CHECKMATE) throw new GameHasAlreadyEnded();
         if(state == GameState.DRAW)      throw new GameHasAlreadyEnded();
         if(state == GameState.EXITED)    throw new GameHasAlreadyEnded();
         if(state == GameState.PROMOTION) throw new PendingPromotion();
-
+        if(piece == null)                throw new InvalidMove();
+        
         List<Move> moves = getAllPossibleMoves(move.origin);
-        Piece      piece = chessModel.getPiece(move.origin);
 
         if(!moves.contains(move))                       throw new InvalidMove();
-        if(piece == null)                               throw new InvalidMove();
         if(piece.color != chessModel.getCurrentColor()) throw new NotPlayerTurn();
 
         //Uma vez validada, registra jogada no modelo, atualiza estado do jogo e notifica aos observadores
         chessModel.play(piece, move);
 
-        updateGameState(move);
-        
         notifier.notifyMove(move, chessModel.getCurrentColor());
+        
+        updateGameState(move);
 
         moveCache.clear();
     }

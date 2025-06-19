@@ -36,7 +36,10 @@ public class HttpChessRouter extends HttpRouter{
             if(API.hasEndpoint(request.getPath())){
 
                 API.handleRoute(request, input, output);
+
+                return;
             }
+
         }
         catch(Exception e){
             System.out.println("Erro na chamada a API");

@@ -59,12 +59,14 @@
     
     <input type="text" class="move-input" id="moveInput" placeholder="Digite um movimento (ex: e4, Nf3, O-O)" autofocus>
     
-    <button onclick="addMove()">Adicionar Movimento</button>
+    <button onclick="addMove()" id="moveButton">Adicionar Movimento</button>
     
     <div class="instructions">
         <p>Digite um movimento por vez usando notação algébrica.</p>
         <p>Exemplos: e4, exd5, Nf3, Bb5+, Qxf7#, O-O, 1-0</p>
     </div>
+
+    <div id="board"></div>
 
     <script>
 
@@ -75,6 +77,35 @@
                 ELO: 1200,
                 address: "localhost:8080"
             }
+        }
+
+        const p2 = {
+            player: {
+                name: "Álvaro",
+                ELO: 1300,
+                address: "localhost:8080"
+            }
+        }
+
+        const moveInput = document.getElementById('moveInput');
+        const moveButton = document.getElementById('moveButton');
+
+        const storedPlayer = localStorage.getItem('currentPlayer');
+        const parsedPlayer = JSON.parse(storedPlayer);
+        selectedPlayer = parsedPlayer.player.name === 'Pedro';
+
+
+        if(selectedPlayer){
+            localStorage.setItem('currentPlayer', JSON.stringify(p2));
+            
+        }
+
+        if(!selectedPlayer){
+            localStorage.setItem('currentPlayer', JSON.stringify(p1));
+            moveInput.disabled = true;
+            moveButton.disabled = true;
+
+            awaitMove();
         }
 
         let moveCount = 0;
@@ -103,11 +134,78 @@
                     headers: {
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({move: move, player: p1})
+                    body: JSON.stringify({move: move,...p1})
             })
-            .then(response => response.json().then(r => console.log(r)))
+            .then(response => {
+
+                if(!response.ok){
+                    throw new Error('Erro na resposta do Servidor para a jogada ' + move);
+                }
+
+                response.json().then(r => console.log(r))
+
+                // updateChessBoard();
+
+                awaitMove()
+            })
+        }
+
+        function awaitMove(){
+
+            console.log("BUSCANDO...")
+
+            fetch("/api/awaitMove", {
+                    method: "GET"
+            })
+            .then(response => {
+
+                if(!response.ok){
+                    throw new Error('Erro na resposta do Servidor para a jogada ' + move);
+                }
+
+                response.json().then(r  => {
+                    console.log(r)
+
+                    moveCount++
+
+                    historyElement.textContent += `${moveCount}. ${r.from} ${r.to} \n`;
+
+                    input.value = '';
+                    input.focus();
+                
+                })
+
+                // updateChessBoard();
+
+                moveInput.disabled = false;
+                moveButton.disabled = false;
+            })
+        }
+
+        async function updateChessBoard(){
+
+            const chessBoard = await requestChessBoard();
+
+            console.log(chessBoard);
         }
         
+        async function requestChessBoard(){
+
+            let board;
+
+            await fetch('/api/getBoard', {
+                        method: 'GET',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                    })
+                    .then(response => {
+                        response.json().then(r => board = r);
+                    })
+
+            return board;
+        }
+
         // Permitir enviar com Enter
         document.getElementById('moveInput').addEventListener('keypress', function(e) {
             if (e.key === 'Enter') {
