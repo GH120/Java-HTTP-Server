@@ -146,7 +146,7 @@
 
                 // updateChessBoard();
 
-                awaitMove()
+                // awaitMove()
             })
         }
 
@@ -155,7 +155,11 @@
             console.log("BUSCANDO...")
 
             fetch("/api/awaitMove", {
-                    method: "GET"
+                    method: "POST",
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({'state': 'awaiting'})
             })
             .then(response => {
 

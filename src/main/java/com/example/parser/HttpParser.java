@@ -26,13 +26,11 @@ public class HttpParser {
             System.err.println("Erro HTTP " + e.getStatusCode().STATUS_CODE + ": " + e.getStatusCode().MESSAGE);
 
             throw e;
-        } catch (Exception e) {
-            System.err.println("Erro no parsing: " + e.getMessage());
-        }
+        } 
     }
 
     //CONSOME UM TOKEN (TERMINAL) SE ELE FOR DO TIPO ESPERADO, SENÃO PARA EXECUÇÃO 
-    private Token eat(String expected) throws Exception {
+    private Token eat(String expected) throws HttpParseException {
 
         if (tokens.isEmpty()) throw new HttpParseException(HttpStatusCode.CLIENT_ERROR_400_BAD_REQUEST);
 
@@ -50,7 +48,7 @@ public class HttpParser {
     /*MÉTODOS DOS SÍMBOLOS NÃO TERMINAIS DA GRAMÁTICA DO HTTP */
     /**********************************************************/
 
-    void HTTP_MESSAGE() throws Exception{
+    void HTTP_MESSAGE() throws HttpParseException{
 
         treeBuilder.startContext("HTTP_MESSAGE"); 
             
@@ -63,7 +61,7 @@ public class HttpParser {
         treeBuilder.endContext();
     }
 
-    void RESPONSE() throws Exception{
+    void RESPONSE() throws HttpParseException{
 
         treeBuilder.startContext("RESPONSE");
 
@@ -73,7 +71,7 @@ public class HttpParser {
         treeBuilder.endContext();
     }
 
-    void RESPONSE_LINE() throws Exception{
+    void RESPONSE_LINE() throws HttpParseException{
 
         treeBuilder.startContext("RESPONSE_LINE");
 
@@ -85,7 +83,7 @@ public class HttpParser {
         treeBuilder.endContext();
     }
 
-    void STATUS_CODE() throws Exception{
+    void STATUS_CODE() throws HttpParseException{
 
         treeBuilder.startContext("STATUS_CODE");
 
@@ -94,7 +92,7 @@ public class HttpParser {
         treeBuilder.endContext();
     }
 
-    void REQUEST() throws Exception {
+    void REQUEST() throws HttpParseException {
 
         treeBuilder.startContext("REQUEST");
 
@@ -104,7 +102,7 @@ public class HttpParser {
         treeBuilder.endContext();
     }
 
-    void REQUEST_LINE() throws Exception {
+    void REQUEST_LINE() throws HttpParseException {
         treeBuilder.startContext("REQUEST_LINE");
 
         if (!isValidMethod(tokens.peek())) {
@@ -132,7 +130,7 @@ public class HttpParser {
         treeBuilder.endContext();
     }
 
-    void METHOD() throws Exception {
+    void METHOD() throws HttpParseException {
         treeBuilder.startContext("METHOD");
         switch (tokens.peek().type) {
             case "GET": eat("GET"); break;
@@ -150,7 +148,7 @@ public class HttpParser {
         treeBuilder.endContext();
     }
 
-    void HEADERS() throws Exception {
+    void HEADERS() throws HttpParseException {
         treeBuilder.startContext("HEADERS");
         while (!tokens.isEmpty()) {
             if (tokens.peek().type.equals("CRLF")) {
@@ -162,7 +160,7 @@ public class HttpParser {
         treeBuilder.endContext();
     }
 
-    void HEADER() throws Exception {
+    void HEADER() throws HttpParseException {
         treeBuilder.startContext("HEADER");
 
         switch (tokens.peek().type) {
@@ -181,7 +179,7 @@ public class HttpParser {
         treeBuilder.endContext();
     }
 
-    void HEADER_VALUE() throws Exception {
+    void HEADER_VALUE() throws HttpParseException {
         treeBuilder.startContext("HEADER_VALUE");
 
         while (!tokens.isEmpty() && !tokens.peek().type.equals("CRLF")) {
@@ -191,7 +189,7 @@ public class HttpParser {
         treeBuilder.endContext();
     }
 
-    String PATH() throws Exception {
+    String PATH() throws HttpParseException {
         treeBuilder.startContext("PATH");
         StringBuilder path = new StringBuilder();
 
@@ -215,7 +213,7 @@ public class HttpParser {
         return path.toString();
     }
 
-    void BODY() throws Exception {
+    void BODY() throws HttpParseException {
         treeBuilder.startContext("BODY");
         treeBuilder.endContext();
     }

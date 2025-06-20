@@ -35,7 +35,7 @@ public class HttpConnectionWorkerThread extends Thread{
                 
             for(int i = 0; i< 100; i++){
 
-                System.out.println("Mensagem " + i);
+                System.out.println("Mensagem " + i + ' ' );
                 
                 //Cria uma mensagem http a partir do fluxo de dados de input
                 HttpRequest message = new HttpStreamReader().processRequest(inputStream);
