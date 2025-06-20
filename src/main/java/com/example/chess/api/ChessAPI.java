@@ -35,6 +35,15 @@ public class ChessAPI {
                                             );
 
 
+    //Não vai conseguir fazer isso usando observers do jeito tradicional junto com requisições http
+    //Problema: Um jogador ao jogar tem de avisar o outro que ele jogou
+    //Mas ambos os jogadores estariam esperando uma resposta
+    //Essa comunicação teria de ser intermediada pelo servidor
+    //Vamos fazer o seguinte: Teremos um estado awaiting que esperará a resposta do outro jogador
+    //Quando o outro jogador fizer sua jogada, ele avisará o servidor, que irá retornar a resposta para o primeiro
+    //Então no endpoint await, ele iria esperar algum intermediário que rodaria um loop de verificação de estado do modelo, mas isso é custoso
+    //Teria alguma forma do java esperar a mudança de estado de um objeto num padrão observer? Sem ele ter que verificar toda hora? E ao desbloquear ele, ele iria proseguir
+    //Isso me parece muito com um lock
     public void handleRoute(HttpRequest request, InputStream input, OutputStream output) throws Exception{
 
         System.out.println("API ativada");
@@ -49,6 +58,10 @@ public class ChessAPI {
                 //Observers são criados no inicio da partida, e serão responsáveis por enviar as mensagens de retorno
                 ChessMatchMaker.getInstance().findDuel(player, input, output);
 
+                //Melhor adicionar um lock no find duel 
+                // HttpStreamWriter.send(HttpResponse.OK(new byte[0],null), output);
+
+
                 break;
             }
 
@@ -60,8 +73,9 @@ public class ChessAPI {
 
                 match.showPossibleMoves(position);
 
-                //Escreve resposta com a lista de movimentos -> Obsever adcionado no começo da partida
-                
+                HttpStreamWriter.send(HttpResponse.OK(new byte[0],null), output);
+
+
             }
 
             case "/api/ChoosePromotion" -> {
@@ -73,7 +87,8 @@ public class ChessAPI {
 
                 match.choosePromotion(promotion);
 
-                //Escreve resposta aqui -> adicionar um observer que faz isso
+                HttpStreamWriter.send(HttpResponse.OK(new byte[0],null), output);
+
 
             }
 
@@ -85,18 +100,35 @@ public class ChessAPI {
                 //Depois criar um move intent que é processado em uma move usando o estado da partida (para movimentos como pawn to e4)
                 Move move = Move.fromRequest(request);
 
+                //Adicionar um try catch
                 match.playMove(player, move);
+
+                HttpStreamWriter.send(HttpResponse.OK(new byte[0],null), output);
+
                 
 
-
+                //Melhor modificar o observer para escrever a resposta json, mas mesmo assim retornar ela manualmente
 
                 System.out.println(move);
             }
 
             case "/api/awaitMove" -> {
-                Thread.sleep(30000); //Conseguiria a resposta do adversário até então
+                
+                MatchWatcher watcher = ChessMatchManager.getInstance().getWatcherFromPlayer(player);
 
-                HttpStreamWriter.send(HttpResponse.OK(new byte[0], null), output); //Se não retornaria outra resposta OK
+                watcher.waitForMove();
+
+                Move move = watcher.getLastMove();
+
+                HttpStreamWriter.send(HttpResponse.OK(Json.from(move), "application/json"), output);
+
+                //Melhor implementação: 
+                //Tornar o MatchWatcher em um observador sincronizado, que controla o acesso de ambos os jogadores
+                //Quando um estiver esperando, ele fica num estado de espera, e quando ele for acionado pelo outro jogador automaticamente dispara
+                //Dessa forma, um jogador não precisa nem saber a existência do outro jogador, apenas o seu watcher, que pode ser mapeado no ChessMatchManager
+                //Ele irá guardar o estado da última jogada e todos os efeitos a ela associados, tendo uma função para retornar os eventos da jogada (se foi cheque, se teve en passant...)
+                //Usar essa função que retorna um json para montar uma requisição http e mandar de volta para o adversário e para o jogador.
+
             }
 
             case "/api/exitMatch" ->{
@@ -104,6 +136,9 @@ public class ChessAPI {
                 ChessMatch match = ChessMatchManager.getInstance().getMatchFromPlayer(player);
                 
                 match.quit();
+
+                HttpStreamWriter.send(HttpResponse.OK(new byte[0],null), output);
+
 
             }
 

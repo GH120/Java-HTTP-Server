@@ -73,6 +73,7 @@ public class HttpResponse implements HttpMessage{
         return this;
     }
 
+    //Transformar content type em enum?
     public static HttpResponse OK(byte[] body, String contentType){
 
         var headers = new HashMap<String,String>();

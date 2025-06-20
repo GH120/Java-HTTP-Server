@@ -14,6 +14,8 @@ public class Player {
 
     //Refazer para novo campo 
     public static Player fromRequest(HttpRequest request) throws Exception{
+
+        System.out.println(new String(request.getBody(), StandardCharsets.US_ASCII));
         
         JsonNode node = Json.parse(new String(request.getBody(), StandardCharsets.US_ASCII));
         

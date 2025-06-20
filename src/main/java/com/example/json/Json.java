@@ -34,17 +34,18 @@ public class Json {
         return myObjectMapper.valueToTree(obj);
     }
 
-    private static String generateJson(Object obj, boolean pretty) throws JsonProcessingException{
-        ObjectWriter objectWriter = myObjectMapper.writer();
+    //Ver se isso não pode ser simplificado para apenas um generateJson
+    public static <A> byte[] from(Object obj) throws JsonProcessingException{
+        return stringify(toJson(obj)).getBytes();
+    }
 
-        if(pretty){
-            objectWriter = objectWriter.with(SerializationFeature.INDENT_OUTPUT);
-        }
+    private static String generateJson(Object obj) throws JsonProcessingException{
+        ObjectWriter objectWriter = myObjectMapper.writer();
 
         return objectWriter.writeValueAsString(obj);
     }
 
     public static String stringify(JsonNode node) throws JsonProcessingException{
-        return generateJson(node, false);
+        return generateJson(node);
     }
 }

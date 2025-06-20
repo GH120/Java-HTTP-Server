@@ -14,130 +14,58 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-public class MatchWatcher implements MatchObserver {
+public class MatchWatcher implements MatchObserver{
 
-    // private final PieceColor  playerColor;
-    private final OutputStream     clientOutput;
-    private final ExecutorService  executor;
-    private final HttpStreamWriter httpWriter;
+    private Move    lastMove;
+    private boolean moveReceived = false;
 
-    public MatchWatcher(PlayerColor playerColor, OutputStream clientOutput){
-        this.clientOutput = clientOutput;
-        this.executor     = Executors.newSingleThreadExecutor(); //Usar ele para não bloquear execução do jogo principal
-        this.httpWriter   = new HttpStreamWriter();
+    public synchronized void waitForMove() throws InterruptedException {
+        while (!moveReceived) {
+            wait(); // Libera o lock até receber notificação
+        }
+        moveReceived = false; // Reseta para próxima jogada
+    }
+
+    public synchronized void notifyMove() {
+        moveReceived = true;
+        notifyAll(); // Libera as threads bloqueadas
     }
 
     @Override
-    public void onMoveExecuted(Move move, PlayerColor player){
+    //Deverá contribuir para um objeto ChessMoveSummary que guardará todas as informações da jogada
+    //Seria melhor o notificador só ter um método de envio com esse CMS como argumento?
+    public void onMoveExecuted(Move move, PlayerColor currentPlayer) {
 
-        System.out.println("Player ".concat(player.toString()).concat(" played").concat(move.toString()));
+        lastMove = move;
 
-        executor.execute(() -> {
-            try{
-                String eventJson = String.format(
-                    "{\"event\":\"move\",\"from\":\"%s\",\"to\":\"%s\",\"player\":\"%s\"}",
-                    move.origin.toString(),
-                    move.destination.toString(),
-                    player.toString()
-                );
-
-                System.out.println(eventJson);
-
-                sendEventToClient(eventJson);
-            }
-            catch(Exception e){
-                System.err.println("Error sending move notification: " + e.getMessage());
-            }
-        });
+        notifyMove();
     }
 
-     @Override
+    @Override
     public void onGameStateChanged(GameState newState) {
-        executor.execute(() -> {
-            try {
-                String eventJson = String.format(
-                    "{\"event\":\"gameState\",\"state\":\"%s\"}",
-                    newState.toString()
-                );
-                
-                sendEventToClient(eventJson);
-            } catch (Exception e) {
-                System.err.println("Error sending game state notification: " + e.getMessage());
-            }
-        });
+        // TODO Auto-generated method stub
+        // throw new UnsupportedOperationException("Unimplemented method 'onGameStateChanged'");
     }
 
     @Override
     public void onPromotionRequired(Position pawnPosition) {
-        // Só notifica se for promoção do próprio jogador
-        executor.execute(() -> {
-            try {
-                String eventJson = String.format(
-                    "{\"event\":\"promotionRequired\",\"position\":\"%s\"}",
-                    pawnPosition.toString()
-                );
-                
-                sendEventToClient(eventJson);
-            } catch (Exception e) {
-                System.err.println("Error sending promotion notification: " + e.getMessage());
-            }
-        });
+        // TODO Auto-generated method stub
+        // throw new UnsupportedOperationException("Unimplemented method 'onPromotionRequired'");
     }
 
     @Override
     public void onShowPossibleMoves(List<Move> moves) {
-        executor.execute(() -> {
-            try {
-                StringBuilder movesJson = new StringBuilder("[");
-                for (Move move : moves) {
-                    movesJson.append(String.format(
-                        "{\"from\":\"%s\",\"to\":\"%s\"},",
-                        move.origin.toString(),
-                        move.destination.toString()
-                    ));
-                }
-                if (!moves.isEmpty()) {
-                    movesJson.deleteCharAt(movesJson.length() - 1);
-                }
-                movesJson.append("]");
-
-                String eventJson = String.format(
-                    "{\"event\":\"possibleMoves\",\"moves\":%s}",
-                    movesJson.toString()
-                );
-                
-                sendEventToClient(eventJson);
-            } catch (Exception e) {
-                System.err.println("Error sending possible moves notification: " + e.getMessage());
-            }
-        });
+        // TODO Auto-generated method stub
+        // throw new UnsupportedOperationException("Unimplemented method 'onShowPossibleMoves'");
     }
 
     @Override
     public void onError(String message) {
-        executor.execute(() -> {
-            try {
-                String eventJson = String.format(
-                    "{\"event\":\"error\",\"message\":\"%s\"}",
-                    message
-                );
-                
-                sendEventToClient(eventJson);
-            } catch (Exception e) {
-                System.err.println("Error sending error notification: " + e.getMessage());
-            }
-        });
+        // TODO Auto-generated method stub
+        // throw new UnsupportedOperationException("Unimplemented method 'onError'");
     }
 
-
-    private void sendEventToClient(String eventJson) throws IOException {
-        HttpResponse response = HttpResponse.OK(eventJson.getBytes("UTF-8"), "application/json");
-
-        response.addHeader("Cache-Control", "no-cache");
-        response.addHeader("Connection", "keep-alive");
-
-        synchronized (clientOutput){
-            HttpStreamWriter.send(response, clientOutput);
-        }
+    public Move getLastMove(){
+        return this.lastMove;
     }
 }

@@ -20,13 +20,12 @@ public class ChessMatchMaker {
 
     private static ChessMatchMaker    instance;
     private final Queue<Player>       waitingPlayers;
-    private final Queue<OutputStream> outputConnections;
+
 
     private final int TIMEOUT = 120;
 
     private ChessMatchMaker() {
         waitingPlayers    = new LinkedList<>();
-        outputConnections = new LinkedList<>();
     }
 
     public static synchronized ChessMatchMaker getInstance() {
@@ -43,7 +42,6 @@ public class ChessMatchMaker {
         if (waitingPlayers.isEmpty()) {
             // Ninguém esperando, adiciona o player à fila
             waitingPlayers.add(player);
-            outputConnections.add(output);
             System.out.println("Player added to waiting queue: " + player.name);
 
             //Espera request do usuário 
@@ -52,6 +50,7 @@ public class ChessMatchMaker {
             //O usuário 2 iria mandar um aviso para o servidor, e o servidor iria avisar essa thread 
             //Não funciona...
             //Melhor assim, ele vai ficar escutando requests do usuário, até ele ter uma partida, mandando sempre a resposta de waiting
+            //Ideia 2: fazer o mesmo esquema de lock que eu usei no matchwatcher
 
             for(int i = 0; i<TIMEOUT; i++){
                 
@@ -95,16 +94,11 @@ public class ChessMatchMaker {
         } else {
             // Encontrou adversário
             Player opponent = waitingPlayers.poll();
-            OutputStream opponentOutput = outputConnections.poll();
             System.out.println("Match found: " + player.name + " vs " + opponent.name);
 
 
             //Cria partida
             ChessMatch match = new ChessMatch(player, opponent);
-
-            //Adiciona observers a partida (criar um factory pra isso)
-            match.addObserver(new MatchWatcher(PlayerColor.WHITE, output));
-            match.addObserver(new MatchWatcher(PlayerColor.BLACK, opponentOutput));
 
             ChessMatchManager.getInstance().addMatch(match);
 
