@@ -3,7 +3,9 @@ package com.example.chess.controlers;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.Map;
 import java.util.Queue;
 
 import com.example.chess.api.MatchSynchronizer;
@@ -14,18 +16,18 @@ import com.example.http.HttpResponse;
 import com.example.parser.HttpStreamReader;
 import com.example.parser.HttpStreamWriter;
 
-//Precisa receber também outputstream
-//Pensando em criar objeto que contém o jogador, seu endereço e seu socket...
+
+//Boa sugestão do deepseek: Adicionar cancelMatch para players desistentes sairem do waiting players
 public class ChessMatchMaker {
 
     private static ChessMatchMaker    instance;
-    private final Queue<Player>       waitingPlayers;
+    private final  Map<Player, MatchIntention> waitingPlayers;
 
 
     private final int TIMEOUT = 120;
 
     private ChessMatchMaker() {
-        waitingPlayers    = new LinkedList<>();
+        waitingPlayers    = new HashMap<>();
     }
 
     public static synchronized ChessMatchMaker getInstance() {
@@ -35,65 +37,40 @@ public class ChessMatchMaker {
         return instance;
     }
 
+    //Primeiro teria que entrar num objeto para iniciar a partida
+
+    //Primeiro player chama o find duel, e fica na espera (wait)
+    //Segundo  player chama o find duel, encontra o usuário, e notifica a todos a criação da partida
+    //Teria que ter um método syncronized para o wait? Acho que não, porque vários jogadores poderiam existir e requisitar o wait paralelamente
+    //Seria bom criar um objeto player lock, e criar ele quando o player ficar esperando, guardando um mapa de player locks
+    //Isso também possibilitaria uma generalização, onde o player poderia escolher a lista de seus adversários, e o lock desse adversário seria liberado.
+
     public void findDuel(Player player, InputStream input, OutputStream output) {
 
         System.out.println("IS empty? " + waitingPlayers.isEmpty());
 
         if (waitingPlayers.isEmpty()) {
             // Ninguém esperando, adiciona o player à fila
-            waitingPlayers.add(player);
+
+            var matchIntention = new MatchIntention();
+
+            waitingPlayers.put(player, matchIntention);
+
             System.out.println("Player added to waiting queue: " + player.name);
 
-            //Espera request do usuário 
-            //Mas na verdade esse request nunca vai vim, porque quem vai realizar a conexão seria o outro usuário 2
-            //Eu poderia fazer meio que uma gambiarra
-            //O usuário 2 iria mandar um aviso para o servidor, e o servidor iria avisar essa thread 
-            //Não funciona...
-            //Melhor assim, ele vai ficar escutando requests do usuário, até ele ter uma partida, mandando sempre a resposta de waiting
-            //Ideia 2: fazer o mesmo esquema de lock que eu usei no matchwatcher
+            matchIntention.findOpponent();
 
-            for(int i = 0; i<TIMEOUT; i++){
-                
-
-                try{
-
-                    Thread.sleep(5000);
-                    
-                    System.out.println("Esperando retorno...");
-
-
-                    ChessMatch match = ChessMatchManager.getInstance().getMatchFromPlayer(player);
-
-                    if(match != null){
-                        HttpStreamWriter.send(startResponse(), output);
-                        
-                        System.out.println("Player found a match");
-
-                        return;
-                    }
-
-                }
-                catch(IOException exception){
-                    exception.printStackTrace();
-
-                    System.out.println("Erro na busca de partidas do solicitante");
-                }
-                catch(InterruptedException exception){
-                    exception.printStackTrace();
-                }
-
-                
+            try{
+                HttpStreamWriter.send(startResponse(), output);
             }
-            
-            // try{
-            //     HttpStreamWriter.send(waitingResponse(), output); //Vai dar conflito com a outra mensagem enviada...
-            // }
-            // catch(Exception e){
-            //     System.err.println("Erro na criação da partida" + e.getMessage());
-            // }
+            catch(Exception e){
+                e.printStackTrace();
+            }
+
         } else {
             // Encontrou adversário
-            Player opponent = waitingPlayers.poll();
+            Player opponent = waitingPlayers.keySet().iterator().next();
+
             System.out.println("Match found: " + player.name + " vs " + opponent.name);
 
 
@@ -104,6 +81,13 @@ public class ChessMatchMaker {
 
             try{
                 HttpStreamWriter.send(startResponse(), output);
+
+                //Sinaliza para o adversário que ele foi escolhido
+                waitingPlayers.get(opponent).matchFound();
+
+                // Retira adversário e jogador do mapa de espera 
+                waitingPlayers.remove(player);
+                waitingPlayers.remove(opponent);
             }
             catch(Exception e){
                 System.err.println("Erro na criação da partida" + e.getMessage());
@@ -116,7 +100,19 @@ public class ChessMatchMaker {
         return HttpResponse.OK("{\"status\":\"match_started\"}".getBytes(), "application/json");
     }
 
-    private HttpResponse waitingResponse(){
-        return HttpResponse.OK("{\"status\":\"waiting\"}".getBytes(), "application/json");
+    private class MatchIntention{
+
+        public synchronized void findOpponent(){
+            try{
+                wait();
+            }
+            catch(Exception e){
+                e.printStackTrace();
+            }
+        }
+
+        public synchronized void matchFound(){
+            notifyAll();
+        }
     }
 }
