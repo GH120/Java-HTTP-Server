@@ -1,19 +1,12 @@
 package com.example.chess.controlers;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.Map;
-import java.util.Queue;
 
-import com.example.chess.api.MatchSynchronizer;
 import com.example.chess.models.Player;
-import com.example.chess.models.PlayerColor;
-import com.example.http.HttpRequest;
 import com.example.http.HttpResponse;
-import com.example.parser.HttpStreamReader;
 import com.example.parser.HttpStreamWriter;
 
 
@@ -22,9 +15,6 @@ public class ChessMatchMaker {
 
     private static ChessMatchMaker    instance;
     private final  Map<Player, MatchIntention> waitingPlayers;
-
-
-    private final int TIMEOUT = 120;
 
     private ChessMatchMaker() {
         waitingPlayers    = new HashMap<>();
@@ -49,50 +39,55 @@ public class ChessMatchMaker {
 
         System.out.println("IS empty? " + waitingPlayers.isEmpty());
 
-        if (waitingPlayers.isEmpty()) {
-            // Ninguém esperando, adiciona o player à fila
+        if (waitingPlayers.isEmpty()) 
+            putPlayerOnHold(player, output);        
+        else 
+            fetchAnyOpponent(player, output);
+    }
 
-            var matchIntention = new MatchIntention();
+    private void putPlayerOnHold(Player player, OutputStream output){
 
-            waitingPlayers.put(player, matchIntention);
+        // Ninguém esperando, adiciona o player à fila
 
-            System.out.println("Player added to waiting queue: " + player.name);
+        var matchIntention = new MatchIntention();
 
-            matchIntention.findOpponent();
+        waitingPlayers.put(player, matchIntention);
 
-            try{
-                HttpStreamWriter.send(startResponse(), output);
-            }
-            catch(Exception e){
-                e.printStackTrace();
-            }
+        System.out.println("Player added to waiting queue: " + player.name);
 
-        } else {
-            // Encontrou adversário
-            Player opponent = waitingPlayers.keySet().iterator().next();
+        matchIntention.findOpponent();
 
-            System.out.println("Match found: " + player.name + " vs " + opponent.name);
+        try{
+            HttpStreamWriter.send(startResponse(), output);
+        }
+        catch(Exception e){
+            e.printStackTrace();
+        }
+    }
+
+    private void fetchAnyOpponent(Player player, OutputStream output){
+        // Encontrou adversário
+        Player opponent = waitingPlayers.keySet().iterator().next();
+
+        System.out.println("Match found: " + player.name + " vs " + opponent.name);
 
 
-            //Cria partida
-            ChessMatch match = new ChessMatch(player, opponent);
+        //Cria partida
+        ChessMatch match = new ChessMatch(player, opponent);
 
-            ChessMatchManager.getInstance().addMatch(match);
+        ChessMatchManager.getInstance().addMatch(match);
 
-            try{
-                HttpStreamWriter.send(startResponse(), output);
+        try{
+            HttpStreamWriter.send(startResponse(), output);
 
-                //Sinaliza para o adversário que ele foi escolhido
-                waitingPlayers.get(opponent).matchFound();
+            //Sinaliza para o adversário que ele foi escolhido
+            waitingPlayers.get(opponent).matchFound();
 
-                // Retira adversário e jogador do mapa de espera 
-                waitingPlayers.remove(player);
-                waitingPlayers.remove(opponent);
-            }
-            catch(Exception e){
-                System.err.println("Erro na criação da partida" + e.getMessage());
-            }
-            // Aqui você pode também notificar os jogadores via socket ou resposta HTTP futura
+            // Retira adversário e jogador do mapa de espera 
+            waitingPlayers.remove(opponent);
+        }
+        catch(Exception e){
+            System.err.println("Erro na criação da partida" + e.getMessage());
         }
     }
 
@@ -113,6 +108,13 @@ public class ChessMatchMaker {
 
         public synchronized void matchFound(){
             notifyAll();
+        }
+    }
+
+    public synchronized void cancelMatch(Player player) {
+        MatchIntention intention = waitingPlayers.remove(player);
+        if (intention != null) {
+            intention.matchFound(); // Libera a thread bloqueada
         }
     }
 }
