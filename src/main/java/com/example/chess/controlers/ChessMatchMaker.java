@@ -6,7 +6,7 @@ import java.io.OutputStream;
 import java.util.LinkedList;
 import java.util.Queue;
 
-import com.example.chess.api.MatchWatcher;
+import com.example.chess.api.MatchSynchronizer;
 import com.example.chess.models.Player;
 import com.example.chess.models.PlayerColor;
 import com.example.http.HttpRequest;

@@ -30,9 +30,10 @@ public class ChessMatch {
     private Player     white;
     private Player     black;
 
-    private final MatchNotifier notifier;
-    private final ChessRules    chessRules;
-    private final ChessModel    chessModel;
+    public  final MatchSynchronizer semaphor; //Responsabilidade de sincronização fica fora da partida, expõe métodos
+    private final MatchNotifier     notifier;
+    private final ChessRules        chessRules;
+    private final ChessModel        chessModel;
 
     private final HashMap<Position, List<Move>> moveCache;
     
@@ -43,6 +44,7 @@ public class ChessMatch {
         chessRules = new ChessRules();
         chessModel = new ChessModel(new DefaultStartingPieces());
         notifier   = new MatchNotifier();
+        semaphor   = new MatchSynchronizer();
         white = player;
         black = opponent;
         state = GameState.STARTED;
@@ -157,6 +159,31 @@ public class ChessMatch {
         notifier.addObserver(observer);
     }
 
+    //Classes internas
+
+    //Usar um countdown latch? muito mais claro e coeso
+    public class MatchSynchronizer{
+
+        private boolean moveReceived = false;
+
+        public synchronized void waitForMove() throws InterruptedException {
+            while (!moveReceived) {
+                wait(); // Libera o lock até receber notificação
+            }
+            moveReceived = false; // Reseta para próxima jogada
+        }
+
+
+        //Ambos wait e notifyAll tem que estarem em um bloco synchronized
+        public synchronized void notifyMove() {
+            moveReceived = true;
+            notifyAll(); // Libera as threads bloqueadas
+        }
+    }
+
+
+
+    //Erros de Jogada
     public class ChessError extends Exception{
 
         ChessError(){

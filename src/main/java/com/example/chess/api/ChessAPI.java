@@ -94,31 +94,31 @@ public class ChessAPI {
 
             case "/api/sendMove" -> {
 
-
                 ChessMatch match = ChessMatchManager.getInstance().getMatchFromPlayer(player);
 
                 //Depois criar um move intent que é processado em uma move usando o estado da partida (para movimentos como pawn to e4)
                 Move move = Move.fromRequest(request);
 
                 //Adicionar um try catch
-                match.playMove(player, move);
+                match.playMove(player, move); //Irá ativar observers, dentre eles o watcher da partida, que irá avisar o outro jogador
 
-                HttpStreamWriter.send(HttpResponse.OK(new byte[0],null), output);
+                HttpStreamWriter.send(HttpResponse.OK(Json.from(move), "application/json"), output);
 
-                
-
-                //Melhor modificar o observer para escrever a resposta json, mas mesmo assim retornar ela manualmente
+                match.semaphor.notifyMove();
 
                 System.out.println(move);
             }
 
             case "/api/awaitMove" -> {
                 
-                MatchWatcher watcher = ChessMatchManager.getInstance().getWatcherFromPlayer(player);
+                ChessMatch match = ChessMatchManager.getInstance().getMatchFromPlayer(player);
+                
+                match.semaphor.waitForMove();
 
-                watcher.waitForMove();
+                Move move = match.getChessModel().getLastMove();
 
-                Move move = watcher.getLastMove();
+                System.out.println("Última jogada do adversário" + move.toString());
+                System.out.println("Última jogada do adversário em json" + Json.stringify(Json.toJson(move)));
 
                 HttpStreamWriter.send(HttpResponse.OK(Json.from(move), "application/json"), output);
 
