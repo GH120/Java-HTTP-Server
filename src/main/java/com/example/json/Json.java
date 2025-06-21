@@ -35,7 +35,7 @@ public class Json {
     }
 
     //Ver se isso não pode ser simplificado para apenas um generateJson
-    public static <A> byte[] from(Object obj) throws JsonProcessingException{
+    public static byte[] from(Object obj) throws JsonProcessingException{
         return stringify(toJson(obj)).getBytes();
     }
 

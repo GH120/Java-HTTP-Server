@@ -4,7 +4,10 @@ import java.nio.charset.StandardCharsets;
 
 import com.example.http.HttpRequest;
 import com.example.json.Json;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 public class Move {
 
@@ -63,6 +66,30 @@ public class Move {
             e.printStackTrace();
 
             return null;
+        }
+    }
+
+   public String toJson() {
+        // 1. Cria um ObjectMapper (se você não tiver um já configurado)
+        ObjectMapper mapper = new ObjectMapper();
+        
+        // 2. Converte o Move para um ObjectNode (mutável)
+        ObjectNode moveNode = mapper.valueToTree(this);
+        
+        // 3. Substitui os nós de Position pelos seus toString()
+        moveNode.put("origin", origin.toString());
+        moveNode.put("destination", destination.toString());
+        
+        // 4. Se houver peça alvo no evento, trata também
+        if (event.target != null) {
+            moveNode.put("target", event.target.toString());
+        }
+        
+        // 5. Converte de volta para String JSON
+        try {
+            return mapper.writeValueAsString(moveNode);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException("Failed to serialize move", e);
         }
     }
 
