@@ -8,6 +8,7 @@ import com.example.chess.models.Player;
 import com.example.chess.services.ChessMatch;
 import com.example.chess.services.ChessMatchMaker;
 import com.example.chess.services.ChessMatchManager;
+import com.example.chess.services.ChessMatchManager.MatchNotFound;
 import com.example.core.HttpController;
 import com.example.http.HttpRequest;
 import com.example.http.HttpResponse;
@@ -24,7 +25,7 @@ public class FindMatchController extends HttpController{
 
 
     @Override
-    public void handleRequest(HttpRequest request, InputStream input, OutputStream output) throws JsonParseException, IOException{
+    public void handleRequest(HttpRequest request, InputStream input, OutputStream output) throws JsonParseException, IOException, MatchNotFound{
 
         Player player = Player.fromRequest(request);
 

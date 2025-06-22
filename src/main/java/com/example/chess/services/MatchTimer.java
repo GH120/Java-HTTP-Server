@@ -56,10 +56,7 @@ public class MatchTimer implements MatchObserver{
     @Override
     public void onGameStateChanged(GameState newState) {
         
-        if(newState.equals(GameState.TIMEOUT))   executor.shutdownNow();
-        if(newState.equals(GameState.EXITED))    executor.shutdownNow();
-        if(newState.equals(GameState.DRAW))      executor.shutdownNow();
-        if(newState.equals(GameState.CHECKMATE)) executor.shutdownNow();
+        if(hasEnded(newState)) executor.shutdownNow();
     }
 
     @Override
@@ -77,11 +74,23 @@ public class MatchTimer implements MatchObserver{
     @Override
     public void onError(String message) {
         // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'onError'");
+        // throw new UnsupportedOperationException("Unimplemented method 'onError'");
     }
 
     public ScheduledExecutorService getExecutor (){
         return executor;
+    }
+
+    private boolean hasEnded(GameState state){
+
+        switch(state){
+            case DRAW, TIMEOUT, CHECKMATE, EXITED -> {
+                return true;
+            }
+            default -> {
+                return false;
+            }
+        }
     }
 
 }

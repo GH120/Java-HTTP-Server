@@ -56,8 +56,8 @@ public class ChessMatch {
         state = GameState.STARTED;
         
         playerTimeRamaining = new HashMap<>();
-        playerTimeRamaining.put(white, 500);
-        playerTimeRamaining.put(black, 500);
+        playerTimeRamaining.put(white, 10);
+        playerTimeRamaining.put(black, 10);
 
         moveCache  = new HashMap<>();
         chessRules = new ChessRules();
@@ -132,6 +132,8 @@ public class ChessMatch {
             state = GameState.TIMEOUT;
 
             notifier.notifyStateChange(state);
+
+            System.out.println("TEMPO TERMINOU");
         }
     }
 

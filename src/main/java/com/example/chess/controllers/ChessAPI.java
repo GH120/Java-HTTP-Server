@@ -5,6 +5,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 
 import com.example.chess.services.ChessMatch.ChessError;
+import com.example.chess.services.ChessMatchManager.MatchNotFound;
 import com.example.core.HttpController;
 import com.example.http.HttpRequest;
 import com.example.http.HttpResponse;
@@ -35,6 +36,19 @@ public class ChessAPI extends HttpController{
 
         }
         catch(ChessError e){ 
+
+            try{
+                HttpStreamWriter.send(HttpResponse.BAD_REQUEST(e.getLocalizedMessage().getBytes(), null), output);
+            }
+            catch(IOException io){
+                System.out.println("Envio de erro não funcionou");
+                io.printStackTrace();
+            }
+
+
+            e.printStackTrace();
+        }
+        catch(MatchNotFound e){ 
 
             try{
                 HttpStreamWriter.send(HttpResponse.BAD_REQUEST(e.getLocalizedMessage().getBytes(), null), output);

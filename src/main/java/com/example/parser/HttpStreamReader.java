@@ -154,9 +154,6 @@ public class HttpStreamReader {
 
         }
 
-        System.out.println("Mensagem");
-        System.out.println(byteBuffer.toString(StandardCharsets.US_ASCII));
-
         return byteBuffer.toString(StandardCharsets.US_ASCII);
     }
 

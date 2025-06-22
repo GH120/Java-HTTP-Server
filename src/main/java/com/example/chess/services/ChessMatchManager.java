@@ -26,16 +26,30 @@ public class ChessMatchManager {
         matches .put(match.getBlack().toString(), match);
 
         match.addObserver(new MatchTimer(match));
+        match.addObserver(new MatchEndHandler(match));
         
     }
 
     // métodos para buscar ou gerenciar partidas
-    public ChessMatch getMatchFromPlayer(Player player){
+    public ChessMatch getMatchFromPlayer(Player player) throws MatchNotFound {
 
         matches.keySet().stream().forEach(key -> System.out.println(key));
         System.out.println(player);
 
         return matches.get(player.toString());
+    }
+
+    public void removeMatch(ChessMatch match){
+
+        matches.remove(match.getWhite().toString());
+        matches.remove(match.getBlack().toString());
+    }
+
+    public class MatchNotFound extends Exception {
+
+        public MatchNotFound(){
+            super("Partida não encontrada");
+        }
     }
 
 }
