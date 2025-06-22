@@ -1,7 +1,9 @@
 package com.example.chess.services;
 
+import java.time.Duration;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import com.example.chess.models.ChessModel;
 import com.example.chess.models.ChessRules;
@@ -27,28 +29,36 @@ import com.example.chess.models.gamestart.DefaultStartingPieces;
  */
 public class ChessMatch {
 
+    //Campos de estado
     private GameState  state;
-    private Player     white;
-    private Player     black;
+    private Map<Player, Duration> playerTimeRamaining;
 
-    public  final MatchSynchronizer semaphor; //Responsabilidade de sincronização fica fora da partida, expõe métodos
+    //Campos imutáveis
+    private final Player     white;
+    private final Player     black;
+
+    //Componentes
+    public  final MatchSynchronizer semaphor; //Responsabilidade de sincronização fica fora da partida, expõe métodos (acho melhor tornar isso um observer e colocar um método wait, mas corre o risco de ficar muito complexo)
     private final MatchNotifier     notifier;
     private final ChessRules        chessRules;
     private final ChessModel        chessModel;
 
-    private final HashMap<Position, List<Move>> moveCache;
+    //Cache
+    private final Map<Position, List<Move>> moveCache;
     
     public enum GameState {NORMAL, CHECK, CHECKMATE, DRAW, PROMOTION, STARTED, EXITED}
 
     public ChessMatch(Player player, Player opponent) {
+
+        white = player;
+        black = opponent;
+        state = GameState.STARTED;
+
         moveCache  = new HashMap<>();
         chessRules = new ChessRules();
         chessModel = new ChessModel(new DefaultStartingPieces());
         notifier   = new MatchNotifier();
         semaphor   = new MatchSynchronizer();
-        white = player;
-        black = opponent;
-        state = GameState.STARTED;
     }
 
     /**Controle para efetuar jogada de Xadrez, solta erros se jogada for inconsistente */
