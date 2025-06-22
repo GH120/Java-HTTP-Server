@@ -1,19 +1,16 @@
 package com.example.chess.controlers;
 
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.util.HashMap;
 import java.util.Map;
 
 import com.example.chess.models.Player;
-import com.example.http.HttpResponse;
-import com.example.parser.HttpStreamWriter;
 
 
 //Boa sugestão do deepseek: Adicionar cancelMatch para players desistentes sairem do waiting players
 public class ChessMatchMaker {
 
-    private static ChessMatchMaker    instance;
+    private static ChessMatchMaker instance;
+
     private final  Map<Player, MatchIntention> waitingPlayers;
 
     private ChessMatchMaker() {
@@ -35,17 +32,24 @@ public class ChessMatchMaker {
     //Seria bom criar um objeto player lock, e criar ele quando o player ficar esperando, guardando um mapa de player locks
     //Isso também possibilitaria uma generalização, onde o player poderia escolher a lista de seus adversários, e o lock desse adversário seria liberado.
 
-    public void findDuel(Player player, InputStream input, OutputStream output) {
+    public void findDuel(Player player) {
 
         System.out.println("IS empty? " + waitingPlayers.isEmpty());
 
         if (waitingPlayers.isEmpty()) 
-            putPlayerOnHold(player, output);        
+            putPlayerOnHold(player);        
         else 
-            fetchAnyOpponent(player, output);
+            fetchAnyOpponent(player);
     }
 
-    private void putPlayerOnHold(Player player, OutputStream output){
+    public void cancelDuel(Player player) {
+        MatchIntention intention = waitingPlayers.remove(player);
+        if (intention != null) {
+            intention.matchFound(); // Libera a thread bloqueada
+        }
+    }
+
+    private void putPlayerOnHold(Player player){
 
         // Ninguém esperando, adiciona o player à fila
 
@@ -56,16 +60,9 @@ public class ChessMatchMaker {
         System.out.println("Player added to waiting queue: " + player.name);
 
         matchIntention.findOpponent();
-
-        try{
-            HttpStreamWriter.send(startResponse(), output);
-        }
-        catch(Exception e){
-            e.printStackTrace();
-        }
     }
 
-    private void fetchAnyOpponent(Player player, OutputStream output){
+    private void fetchAnyOpponent(Player player){
         // Encontrou adversário
         Player opponent = waitingPlayers.keySet().iterator().next();
 
@@ -77,22 +74,12 @@ public class ChessMatchMaker {
 
         ChessMatchManager.getInstance().addMatch(match);
 
-        try{
-            HttpStreamWriter.send(startResponse(), output);
+        //Sinaliza para o adversário que ele foi escolhido
+        waitingPlayers.get(opponent).matchFound();
 
-            //Sinaliza para o adversário que ele foi escolhido
-            waitingPlayers.get(opponent).matchFound();
-
-            // Retira adversário e jogador do mapa de espera 
-            waitingPlayers.remove(opponent);
-        }
-        catch(Exception e){
-            System.err.println("Erro na criação da partida" + e.getMessage());
-        }
-    }
-
-    private HttpResponse startResponse(){
-        return HttpResponse.OK("{\"status\":\"match_started\"}".getBytes(), "application/json");
+        // Retira adversário e jogador do mapa de espera 
+        waitingPlayers.remove(opponent);
+       
     }
 
     private class MatchIntention{
@@ -108,13 +95,6 @@ public class ChessMatchMaker {
 
         public synchronized void matchFound(){
             notifyAll();
-        }
-    }
-
-    public synchronized void cancelMatch(Player player) {
-        MatchIntention intention = waitingPlayers.remove(player);
-        if (intention != null) {
-            intention.matchFound(); // Libera a thread bloqueada
         }
     }
 }

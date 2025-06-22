@@ -34,16 +34,7 @@ public class ChessAPI {
                                                 "/api/awaitMove"
                                             );
 
-
-    //Não vai conseguir fazer isso usando observers do jeito tradicional junto com requisições http
-    //Problema: Um jogador ao jogar tem de avisar o outro que ele jogou
-    //Mas ambos os jogadores estariam esperando uma resposta
-    //Essa comunicação teria de ser intermediada pelo servidor
-    //Vamos fazer o seguinte: Teremos um estado awaiting que esperará a resposta do outro jogador
-    //Quando o outro jogador fizer sua jogada, ele avisará o servidor, que irá retornar a resposta para o primeiro
-    //Então no endpoint await, ele iria esperar algum intermediário que rodaria um loop de verificação de estado do modelo, mas isso é custoso
-    //Teria alguma forma do java esperar a mudança de estado de um objeto num padrão observer? Sem ele ter que verificar toda hora? E ao desbloquear ele, ele iria proseguir
-    //Isso me parece muito com um lock
+    //Adicionar 
     public void handleRoute(HttpRequest request, InputStream input, OutputStream output) throws Exception{
 
         System.out.println("API ativada");
@@ -54,15 +45,15 @@ public class ChessAPI {
 
             case "/api/findMatch" -> {
 
-                //Criar o MatchWatcher passando a partida e o outputStream
-                //Observers são criados no inicio da partida, e serão responsáveis por enviar as mensagens de retorno
-                ChessMatchMaker.getInstance().findDuel(player, input, output);
+                //Método assíncrono que espera outro usuário aceitar um duelo
+                ChessMatchMaker.getInstance().findDuel(player);
 
-                //Melhor adicionar um lock no find duel 
-                // HttpStreamWriter.send(HttpResponse.OK(new byte[0],null), output);
+                //Uma vez passada a parte de espera, então encontrou uma partida
+                ChessMatch match = ChessMatchManager.getInstance().getMatchFromPlayer(player);
+
+                HttpStreamWriter.send(HttpResponse.OK(Json.from(match),null), output);
 
 
-                break;
             }
 
             case "/api/seeMoves" -> {
@@ -105,8 +96,11 @@ public class ChessAPI {
                 //Adicionar um try catch
                 match.playMove(player, move); //Irá ativar observers, dentre eles o watcher da partida, que irá avisar o outro jogador
 
+                //Adicionar um condicional, pois se houver uma promoção o oponente não será liberado
                 match.semaphor.notifyMove();
-                
+
+                //Adicionar resposta padrão sendo um DTO turnSummary que contém o estado do jogo, da jogada e ,se houver promoção, a promoção escolhida. Pensando em retornar tabuleiro como padrão também
+                //Será que é bom criar um json mapper no estilo de um visitor? Talvez seja muito complicado e não sei se haveria justificativa
                 HttpStreamWriter.send(HttpResponse.OK(move.toJson().getBytes(), "application/json"), output);
 
             }
@@ -117,6 +111,7 @@ public class ChessAPI {
                 
                 match.semaphor.waitForMove();
 
+                //Tem que tratar o caso que o jogo terminou ou que o adversário quitou
                 Move move = match.getChessModel().getLastMove();
 
                 HttpStreamWriter.send(HttpResponse.OK(move.toJson().getBytes(), "application/json"), output);
@@ -136,22 +131,23 @@ public class ChessAPI {
                 
                 match.quit();
 
+                //Tem que avisar o adversário
+                //match.semaphor.notifyMove();
+
                 HttpStreamWriter.send(HttpResponse.OK(new byte[0],null), output);
 
 
             }
 
+            //Seria algo auxiliar, mas frontends com noção das regras do jogo poderiam simular jogadas sem precisar disso
+            //De qualquer modo, ele garante que o frontend só precisa se preocupar em mostrar o tabuleiro
             case "/api/getBoard" -> {
 
                 ChessMatch match = ChessMatchManager.getInstance().getMatchFromPlayer(player);
 
                 Piece[][] board = match.getChessModel().getBoard();
 
-                JsonNode node = Json.toJson(board);
-
-                HttpResponse response = HttpResponse.OK(Json.stringify(node).getBytes(), "application/json");
-
-                HttpStreamWriter.send(response, output);
+                HttpStreamWriter.send(HttpResponse.OK(Json.from(board), "application/json"), output);
             }
         }
 
