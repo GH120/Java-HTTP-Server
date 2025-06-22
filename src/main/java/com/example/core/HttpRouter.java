@@ -16,7 +16,7 @@ import com.example.parser.HttpStreamWriter;
 
  public interface HttpRouter {
 
-     public void handleRequest(HttpRequest request, InputStream input, OutputStream output);
+     public void handleRequest(HttpRequest request, InputStream input, OutputStream output) throws Exception;
 
      public boolean hasRoute(String path);
 }

@@ -1,4 +1,4 @@
-package com.example.chess.api;
+package com.example.chess.controllers;
 
 import java.io.File;
 import java.io.IOException;
@@ -6,7 +6,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.Files;
 
-import com.example.chess.controlers.ChessMatch.ChessError;
 import com.example.config.Configuration;
 import com.example.config.ConfigurationManager;
 import com.example.core.HttpController;
@@ -17,10 +16,10 @@ import com.example.http.HttpRequest;
 import com.example.http.HttpResponse;
 import com.example.parser.HttpStreamWriter;
 
-public class HttpChessRouter extends HttpController{
+public class ChessController extends HttpController{
 
-    public HttpChessRouter(){
-        super("/"); 
+    public ChessController(){
+        super(""); 
 
         addController(new ChessAPI()); //Primeiro tenta passar para a chessAPI
         addController(new StaticHttpServerRouter()); //Se não conseguir, trata a requisição como uma estática

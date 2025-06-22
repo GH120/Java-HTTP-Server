@@ -1,3 +1,4 @@
+package com.example.chess.services;
 // package com.example.chess.controlers;
 
 // import com.example.chess.models.Move;

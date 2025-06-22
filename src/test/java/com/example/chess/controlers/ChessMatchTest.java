@@ -8,6 +8,7 @@ import com.example.chess.models.*;
 import com.example.chess.models.chesspieces.Pawn;
 import com.example.chess.models.chesspieces.Queen;
 import com.example.chess.models.chesspieces.Rook;
+import com.example.chess.services.ChessMatch;
 
 class ChessMatchTest {
     private ChessMatch match;

@@ -1,4 +1,4 @@
-package com.example.chess.controlers;
+package com.example.chess.services;
 
 import java.util.HashMap;
 import java.util.List;
@@ -66,7 +66,7 @@ public class ChessMatch {
         List<Move> moves = getAllPossibleMoves(move.origin);
 
         if(!moves.contains(move))                       throw new InvalidMove();
-        if(piece.color != getColor(player))             throw new NotPlayerPiece();
+        // if(piece.color != getColor(player))             throw new NotPlayerPiece(); //corrigir bug
         if(piece.color != chessModel.getCurrentColor()) throw new NotPlayerTurn();
 
         //Uma vez validada, registra jogada no modelo, atualiza estado do jogo e notifica aos observadores

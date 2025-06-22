@@ -1,4 +1,4 @@
-package com.example.chess.controlers;
+package com.example.chess.services;
 
 import java.util.HashMap;
 import java.util.Map;

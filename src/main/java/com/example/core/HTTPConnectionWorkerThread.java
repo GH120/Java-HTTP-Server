@@ -4,14 +4,17 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
 
-import com.example.chess.api.HttpChessRouter;
+import com.example.chess.controllers.ChessController;
 import com.example.http.HttpRequest;
 import com.example.parser.HttpStreamReader;
 
+//Ideia: inversão de dependência: fazer essa classe chamar a interface que roda o xadrez dentro dela
+//Isso seria geral o suficiente para mudar a execução para qualquer outro programa rodando em várias conexões http
+//Talvez armazenar o programa a ser rodado no ConfigurationManager?
 public class HttpConnectionWorkerThread extends Thread{
 
     private Socket     socket;
-    private HttpRouter router = new HttpChessRouter();
+    private HttpRouter router = new ChessController(); //Fazer ele carregar esse router das configurações, ou talvez passar como argumento
 
     HttpConnectionWorkerThread(Socket socket){
         this.socket = socket;
@@ -39,6 +42,7 @@ public class HttpConnectionWorkerThread extends Thread{
             //Manda mensagem para o router decidir o que fazer com ela
             //Atualmente ele pode só interpretá-la literalmente (como get arquivo) ou direcioná-la para a api baseado em seu endpoint
             
+            //Tornar isso uma interface? pera, já é...
             router.handleRequest(message, inputStream, outputStream);
             
         }

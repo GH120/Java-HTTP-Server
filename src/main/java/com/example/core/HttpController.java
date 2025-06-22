@@ -20,31 +20,54 @@ public abstract class HttpController implements HttpRouter{
         this.endpoint       = endpoint;
         this.routeCache     = new HashMap<>();
         this.subcontrollers = new ArrayList<>();
+
+        this.routeCache.put(null, false);
     }
 
     @Override
-    public void handleRequest(HttpRequest message, InputStream input, OutputStream output) {
+    public void handleRequest(HttpRequest message, InputStream input, OutputStream output) throws Exception{
         
         if(!hasRoute(message.getPath())) return;
 
-        HttpRouter chosenRouter = subcontrollers.stream().filter(controller -> controller.hasRoute(message.getPath())).findFirst().get();
+        for(HttpRouter router : subcontrollers){
 
-        chosenRouter.handleRequest(message,input,output);
+            if(router.hasRoute(getSubpath(message.getPath()))) {
+
+                router.handleRequest(message,input,output);
+                
+                break;
+            }
+        }
+
     }
 
     @Override
     public boolean hasRoute(String path) {
 
+
+        System.out.println(path);
+
         return routeCache.computeIfAbsent(path, value ->{
+
+            if(path.equals(endpoint))                 return true;
+            if(path.equals(endpoint.concat("/"))) return true;
+            if(!path.startsWith(endpoint))            return false;
             
-            if(!path.startsWith(endpoint)) return false;
-            
-            return subcontrollers.stream().anyMatch(controller -> controller.hasRoute(path.substring(0, endpoint.length())));
+            return subcontrollers.stream().anyMatch(controller -> controller.hasRoute(getSubpath(path)));
         });
     }
 
     public void addController(HttpRouter router){
         this.subcontrollers.add(router);
+    }
+
+
+    //Subtrai o endpoint do caminho 
+    public String getSubpath(String path){
+
+        if(endpoint.length() >= path.length()) return null;
+
+        return path.substring(endpoint.length(), path.length());
     }
 
 }
