@@ -1,14 +1,5 @@
 package com.example;
 
-
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.net.ServerSocket;
-import java.net.Socket;
-import java.util.logging.Logger;
-
-import org.slf4j.LoggerFactory;
-
 import com.example.config.Configuration;
 import com.example.config.ConfigurationManager;
 import com.example.core.ServerListenerThread;

@@ -55,7 +55,9 @@ public class ChessMatch {
         black = opponent;
         state = GameState.STARTED;
         
-        playerTimeRamaining = Map.of(white, 10, black, 10);
+        playerTimeRamaining = new HashMap<>();
+        playerTimeRamaining.put(white, 500);
+        playerTimeRamaining.put(black, 500);
 
         moveCache  = new HashMap<>();
         chessRules = new ChessRules();
@@ -194,11 +196,11 @@ public class ChessMatch {
         return color == PlayerColor.WHITE? white : black;
     }
 
-    public synchronized Integer getTime(Player player){
+    public Integer getTime(Player player){
         return playerTimeRamaining.get(player);
     }
 
-    public synchronized void updateTime(Player player, int time){
+    public void updateTime(Player player, int time){
         playerTimeRamaining.put(player, time);
     }
 

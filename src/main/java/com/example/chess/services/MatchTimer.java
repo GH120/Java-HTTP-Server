@@ -38,11 +38,19 @@ public class MatchTimer implements MatchObserver{
 
         countDownTask = executor.scheduleAtFixedRate(() -> {
 
-            match.updateTime(currentPlayer, match.getTime(currentPlayer) - 1);
+            Integer time = match.getTime(currentPlayer);
+
+            match.updateTime(currentPlayer, time - 1);
 
             match.checkTimeOut();
 
+            System.out.println("Jogador " + currentPlayer.name);
+            System.out.println("Tempo: " + (time-1));
+
+
         }, 1, 1, TimeUnit.SECONDS);
+
+        System.out.println(countDownTask);
     }
 
     @Override
