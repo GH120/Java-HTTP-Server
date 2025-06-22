@@ -17,6 +17,7 @@ import com.example.chess.models.Piece;
 import com.example.chess.models.Player;
 import com.example.chess.models.Position;
 import com.example.chess.models.chesspieces.Pawn;
+import com.example.core.HttpRouter;
 import com.example.http.HttpRequest;
 import com.example.http.HttpResponse;
 import com.example.json.Json;
@@ -24,7 +25,7 @@ import com.example.parser.HttpStreamWriter;
 import com.fasterxml.jackson.databind.JsonNode;
 
 //Transformar isso num padrão composite, onde cada rota seria um sub controller?
-public class ChessAPI {
+public class ChessAPI implements HttpRouter{
 
     //TODO: ENUM? (muito fácil de esquecer de atualizar a lista caso contrário)
     private final List<String>     apiRoute = Arrays.asList(
@@ -157,7 +158,43 @@ public class ChessAPI {
         // HttpStreamWriter.send(HttpResponse.OK(new byte[0],null), output);
     }
 
-    public boolean hasEndpoint(String endpoint){
-        return apiRoute.contains(endpoint);
+    @Override
+    public boolean hasRoute(String path) {
+        // TODO Auto-generated method stub
+        return apiRoute.contains(path);
+    }
+
+    @Override
+    public void handleRequest(HttpRequest request, InputStream input, OutputStream output) {
+        /**CRUD básico para requisições comuns, requisições de API redirecionadas a ChessAPI*/
+
+        //Se for uma chamada a API, direciona a ela
+        try{
+            if(hasRoute(request.getPath())){
+
+                handleRoute(request, input, output);
+
+                return;
+            }
+
+        }
+        catch(ChessError e){ 
+
+            try{
+                HttpStreamWriter.send(HttpResponse.BAD_REQUEST(e.getLocalizedMessage().getBytes(), null), output);
+            }
+            catch(IOException io){
+                System.out.println("Envio de erro não funcionou");
+                io.printStackTrace();
+            }
+
+
+            e.printStackTrace();
+        }
+        catch(Exception e){
+            System.out.println("Erro na chamada a API");
+            e.printStackTrace();
+        }
+
     }
 }

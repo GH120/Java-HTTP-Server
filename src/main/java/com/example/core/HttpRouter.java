@@ -14,9 +14,11 @@ import com.example.http.HttpRequest;
 import com.example.http.HttpResponse;
 import com.example.parser.HttpStreamWriter;
 
-abstract public class HttpRouter {
+ public interface HttpRouter {
 
-    abstract public void handleRequest(HttpRequest message, InputStream input, OutputStream output);
+     public void handleRequest(HttpRequest request, InputStream input, OutputStream output);
+
+     public boolean hasRoute(String path);
 }
 
 
@@ -34,7 +36,7 @@ abstract public class HttpRouter {
 
 
 
-class ExampleRouter extends HttpRouter{
+class ExampleRouter implements HttpRouter{
 
     Configuration  configuration;
     WebRootHandler handler;
@@ -97,5 +99,11 @@ class ExampleRouter extends HttpRouter{
         }
 
 
+    }
+
+    @Override
+    public boolean hasRoute(String path) {
+        // TODO Auto-generated method stub
+        return true;
     }
 }

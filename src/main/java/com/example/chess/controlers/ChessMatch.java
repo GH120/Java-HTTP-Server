@@ -8,6 +8,7 @@ import com.example.chess.models.ChessRules;
 import com.example.chess.models.Move;
 import com.example.chess.models.Piece;
 import com.example.chess.models.Player;
+import com.example.chess.models.PlayerColor;
 import com.example.chess.models.Position;
 import com.example.chess.models.Move.Event;
 import com.example.chess.models.chesspieces.Pawn;
@@ -54,6 +55,7 @@ public class ChessMatch {
     public void playMove(Player player, Move move) throws ChessError{
         
         Piece      piece = chessModel.getPiece(move.origin);
+
         //Verifica inconsistências na requisição da jogada
         if(state == GameState.CHECKMATE) throw new GameHasAlreadyEnded();
         if(state == GameState.DRAW)      throw new GameHasAlreadyEnded();
@@ -64,6 +66,7 @@ public class ChessMatch {
         List<Move> moves = getAllPossibleMoves(move.origin);
 
         if(!moves.contains(move))                       throw new InvalidMove();
+        if(piece.color != getColor(player))             throw new NotPlayerPiece();
         if(piece.color != chessModel.getCurrentColor()) throw new NotPlayerTurn();
 
         //Uma vez validada, registra jogada no modelo, atualiza estado do jogo e notifica aos observadores
@@ -139,6 +142,7 @@ public class ChessMatch {
         });
     }
 
+    //Getters de utilidade
     public Player getBlack() {
         return black;
     }
@@ -149,6 +153,10 @@ public class ChessMatch {
 
     public Player getOpponent(Player player){
         return player.name == white.name ? white : black;
+    }
+
+    public PlayerColor getColor(Player player){
+        return player.name == white.name ? PlayerColor.WHITE : PlayerColor.BLACK;
     }
 
     public ChessModel getChessModel() {
@@ -165,7 +173,8 @@ public class ChessMatch {
 
     //Classes internas
 
-    //Usar um countdown latch? muito mais claro e coeso
+    //Usar um countdown latch?
+    //Guardar estado do último jogador para tratar jogadas repetidas?
     public class MatchSynchronizer{
 
         private boolean moveReceived = false;
@@ -214,6 +223,10 @@ public class ChessMatch {
     }
 
     public class GameHasAlreadyEnded extends ChessError{
+
+    }
+
+    public class NotPlayerPiece extends ChessError{
 
     }
 
