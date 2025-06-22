@@ -1,9 +1,10 @@
 package com.example.chess.services;
 
-import java.time.Duration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.Map.Entry;
 
 import com.example.chess.models.ChessModel;
 import com.example.chess.models.ChessRules;
@@ -25,17 +26,17 @@ import com.example.chess.models.gamestart.DefaultStartingPieces;
  * Responsabilidades: 
  * 1. Tratar erros de jogadas do usuário; 
  * 2. armazenar estado do jogo;
- * 3. notificar interessados sobre eventos
+ * 3. notificar interessados sobre eventos;
  */
 public class ChessMatch {
 
     //Campos de estado
-    private GameState  state;
-    private Map<Player, Duration> playerTimeRamaining;
+    private GameState             state;
+    private Map<Player, Integer>  playerTimeRamaining;
 
     //Campos imutáveis
-    private final Player     white;
-    private final Player     black;
+    private final Player white;
+    private final Player black;
 
     //Componentes
     public  final MatchSynchronizer semaphor; //Responsabilidade de sincronização fica fora da partida, expõe métodos (acho melhor tornar isso um observer e colocar um método wait, mas corre o risco de ficar muito complexo)
@@ -46,13 +47,15 @@ public class ChessMatch {
     //Cache
     private final Map<Position, List<Move>> moveCache;
     
-    public enum GameState {NORMAL, CHECK, CHECKMATE, DRAW, PROMOTION, STARTED, EXITED}
+    public enum GameState {NORMAL, CHECK, CHECKMATE, DRAW, PROMOTION, STARTED, EXITED, TIMEOUT}
 
     public ChessMatch(Player player, Player opponent) {
 
         white = player;
         black = opponent;
         state = GameState.STARTED;
+        
+        playerTimeRamaining = Map.of(white, 10, black, 10);
 
         moveCache  = new HashMap<>();
         chessRules = new ChessRules();
@@ -70,6 +73,7 @@ public class ChessMatch {
         if(state == GameState.CHECKMATE) throw new GameHasAlreadyEnded();
         if(state == GameState.DRAW)      throw new GameHasAlreadyEnded();
         if(state == GameState.EXITED)    throw new GameHasAlreadyEnded();
+        if(state == GameState.TIMEOUT)   throw new GameHasAlreadyEnded();
         if(state == GameState.PROMOTION) throw new PendingPromotion();
         if(piece == null)                throw new InvalidMove();
         
@@ -87,6 +91,8 @@ public class ChessMatch {
         updateGameState(move);
 
         moveCache.clear();
+
+        System.out.println(getTime(player));
     }
 
     /** Notifica todas as jogadas possíveis para os observers */
@@ -110,6 +116,21 @@ public class ChessMatch {
         state = GameState.EXITED;
 
         notifier.notifyStateChange(state);
+    }
+
+    public void checkTimeOut(){
+        
+        Optional<Entry<Player, Integer>> playerTimeout = playerTimeRamaining.entrySet()
+                                                                  .stream()
+                                                                  .filter(entry -> entry.getValue() == 0)
+                                                                  .findFirst();
+
+        if(playerTimeout.isPresent()){
+            
+            state = GameState.TIMEOUT;
+
+            notifier.notifyStateChange(state);
+        }
     }
 
 
@@ -169,12 +190,28 @@ public class ChessMatch {
         return player.name == white.name ? PlayerColor.WHITE : PlayerColor.BLACK;
     }
 
+    public Player getPlayer(PlayerColor color){
+        return color == PlayerColor.WHITE? white : black;
+    }
+
+    public synchronized Integer getTime(Player player){
+        return playerTimeRamaining.get(player);
+    }
+
+    public synchronized void updateTime(Player player, int time){
+        playerTimeRamaining.put(player, time);
+    }
+
     public ChessModel getChessModel() {
         return chessModel;
     }
 
     public GameState getState() {
         return state;
+    }
+
+    public Player getCurrentPlayer(){
+        return chessModel.getCurrentColor() == PlayerColor.WHITE? white : black;
     }
 
     public void addObserver(MatchObserver observer){

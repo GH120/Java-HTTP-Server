@@ -22,9 +22,10 @@ public class ChessMatchManager {
 
     public void addMatch(ChessMatch match) {
 
-
         matches .put(match.getWhite().toString(), match);
         matches .put(match.getBlack().toString(), match);
+
+        match.addObserver(new MatchTimer(match));
         
     }
 

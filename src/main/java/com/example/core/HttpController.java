@@ -44,9 +44,6 @@ public abstract class HttpController implements HttpRouter{
     @Override
     public boolean hasRoute(String path) {
 
-
-        System.out.println(path);
-
         return routeCache.computeIfAbsent(path, value ->{
 
             if(path.equals(endpoint))                 return true;
