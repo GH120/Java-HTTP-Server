@@ -6,7 +6,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.Files;
 
-
+import com.example.chess.controlers.ChessMatch.ChessError;
 import com.example.config.Configuration;
 import com.example.config.ConfigurationManager;
 import com.example.core.HttpRouter;
@@ -40,6 +40,19 @@ public class HttpChessRouter extends HttpRouter{
                 return;
             }
 
+        }
+        catch(ChessError e){ //Mover esse handler de erros pra dentro da API
+
+            try{
+                HttpStreamWriter.send(HttpResponse.BAD_REQUEST(e.getLocalizedMessage().getBytes(), null), output);
+            }
+            catch(IOException io){
+                System.out.println("Envio de erro não funcionou");
+                io.printStackTrace();
+            }
+
+
+            e.printStackTrace();
         }
         catch(Exception e){
             System.out.println("Erro na chamada a API");

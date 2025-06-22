@@ -147,6 +147,10 @@ public class ChessMatch {
         return white;
     }
 
+    public Player getOpponent(Player player){
+        return player.name == white.name ? white : black;
+    }
+
     public ChessModel getChessModel() {
         return chessModel;
     }

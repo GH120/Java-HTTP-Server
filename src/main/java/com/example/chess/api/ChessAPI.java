@@ -1,5 +1,6 @@
 package com.example.chess.api;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Arrays;
@@ -10,6 +11,7 @@ import javax.imageio.plugins.bmp.BMPImageWriteParam;
 import com.example.chess.controlers.ChessMatch;
 import com.example.chess.controlers.ChessMatchMaker;
 import com.example.chess.controlers.ChessMatchManager;
+import com.example.chess.controlers.ChessMatch.ChessError;
 import com.example.chess.models.Move;
 import com.example.chess.models.Piece;
 import com.example.chess.models.Player;
@@ -21,6 +23,7 @@ import com.example.json.Json;
 import com.example.parser.HttpStreamWriter;
 import com.fasterxml.jackson.databind.JsonNode;
 
+//Transformar isso num padrão composite, onde cada rota seria um sub controller?
 public class ChessAPI {
 
     //TODO: ENUM? (muito fácil de esquecer de atualizar a lista caso contrário)
@@ -35,7 +38,7 @@ public class ChessAPI {
                                             );
 
     //Adicionar 
-    public void handleRoute(HttpRequest request, InputStream input, OutputStream output) throws Exception{
+    public void handleRoute(HttpRequest request, InputStream input, OutputStream output) throws ChessError, IOException, InterruptedException{
 
         System.out.println("API ativada");
 
@@ -51,7 +54,7 @@ public class ChessAPI {
                 //Uma vez passada a parte de espera, então encontrou uma partida
                 ChessMatch match = ChessMatchManager.getInstance().getMatchFromPlayer(player);
 
-                HttpStreamWriter.send(HttpResponse.OK(Json.from(match),null), output);
+                HttpStreamWriter.send(HttpResponse.OK(Json.from(match.getOpponent(player)),null), output);
 
 
             }

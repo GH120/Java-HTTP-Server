@@ -92,4 +92,24 @@ public class HttpResponse implements HttpMessage{
 
         return response;
     }
+
+    //Transformar content type em enum?
+    public static HttpResponse BAD_REQUEST(byte[] body, String contentType){
+
+        var headers = new HashMap<String,String>();
+
+        headers.put("Content-Length", "" + body.length);
+
+        if(contentType != null){
+            headers.put("Content-Type", contentType);
+        }
+
+         HttpResponse response =  new HttpResponse()
+                                    .setStatusCode(400)
+                                    .setVersion("HTTP/1.1")
+                                    .setHeaders(headers)
+                                    .setBody(body);
+
+        return response;
+    }
 }

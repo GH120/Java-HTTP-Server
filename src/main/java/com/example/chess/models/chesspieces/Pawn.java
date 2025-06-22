@@ -1,5 +1,6 @@
 package com.example.chess.models.chesspieces;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -11,6 +12,7 @@ import com.example.chess.models.PlayerColor;
 import com.example.chess.models.Position;
 import com.example.http.HttpRequest;
 import com.example.json.Json;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.example.chess.models.Move.Event;
 
@@ -105,7 +107,7 @@ public class Pawn extends Piece{
     }
 
     //Criar uma fábrica para isso
-    public static Promotion PromotionFromRequest(HttpRequest request) throws Exception{
+    public static Promotion PromotionFromRequest(HttpRequest request) throws JsonProcessingException, IOException{
             System.out.println(request.getBody());
             JsonNode info = Json.parse(request.getBody().toString());
 
