@@ -8,7 +8,7 @@ public class ChessNotationParser{
     LinkedList<Token> tokens;
     TreeBuilder treeBuilder = new TreeBuilder();
 
-    public void parse(LinkedList<Token> tokens) {
+    public ChessNotationParser parse(LinkedList<Token> tokens) {
 
         this.tokens = tokens;
 
@@ -22,6 +22,8 @@ public class ChessNotationParser{
 
             e.printStackTrace();
         } 
+
+        return this;
     }
 
     //CONSOME UM TOKEN (TERMINAL) SE ELE FOR DO TIPO ESPERADO, SENÃO PARA EXECUÇÃO 
@@ -42,7 +44,7 @@ public class ChessNotationParser{
     /**********************************************************/
     /*MÉTODOS DOS SÍMBOLOS NÃO TERMINAIS DA NOTAÇÃO DO XADREZ */
     /**********************************************************/
-    void MOVE() throws ParseException{
+    private void MOVE() throws ParseException{
 
         treeBuilder.startContext("MOVE");
 
@@ -63,7 +65,7 @@ public class ChessNotationParser{
 
     }
 
-    void PIECE_MOVE() throws ParseException{
+    private void PIECE_MOVE() throws ParseException{
 
         treeBuilder.startContext("PIECE_MOVE");
 
@@ -80,7 +82,7 @@ public class ChessNotationParser{
         treeBuilder.endContext();
     }
 
-    void SIMPLE_MOVE() throws ParseException{
+    private void SIMPLE_MOVE() throws ParseException{
 
         treeBuilder.startContext("SIMPLE_MOVE");
 
@@ -92,7 +94,7 @@ public class ChessNotationParser{
 
     }
 
-    void CASTLE() throws ParseException{
+    private void CASTLE() throws ParseException{
 
         treeBuilder.startContext("CASTLE");
 
@@ -106,7 +108,7 @@ public class ChessNotationParser{
         treeBuilder.endContext();
     }
 
-    void PROMOTION() throws ParseException{
+    private void PROMOTION() throws ParseException{
 
         treeBuilder.startContext("PROMOTION");
 
@@ -119,7 +121,7 @@ public class ChessNotationParser{
 
     //Come o proximo token se for do tipo esperado, mas não joga erro caso contrário. 
     //Retorna se token era do tipo esperado
-    boolean OPTIONAL(String tokenType) throws ParseException{
+    private boolean OPTIONAL(String tokenType) throws ParseException{
 
         Token token = tokens.peek();
 
@@ -132,12 +134,16 @@ public class ChessNotationParser{
         return isType;
     }
 
-    Token nextToken() throws ParseException{
+    private Token nextToken() throws ParseException{
         Token next = tokens.peek();
 
         if(next == null) throw new ParseException();
 
         return next;
+    }
+
+    public TreeNode getTree() {
+        return treeBuilder.getTree();
     }
 
     class ParseException extends Exception{
