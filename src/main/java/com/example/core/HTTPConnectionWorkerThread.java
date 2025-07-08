@@ -40,9 +40,6 @@ public class HttpConnectionWorkerThread extends Thread{
             HttpRequest message = new HttpStreamReader().processRequest(inputStream);
                 
             //Manda mensagem para o router decidir o que fazer com ela
-            //Atualmente ele pode só interpretá-la literalmente (como get arquivo) ou direcioná-la para a api baseado em seu endpoint
-            
-            //Tornar isso uma interface? pera, já é...
             router.handleRequest(message, inputStream, outputStream);
             
         }

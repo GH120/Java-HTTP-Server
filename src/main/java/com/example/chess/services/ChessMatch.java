@@ -21,6 +21,8 @@ import com.example.chess.models.gamestart.DefaultStartingPieces;
 //Transformar ele numa thread?
 //Controlaria as ações do usuário, como escolher jogadas ou sair da partida
 //Teria um validador de jogadas baseado no estado de jogo, estado de jogo armazenado
+//Observer é mais "event-driven" (ideal para notificações).
+//Decorator é mais "behavioral" (ideal para modificar comportamentos). (com side-effects)
 
 /**Controlador da partida de xadrez;
  * Responsabilidades: 
@@ -163,7 +165,7 @@ public class ChessMatch {
         }
     }
 
-    private List<Move> getAllPossibleMoves(Position position){
+    public List<Move> getAllPossibleMoves(Position position){
 
         return moveCache.computeIfAbsent(position, pos ->{
         

@@ -11,6 +11,12 @@ public class ChessMatchManager {
 
     private ChessMatchManager() {
         matches = new ConcurrentHashMap<>();
+
+        //Partida global para fins de teste
+        Player p1 = new Player("White");
+        Player p2 = new Player("Black");
+
+        addMatch(new ChessMatch(p1, p2));
     }
 
     public static synchronized ChessMatchManager getInstance() {

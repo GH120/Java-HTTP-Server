@@ -14,16 +14,37 @@ public class Player {
     public Integer    ELO;
     public String     address;
 
+    public Player(String name){
+        this.name = name;
+        this.ELO = 1000;
+        this.address = "Does not matter";
+    }
+
     //Refazer para novo campo 
     public static Player fromRequest(HttpRequest request) throws JsonParseException, IOException{
 
-        System.out.println(new String(request.getBody(), StandardCharsets.US_ASCII));
-        
-        JsonNode node = Json.parse(new String(request.getBody(), StandardCharsets.US_ASCII));
-        
-        JsonNode playerInfo = node.get("player");
+        try{
 
-        return Json.fromJson(playerInfo, Player.class);
+            System.out.println(new String(request.getBody(), StandardCharsets.US_ASCII));
+            
+            JsonNode node = Json.parse(new String(request.getBody(), StandardCharsets.US_ASCII));
+            
+            JsonNode playerInfo = node.get("player");
+            
+            return Json.fromJson(playerInfo, Player.class);
+        }
+        catch(Exception e){
+
+            System.out.println("Player da requisição não existe ou não foi encontrado, usando players de teste global Black e White");
+
+            request.print();
+
+            JsonNode node = Json.parse(new String(request.getBody(), StandardCharsets.US_ASCII));
+            
+            JsonNode playerInfo = node.get("player");
+
+            return new Player(playerInfo.get("name").asText());
+        }
     }
 
     public String toString(){

@@ -3,6 +3,7 @@ package com.example.http;
 public enum HttpStatusCode {
 
     OK(200, "OK"),
+    NO_CONTENT(204, "NO CONTENT"),
     CLIENT_ERROR_400_BAD_REQUEST(400, "Bad Request"),
     CLIENT_ERROR_401_METHOD_NOT_ALLOWED(401, "Method Not Allowed"),
     CLIENT_ERROR_414_BAD_REQUEST(414, "URI too long"),

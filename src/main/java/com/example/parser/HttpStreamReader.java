@@ -37,7 +37,7 @@ public class HttpStreamReader {
 
             populateRequestLine(message, AbstractSyntaxTree);
             populateHeaders(message, AbstractSyntaxTree);
-
+            
             //Lê o corpo da mensagem depois de construída com os headers
             //Refatorar depois, lógica separada de criar mensagem e ler corpo confusa
             message.setBody(readRawHttpBody(inputStream, message)); 

@@ -112,4 +112,11 @@ public class HttpResponse implements HttpMessage{
 
         return response;
     }
+
+    public HttpResponse allowCORS(String corsAddress){
+
+        this.addHeader("Access-Control-Allow-Origin", corsAddress);
+
+        return this;
+    }
 }

@@ -1,6 +1,12 @@
 package com.example.chess.models;
 
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+
 import com.example.http.HttpRequest;
+import com.example.json.Json;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
 
 public class Position {
 
@@ -18,8 +24,15 @@ public class Position {
     }
 
     //TODO
-    public static Position fromRequest(HttpRequest request){
-        return new Position(0,0);
+    public static Position fromRequest(HttpRequest request) throws JsonProcessingException, IOException{
+
+        request.print();
+
+        String info = new String(request.getBody(), StandardCharsets.US_ASCII);
+
+        JsonNode node = Json.parse(info).get("coordinates");
+
+        return new Position(Integer.parseInt(node.get("x").asText()), Integer.parseInt(node.get("y").asText()));
     }
 
     public static Position fromNotation(String notation){
