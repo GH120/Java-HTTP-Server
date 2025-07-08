@@ -50,14 +50,22 @@ public class Move {
 
             JsonNode moveInfo = node.get("move");
 
-            System.out.println(moveInfo.asText());
+            JsonNode origin = moveInfo.get("origin");
+            JsonNode destination = moveInfo.get("destination");
 
-            String[] tilesInNotation =  moveInfo.asText().split(" ");
+            // System.out.println(moveInfo.asText());
+
+            // String[] tilesInNotation =  moveInfo.asText().split(" ");
+
+            // return new Move(
+            //             Position.fromNotation(tilesInNotation[0]),
+            //             Position.fromNotation(tilesInNotation[1])
+            //        );
 
             return new Move(
-                        Position.fromNotation(tilesInNotation[0]),
-                        Position.fromNotation(tilesInNotation[1])
-                   );
+                new Position(Integer.parseInt(origin.get("x").asText()), Integer.parseInt(origin.get("y").asText())), 
+                new Position(Integer.parseInt(destination.get("x").asText()), Integer.parseInt(destination.get("y").asText()))
+            );
         }
         catch(Exception e){
 
