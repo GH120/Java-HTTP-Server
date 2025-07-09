@@ -36,15 +36,27 @@ public class SendMoveController extends HttpController{
         // Se necessário: MoveIntent intent = MoveIntent.fromRequest(request); Move move = intent.toMove(match.getBoard())
         Move move = Move.fromRequest(request);
 
-        //Adicionar um try catch
-        match.playMove(player, move); //Irá ativar observers, dentre eles o watcher da partida, que irá avisar o outro jogador
+        HttpResponse response;
 
-        //Adicionar um condicional, pois se houver uma promoção o oponente não será liberado
-        match.semaphor.notifyMove();
+        //Adicionar um try catch
+        try{
+            match.playMove(player, move); //Irá ativar observers, dentre eles o watcher da partida, que irá avisar o outro jogador
+            
+            //Adicionar um condicional, pois se houver uma promoção o oponente não será liberado
+            match.semaphor.notifyMove();
+
+            response = HttpResponse.OK(move.toJson().getBytes(), "application/json");
+        }
+        catch(ChessError e){
+
+            System.out.println("Tente novamente");
+
+            response = HttpResponse.BAD_REQUEST(move.toJson().getBytes(), "application/json");
+        }
 
         //Adicionar resposta padrão sendo um DTO turnSummary que contém o estado do jogo, da jogada e ,se houver promoção, a promoção escolhida. Pensando em retornar tabuleiro como padrão também
         //Será que é bom criar um json mapper no estilo de um visitor? Talvez seja muito complicado e não sei se haveria justificativa
-        HttpStreamWriter.send(HttpResponse.OK(move.toJson().getBytes(), "application/json"), output);
+        HttpStreamWriter.send(response, output);
     }
 
    

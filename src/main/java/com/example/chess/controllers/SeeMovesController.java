@@ -44,8 +44,7 @@ public class SeeMovesController extends HttpController{
             HttpResponse.OK(
                 body,
                 "application/json"
-            )
-            .allowCORS("http://localhost:3000"), 
+            ), 
             output
         );
     }

@@ -88,6 +88,7 @@ public class HttpResponse implements HttpMessage{
                                     .setStatusCode(200)
                                     .setVersion("HTTP/1.1")
                                     .setHeaders(headers)
+                                    .allowCORS("http://localhost:3000")
                                     .setBody(body);
 
         return response;
@@ -108,6 +109,7 @@ public class HttpResponse implements HttpMessage{
                                     .setStatusCode(400)
                                     .setVersion("HTTP/1.1")
                                     .setHeaders(headers)
+                                    .allowCORS("http://localhost:3000") //Colocar isso num builder
                                     .setBody(body);
 
         return response;

@@ -118,7 +118,6 @@ class StaticHttpServerRouter implements HttpRouter{
 
     @Override
     public boolean hasRoute(String path) {
-        // TODO Auto-generated method stub
         return true;
     }
 }

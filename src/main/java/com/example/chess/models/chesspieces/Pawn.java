@@ -98,12 +98,12 @@ public class Pawn extends Piece{
 
     /**Corrige a direção dependendo da cor (peças pretas tem direção invertida, norte vira sul) */
     public Direction getDirection(Direction direction){
-        return (getColor() == PlayerColor.WHITE)? direction : direction.invert();
+        return (getColor() == PlayerColor.BLACK)? direction : direction.invert();
     }
 
     //NOTE: depende da suposição que os peões que estão na segunda fileira nunca se moveram
     private boolean hasMoved(){
-        return !((getColor() == PlayerColor.WHITE)? position.y == 1 : position.y == 7);
+        return !((getColor() == PlayerColor.BLACK)? position.y == 1 : position.y == 7);
     }
 
     //Criar uma fábrica para isso

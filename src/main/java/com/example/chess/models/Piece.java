@@ -24,6 +24,11 @@ abstract public class Piece {
         return piece != null && piece.getColor() != color;
     }
 
+    @Override
+    public String toString() {
+        return "Position: " + position.toString() + " Player:" + color.toString();
+    }
+
 }
 
 class MoveDoesNotOriginateFromPosition extends Exception{

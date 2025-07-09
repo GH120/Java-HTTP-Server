@@ -83,7 +83,9 @@ public class ChessMatch {
         
         List<Move> moves = getAllPossibleMoves(move.origin);
 
-        if(!moves.contains(move))                       throw new InvalidMove();
+        System.out.println(piece);
+
+        if(!moves.contains(move))                       throw new InvalidMove(move, moves);
         // if(piece.color != getColor(player))             throw new NotPlayerPiece(); //corrigir bug
         if(piece.color != chessModel.getCurrentColor()) throw new NotPlayerTurn();
 
@@ -175,6 +177,10 @@ public class ChessMatch {
 
             List<Move> allowedMoves = this.chessRules.validateMoves(chessModel, piece, defaultMoves);
 
+            System.out.println(piece);
+
+            System.out.println("Jogadas válidas " + allowedMoves.stream().map(Move::toString).map(s -> s.concat(" ")).reduce(String::concat));
+
             return allowedMoves;
         });
     }
@@ -256,11 +262,26 @@ public class ChessMatch {
             super("Jogada inválida");
 
             notifier.notifyError(getLocalizedMessage());
+
+        }
+
+        ChessError(String message){
+            super(message);
+
+            notifier.notifyError(getLocalizedMessage());
+
         }
     }
 
     public class InvalidMove extends ChessError{
 
+        InvalidMove(){
+            super();
+        }
+
+        InvalidMove(Move move, List<Move> moves){
+            super("Jogada " + move.toString() + " não está nas jogadas válidas" + moves.stream().map(Move::toString).map(s -> s.concat(" ")).reduce(String::concat));
+        }
     }
 
     public class NotPlayerTurn extends ChessError{
