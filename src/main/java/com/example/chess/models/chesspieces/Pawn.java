@@ -103,7 +103,7 @@ public class Pawn extends Piece{
 
     //NOTE: depende da suposição que os peões que estão na segunda fileira nunca se moveram
     private boolean hasMoved(){
-        return !((getColor() == PlayerColor.BLACK)? position.y == 1 : position.y == 7);
+        return !((getColor() == PlayerColor.BLACK)? position.y == 1 : position.y == 6);
     }
 
     //Criar uma fábrica para isso
