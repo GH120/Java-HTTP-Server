@@ -28,11 +28,16 @@ public class GetBoardController extends HttpController{
         
         Player player = Player.fromRequest(request);
 
-        ChessMatch match = ChessMatchManager.getInstance().getMatchFromPlayer(player);
-
-        Piece[][] board = match.getChessModel().getBoard();
-
-        HttpStreamWriter.send(HttpResponse.OK(Json.from(board), "application/json"), output);
+        try{
+            ChessMatch match = ChessMatchManager.getInstance().getMatchFromPlayer(player);
+            
+            Piece[][] board = match.getChessModel().getBoard();
+            
+            HttpStreamWriter.send(HttpResponse.OK(Json.from(board), "application/json"), output);
+        }
+        catch(MatchNotFound e){
+            HttpStreamWriter.send(HttpResponse.BAD_REQUEST(e.getLocalizedMessage().getBytes(), null), output);
+        }
             
     }
 

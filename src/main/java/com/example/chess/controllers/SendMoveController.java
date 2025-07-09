@@ -38,7 +38,6 @@ public class SendMoveController extends HttpController{
 
         HttpResponse response;
 
-        //Adicionar um try catch
         try{
             match.playMove(player, move); //Irá ativar observers, dentre eles o watcher da partida, que irá avisar o outro jogador
             
@@ -50,6 +49,7 @@ public class SendMoveController extends HttpController{
         catch(ChessError e){
 
             System.out.println("Tente novamente");
+            System.out.println(e.getLocalizedMessage());
 
             response = HttpResponse.BAD_REQUEST(e.getLocalizedMessage().getBytes(), "application/json");
         }

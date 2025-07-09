@@ -4,14 +4,16 @@ import java.util.List;
 
 abstract public class Piece {
 
-    public  Position    position;
-    public  PlayerColor  color;
+    public Position     position;
+    public PlayerColor  color;
+    public final Class<? extends Piece>   piece;
 
     abstract public List<Move>  defaultMoves(Piece[][] board);
 
     public Piece(Position position, PlayerColor color){
         this.position = position;
         this.color = color;
+        this.piece = getClass();
     }
 
     //Util

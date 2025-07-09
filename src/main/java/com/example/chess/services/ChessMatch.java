@@ -286,6 +286,9 @@ public class ChessMatch {
 
     public class NotPlayerTurn extends ChessError{
 
+        NotPlayerTurn(){
+            super("Jogada Inválida: Não é o turno desse jogador");
+        }
     }
 
     public class PendingPromotion extends ChessError{
@@ -298,6 +301,9 @@ public class ChessMatch {
 
     public class GameHasAlreadyEnded extends ChessError{
 
+        GameHasAlreadyEnded(){
+            super("Jogada Inválida: Jogo já terminou");
+        }
     }
 
     public class NotPlayerPiece extends ChessError{
