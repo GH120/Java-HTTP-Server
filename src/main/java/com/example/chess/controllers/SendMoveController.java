@@ -51,7 +51,7 @@ public class SendMoveController extends HttpController{
 
             System.out.println("Tente novamente");
 
-            response = HttpResponse.BAD_REQUEST(move.toJson().getBytes(), "application/json");
+            response = HttpResponse.BAD_REQUEST(e.getLocalizedMessage().getBytes(), "application/json");
         }
 
         //Adicionar resposta padrão sendo um DTO turnSummary que contém o estado do jogo, da jogada e ,se houver promoção, a promoção escolhida. Pensando em retornar tabuleiro como padrão também
