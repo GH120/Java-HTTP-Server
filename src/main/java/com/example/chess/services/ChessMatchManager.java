@@ -21,7 +21,7 @@ public class ChessMatchManager {
         addMatch(new ChessMatch(p1, p2));
     }
 
-    public static synchronized ChessMatchManager getInstance() {
+    public static ChessMatchManager getInstance() {
         if (instance == null) {
             instance = new ChessMatchManager();
         }
@@ -68,7 +68,8 @@ public class ChessMatchManager {
 
         private static long currentID = 0;
 
-        public static synchronized long nextId(){
+        //Synchronized estava travando muito, depois ver casos de sincronização
+        public static long nextId(){
             return ++currentID;
         }
     }

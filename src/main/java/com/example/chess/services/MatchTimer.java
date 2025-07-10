@@ -30,7 +30,7 @@ public class MatchTimer implements MatchObserver{
 
         Player currentPlayer = match.getPlayer(playerColor);
 
-        System.out.println("Jogou");
+        // System.out.println("Jogou");
 
         // Pausa o timer do jogador anterior e inicia o do próximo
         if(countDownTask != null) {
@@ -45,13 +45,13 @@ public class MatchTimer implements MatchObserver{
 
             match.checkTimeOut();
 
-            System.out.println("Jogador " + currentPlayer.name);
-            System.out.println("Tempo: " + (time-1));
+            // System.out.println("Jogador " + currentPlayer.name);
+            // System.out.println("Tempo: " + (time-1));
 
 
         }, 1, 1, TimeUnit.SECONDS);
 
-        System.out.println(countDownTask);
+        // System.out.println(countDownTask);
     }
 
     @Override
