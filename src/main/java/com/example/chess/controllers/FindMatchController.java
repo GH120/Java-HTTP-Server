@@ -4,8 +4,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
+import com.example.chess.models.ChessMatch;
 import com.example.chess.models.Player;
-import com.example.chess.services.ChessMatch;
 import com.example.chess.services.ChessMatchMaker;
 import com.example.chess.services.ChessMatchManager;
 import com.example.chess.services.ChessMatchManager.MatchNotFound;
@@ -27,7 +27,11 @@ public class FindMatchController extends HttpController{
     @Override
     public void handleRequest(HttpRequest request, InputStream input, OutputStream output) throws JsonParseException, IOException, MatchNotFound{
 
-        Player player = Player.fromRequest(request);
+        //Fazer parte de conseguir player logado depois, vamos tratar apenas guest agora
+        // Player player = Player.fromRequest(request);
+
+        //Cria um guest
+        Player player = ChessMatchManager.getInstance().createGuest();
 
         //Método assíncrono que espera outro usuário aceitar um duelo
         ChessMatchMaker.getInstance().findDuel(player);
@@ -35,7 +39,7 @@ public class FindMatchController extends HttpController{
         //Uma vez passada a parte de espera, então encontrou uma partida
         ChessMatch match = ChessMatchManager.getInstance().getMatchFromPlayer(player);
 
-        HttpStreamWriter.send(HttpResponse.OK(Json.from(match.getOpponent(player)),null), output);
+        HttpStreamWriter.send(HttpResponse.OK(Json.from(match.getTurnSummary(null)),null), output);
     }
 
 }

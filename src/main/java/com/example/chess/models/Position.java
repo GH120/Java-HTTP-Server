@@ -26,8 +26,6 @@ public class Position {
     //TODO
     public static Position fromRequest(HttpRequest request) throws JsonProcessingException, IOException{
 
-        request.print();
-
         String info = new String(request.getBody(), StandardCharsets.US_ASCII);
 
         JsonNode node = Json.parse(info).get("coordinates");

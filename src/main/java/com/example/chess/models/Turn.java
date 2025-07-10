@@ -1,0 +1,45 @@
+package com.example.chess.models;
+
+import java.io.IOException;
+import java.util.Map;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.databind.JsonSerializer;
+import com.fasterxml.jackson.databind.SerializerProvider;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+
+
+public record Turn(
+
+    @JsonProperty("turn")
+    Integer turn,
+
+    @JsonProperty("move")
+    Move move,
+
+    @JsonProperty("black")
+    Player black,
+
+    @JsonProperty("white")
+    Player white,
+
+    @JsonProperty("currentPlayer")
+    Player currentPlayer,
+
+    @JsonProperty("timeTaken")
+    Integer timeTaken,
+
+    @JsonSerialize(keyUsing = PlayerKeySerializer.class)
+    Map<Player, Integer> timeRemaining,
+
+    @JsonProperty("gamestate")
+    ChessMatch.GameState gamestate
+) {}
+
+class PlayerKeySerializer extends JsonSerializer<Player> {
+    @Override
+    public void serialize(Player value, JsonGenerator gen, SerializerProvider serializers) throws IOException {
+        gen.writeFieldName(value.name); // ou qualquer outra forma de identificação
+    }
+}

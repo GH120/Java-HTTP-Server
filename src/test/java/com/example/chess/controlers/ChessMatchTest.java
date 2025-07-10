@@ -8,7 +8,6 @@ import com.example.chess.models.*;
 import com.example.chess.models.chesspieces.Pawn;
 import com.example.chess.models.chesspieces.Queen;
 import com.example.chess.models.chesspieces.Rook;
-import com.example.chess.services.ChessMatch;
 
 class ChessMatchTest {
     private ChessMatch match;
@@ -17,8 +16,8 @@ class ChessMatchTest {
 
     @BeforeEach
     void setUp() {
-        white = new Player();
-        black = new Player();
+        white = new Player("Guest1");
+        black = new Player("Guest2");
         match = new ChessMatch(white, black);
     }
 

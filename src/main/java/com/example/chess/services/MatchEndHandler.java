@@ -2,10 +2,11 @@ package com.example.chess.services;
 
 import java.util.List;
 
+import com.example.chess.models.ChessMatch;
 import com.example.chess.models.Move;
 import com.example.chess.models.PlayerColor;
 import com.example.chess.models.Position;
-import com.example.chess.services.ChessMatch.GameState;
+import com.example.chess.models.ChessMatch.GameState;
 
 //Vai lidar com o termino do jogo, desalocar partida e registrar ela numa database
 //Desenvolvimento Posterior, primeiro testar o MVP usando só o MatchEventDispacher

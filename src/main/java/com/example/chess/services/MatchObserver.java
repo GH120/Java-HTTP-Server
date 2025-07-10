@@ -5,7 +5,7 @@ import java.util.List;
 import com.example.chess.models.Move;
 import com.example.chess.models.PlayerColor;
 import com.example.chess.models.Position;
-import com.example.chess.services.ChessMatch.GameState;
+import com.example.chess.models.ChessMatch.GameState;
 
 //TODO: ver como usar isso para avisar os frontends sobre alterações no jogo...
 //Será que o server pode registrar o usuário em uma sessão, e usando o ip dele enviar uma requisição post com esse valor?

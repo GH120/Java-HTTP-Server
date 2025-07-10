@@ -10,7 +10,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import com.example.chess.models.*;
-import com.example.chess.services.ChessMatch.GameState;
+import com.example.chess.models.ChessMatch.GameState;
 
 class MatchTimerTest {
 
@@ -20,12 +20,12 @@ class MatchTimerTest {
     @BeforeEach
     void setUp() {
         // Cria dois jogadores "aleatórios"
-        Player white = new Player();
+        Player white = new Player("Guest1");
         white.name    = "Player_" + ThreadLocalRandom.current().nextInt(1000);
         white.ELO     = ThreadLocalRandom.current().nextInt(1200, 2000);
         white.address = "192.168.0." + ThreadLocalRandom.current().nextInt(1, 255);
 
-        Player black = new Player();
+        Player black = new Player("Guest2");
         black.name    = "Player_" + ThreadLocalRandom.current().nextInt(1000);
         black.ELO     = ThreadLocalRandom.current().nextInt(1200, 2000);
         black.address = "192.168.0." + ThreadLocalRandom.current().nextInt(1, 255);

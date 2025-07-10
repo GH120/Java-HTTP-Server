@@ -24,6 +24,7 @@ class Lexer {
 
     //Implementar uma otimização depois para fazer em chunks de strings
     public LinkedList<Token> tokenize(String input) {
+
         LinkedList<Token> tokens = tokenizePhrase(input);
 
         // System.out.println(input);
@@ -145,7 +146,7 @@ public class HttpLexer extends Lexer{
         rules.put("NUMBER", "[0-9]+");
         rules.put("EQUALS", "=");
         rules.put("HEADER_NAME", 
-            "Host|Origin|User-Agent|Accept|Content-Type|Content-Length|Connection|Authorization|Cache-Control|Set-Cookie|Date|Server|Referer"
+            "Host|Origin|User-Agent|Accept|Purpose|Content-Type|Content-Length|Connection|Authorization|Cache-Control|Set-Cookie|Date|Server|Referer"
             + "|(S|s)(e|E)c(-[a-zA-Z0-9]+)+"  // pega headers tipo Sec-*, sec-*
             + "|(S|s)(c|C)p(-[a-zA-Z0-9]+)*"  // pega headers tipo Scp-*
             + "|(X|x)-[a-zA-Z0-9\\-]+"        // headers não-padrão como X-Forwarded-For

@@ -37,8 +37,6 @@ public class Player {
 
             System.out.println("Player da requisição não existe ou não foi encontrado, usando players de teste global Black e White");
 
-            request.print();
-
             JsonNode node = Json.parse(new String(request.getBody(), StandardCharsets.US_ASCII));
             
             JsonNode playerInfo = node.get("player");

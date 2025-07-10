@@ -4,7 +4,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
-import com.example.chess.services.ChessMatch.ChessError;
+import com.example.chess.models.ChessMatch.ChessError;
 import com.example.chess.services.ChessMatchManager.MatchNotFound;
 import com.example.core.HttpController;
 import com.example.http.HttpRequest;

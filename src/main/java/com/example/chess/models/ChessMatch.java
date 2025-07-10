@@ -1,4 +1,4 @@
-package com.example.chess.services;
+package com.example.chess.models;
 
 import java.util.HashMap;
 import java.util.List;
@@ -6,19 +6,13 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Map.Entry;
 
-import com.example.chess.models.ChessModel;
-import com.example.chess.models.ChessRules;
-import com.example.chess.models.Move;
-import com.example.chess.models.Piece;
-import com.example.chess.models.Player;
-import com.example.chess.models.PlayerColor;
-import com.example.chess.models.Position;
 import com.example.chess.models.Move.Event;
 import com.example.chess.models.chesspieces.Pawn;
 import com.example.chess.models.gamestart.DefaultStartingPieces;
+import com.example.chess.services.MatchNotifier;
+import com.example.chess.services.MatchObserver;
 
 
-//Transformar ele numa thread?
 //Controlaria as ações do usuário, como escolher jogadas ou sair da partida
 //Teria um validador de jogadas baseado no estado de jogo, estado de jogo armazenado
 //Observer é mais "event-driven" (ideal para notificações).
@@ -34,7 +28,7 @@ public class ChessMatch {
 
     //Campos de estado
     private GameState             state;
-    private Map<Player, Integer>  playerTimeRamaining;
+    private Map<Player, Integer>  playerTimeRemaining;
 
     //Campos imutáveis
     private final Player white;
@@ -57,9 +51,9 @@ public class ChessMatch {
         black = opponent;
         state = GameState.STARTED;
         
-        playerTimeRamaining = new HashMap<>();
-        playerTimeRamaining.put(white, 10000);
-        playerTimeRamaining.put(black, 10000);
+        playerTimeRemaining = new HashMap<>();
+        playerTimeRemaining.put(white, 10000);
+        playerTimeRemaining.put(black, 10000);
 
         moveCache  = new HashMap<>();
         chessRules = new ChessRules();
@@ -126,7 +120,7 @@ public class ChessMatch {
 
     public void checkTimeOut(){
         
-        Optional<Entry<Player, Integer>> playerTimeout = playerTimeRamaining.entrySet()
+        Optional<Entry<Player, Integer>> playerTimeout = playerTimeRemaining.entrySet()
                                                                   .stream()
                                                                   .filter(entry -> entry.getValue() == 0)
                                                                   .findFirst();
@@ -207,11 +201,41 @@ public class ChessMatch {
     }
 
     public Integer getTime(Player player){
-        return playerTimeRamaining.get(player);
+        return playerTimeRemaining.get(player);
     }
 
     public void updateTime(Player player, int time){
-        playerTimeRamaining.put(player, time);
+        playerTimeRemaining.put(player, time);
+    }
+
+    //Retorna DTO do turno
+    //Gambiarra, refatorar depois
+    public Turn getTurnSummary(Turn previousTurn){
+
+        if(previousTurn == null) {
+            return new Turn(
+                0, 
+                null, 
+                black, 
+                white, 
+                getCurrentPlayer(), 
+                0, 
+                new HashMap<Player, Integer>(playerTimeRemaining),
+                state);
+        }
+
+        Integer lastPlayerTime = previousTurn.timeRemaining().get(getCurrentOpponent()) - playerTimeRemaining.get(getCurrentOpponent());
+
+        return new Turn(
+            chessModel.getTurn(), 
+            chessModel.getLastMove(), 
+            black, 
+            white,
+            getCurrentPlayer(),
+            lastPlayerTime,
+            new HashMap<Player,Integer>(playerTimeRemaining),
+            state
+        );
     }
 
     public ChessModel getChessModel() {
@@ -224,6 +248,10 @@ public class ChessMatch {
 
     public Player getCurrentPlayer(){
         return chessModel.getCurrentColor() == PlayerColor.WHITE? white : black;
+    }
+
+    public Player getCurrentOpponent(){
+        return chessModel.getCurrentColor() == PlayerColor.BLACK? white : black;
     }
 
     public void addObserver(MatchObserver observer){

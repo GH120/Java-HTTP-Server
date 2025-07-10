@@ -1,7 +1,9 @@
 package com.example.chess.services;
 
+import java.util.Iterator;
 import java.util.concurrent.ConcurrentHashMap;
 
+import com.example.chess.models.ChessMatch;
 import com.example.chess.models.Player;
 
 public class ChessMatchManager {
@@ -26,6 +28,10 @@ public class ChessMatchManager {
         return instance;
     }
 
+    public Player createGuest(){
+        return new Player("Guest" + IDGenerator.nextId());
+    }
+
     public void addMatch(ChessMatch match) {
 
         matches .put(match.getWhite().toString(), match);
@@ -34,6 +40,12 @@ public class ChessMatchManager {
         match.addObserver(new MatchTimer(match));
         match.addObserver(new MatchEndHandler(match));
         
+    }
+
+    public void removeMatch(ChessMatch match){
+
+        matches.remove(match.getWhite().toString());
+        matches.remove(match.getBlack().toString());
     }
 
     // métodos para buscar ou gerenciar partidas
@@ -45,16 +57,19 @@ public class ChessMatchManager {
         return matches.get(player.toString());
     }
 
-    public void removeMatch(ChessMatch match){
-
-        matches.remove(match.getWhite().toString());
-        matches.remove(match.getBlack().toString());
-    }
-
     public class MatchNotFound extends Exception {
 
         public MatchNotFound(){
             super("Partida não encontrada");
+        }
+    }
+
+    private class IDGenerator{
+
+        private static long currentID = 0;
+
+        public static synchronized long nextId(){
+            return ++currentID;
         }
     }
 

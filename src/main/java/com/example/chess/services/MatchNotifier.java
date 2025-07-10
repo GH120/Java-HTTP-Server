@@ -6,7 +6,7 @@ import java.util.List;
 import com.example.chess.models.Move;
 import com.example.chess.models.PlayerColor;
 import com.example.chess.models.Position;
-import com.example.chess.services.ChessMatch.GameState;
+import com.example.chess.models.ChessMatch.GameState;
 
 
 public class MatchNotifier {
