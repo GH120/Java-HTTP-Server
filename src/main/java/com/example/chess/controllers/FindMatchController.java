@@ -6,6 +6,7 @@ import java.io.OutputStream;
 
 import com.example.chess.models.ChessMatch;
 import com.example.chess.models.Player;
+import com.example.chess.models.Turn;
 import com.example.chess.services.ChessMatchMaker;
 import com.example.chess.services.ChessMatchManager;
 import com.example.chess.services.ChessMatchManager.MatchNotFound;
@@ -14,7 +15,9 @@ import com.example.http.HttpRequest;
 import com.example.http.HttpResponse;
 import com.example.json.Json;
 import com.example.parser.HttpStreamWriter;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 public class FindMatchController extends HttpController{
 
@@ -39,7 +42,20 @@ public class FindMatchController extends HttpController{
         //Uma vez passada a parte de espera, então encontrou uma partida
         ChessMatch match = ChessMatchManager.getInstance().getMatchFromPlayer(player);
 
-        HttpStreamWriter.send(HttpResponse.OK(Json.from(match.getTurnSummary(null)),null), output);
+        //Cria o DTO da partida encontrada junto com o jogador selecionado
+        MatchFound matchStart = new MatchFound(match.getTurnSummary(null), player);
+
+        HttpStreamWriter.send(HttpResponse.OK(Json.from(matchStart),"application/json"), output);
+    }
+
+    private record MatchFound(
+        @JsonProperty("turn")    
+        Turn turn, 
+        
+        @JsonProperty("player")
+        Player player
+    ){
+
     }
 
 }
