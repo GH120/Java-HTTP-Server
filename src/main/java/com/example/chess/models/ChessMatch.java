@@ -52,8 +52,8 @@ public class ChessMatch {
         state = GameState.STARTED;
         
         playerTimeRemaining = new HashMap<>();
-        playerTimeRemaining.put(white, 10000);
-        playerTimeRemaining.put(black, 10000);
+        playerTimeRemaining.put(white, 3600);
+        playerTimeRemaining.put(black, 3600);
 
         moveCache  = new HashMap<>();
         chessRules = new ChessRules();
