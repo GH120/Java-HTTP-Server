@@ -13,8 +13,8 @@ import com.example.chess.services.ChessMatchManager.MatchNotFound;
 import com.example.core.HttpController;
 import com.example.http.HttpRequest;
 import com.example.http.HttpResponse;
+import com.example.http.HttpStreamWriter;
 import com.example.json.Json;
-import com.example.parser.HttpStreamWriter;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.JsonParseException;
 
@@ -42,7 +42,7 @@ public class FindMatchController extends HttpController{
         ChessMatch match = ChessMatchManager.getInstance().getMatchFromPlayer(player);
 
         //Cria o DTO da partida encontrada junto com o jogador selecionado
-        MatchFound matchStart = new MatchFound(match.getTurnSummary(null), player);
+        MatchFound matchStart = new MatchFound(match.history.lastTurn(), player);
 
         HttpStreamWriter.send(HttpResponse.OK(Json.from(matchStart),"application/json"), output);
     }

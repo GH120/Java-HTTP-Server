@@ -12,7 +12,7 @@ import com.example.core.io.WebRootHandler;
 import com.example.core.io.WebRootNotFoundException;
 import com.example.http.HttpRequest;
 import com.example.http.HttpResponse;
-import com.example.parser.HttpStreamWriter;
+import com.example.http.HttpStreamWriter;
 
  public interface HttpRouter {
 

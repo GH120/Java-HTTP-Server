@@ -10,6 +10,7 @@ import com.example.http.HttpRequest;
 import com.example.http.HttpResponse;
 import com.example.http.HttpParseException;
 import com.example.http.HttpStatusCode;
+import com.example.http.HttpStreamReader;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;

@@ -2,20 +2,10 @@ package com.example.parser;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
-abstract class Node {
+public class TreeNode extends AbstractSyntaxNode {
 
-    public String type;
-
-    abstract public String getExpression();
-
-    abstract public List<Node> getNodeByType(String type);
-}
-
-public class TreeNode extends Node {
-
-    ArrayList<Node> children;
+    ArrayList<AbstractSyntaxNode> children;
 
     public TreeNode(String type) {
         this.type = type;
@@ -25,7 +15,7 @@ public class TreeNode extends Node {
     @Override
     public String getExpression() {
         return children.stream()
-                .map(Node::getExpression)
+                .map(AbstractSyntaxNode::getExpression)
                 .reduce("", String::concat);
     }
 
@@ -38,7 +28,7 @@ public class TreeNode extends Node {
         StringBuilder sb = new StringBuilder();
         sb.append("  ".repeat(level)).append(type).append("\n");
 
-        for (Node child : children) {
+        for (AbstractSyntaxNode child : children) {
             if (child instanceof Token) {
                 sb.append("  ".repeat(level + 2))
                   .append(child.toString())
@@ -52,14 +42,14 @@ public class TreeNode extends Node {
     }
 
     @Override
-    public List<Node> getNodeByType(String type) {
-        List<Node> result = new ArrayList<>();
+    public List<AbstractSyntaxNode> getNodeByType(String type) {
+        List<AbstractSyntaxNode> result = new ArrayList<>();
 
         if (this.type.equals(type)) {
             result.add(this);
         }
 
-        for (Node child : children) {
+        for (AbstractSyntaxNode child : children) {
             result.addAll(child.getNodeByType(type));
         }
 

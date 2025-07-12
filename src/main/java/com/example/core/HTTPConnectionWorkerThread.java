@@ -6,7 +6,7 @@ import java.net.Socket;
 
 import com.example.chess.controllers.ChessController;
 import com.example.http.HttpRequest;
-import com.example.parser.HttpStreamReader;
+import com.example.http.HttpStreamReader;
 
 //Ideia: inversão de dependência: fazer essa classe chamar a interface que roda o xadrez dentro dela
 //Isso seria geral o suficiente para mudar a execução para qualquer outro programa rodando em várias conexões http

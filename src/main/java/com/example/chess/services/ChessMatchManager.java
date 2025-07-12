@@ -1,6 +1,5 @@
 package com.example.chess.services;
 
-import java.util.Iterator;
 import java.util.concurrent.ConcurrentHashMap;
 
 import com.example.chess.models.ChessMatch;

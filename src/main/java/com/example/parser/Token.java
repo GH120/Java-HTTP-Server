@@ -3,7 +3,7 @@ package com.example.parser;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Token extends Node {
+public class Token extends AbstractSyntaxNode {
 
     String expression;
     int index;
@@ -26,8 +26,8 @@ public class Token extends Node {
     }
 
     @Override
-    public List<Node> getNodeByType(String type) {
-        List<Node> result = new ArrayList<>();
+    public List<AbstractSyntaxNode> getNodeByType(String type) {
+        List<AbstractSyntaxNode> result = new ArrayList<>();
         if (this.type.equals(type)) {
             result.add(this);
         }

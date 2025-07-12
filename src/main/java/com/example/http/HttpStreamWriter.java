@@ -1,7 +1,5 @@
-package com.example.parser;
+package com.example.http;
 
-import com.example.http.HttpMessage;
-import com.example.http.HttpResponse;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;

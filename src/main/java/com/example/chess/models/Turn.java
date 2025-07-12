@@ -1,6 +1,7 @@
 package com.example.chess.models;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Map;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -32,6 +33,9 @@ public record Turn(
 
     @JsonSerialize(keyUsing = PlayerKeySerializer.class)
     Map<Player, Integer> timeRemaining,
+
+    @JsonProperty("casualties")
+    List<Piece> casualties,
 
     @JsonProperty("gamestate")
     ChessMatch.GameState gamestate

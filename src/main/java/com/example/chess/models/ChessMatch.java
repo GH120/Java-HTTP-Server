@@ -1,9 +1,12 @@
 package com.example.chess.models;
 
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Queue;
+import java.util.Stack;
 import java.util.Map.Entry;
 
 import com.example.chess.models.Move.Event;
@@ -34,8 +37,11 @@ public class ChessMatch {
     private final Player white;
     private final Player black;
 
-    //Componentes
+    //Componentes públicos
     public  final MatchSynchronizer semaphor; //Responsabilidade de sincronização fica fora da partida, expõe métodos (acho melhor tornar isso um observer e colocar um método wait, mas corre o risco de ficar muito complexo)
+    public  final TurnHistory       history;
+
+    //Componentes privados
     private final MatchNotifier     notifier;
     private final ChessRules        chessRules;
     private final ChessModel        chessModel;
@@ -43,6 +49,7 @@ public class ChessMatch {
     //Cache
     private final Map<Position, List<Move>> moveCache;
     
+    //Estados de jogo
     public enum GameState {NORMAL, CHECK, CHECKMATE, DRAW, PROMOTION, STARTED, EXITED, TIMEOUT}
 
     public ChessMatch(Player player, Player opponent) {
@@ -60,12 +67,19 @@ public class ChessMatch {
         chessModel = new ChessModel(new DefaultStartingPieces());
         notifier   = new MatchNotifier();
         semaphor   = new MatchSynchronizer();
+        history    = new TurnHistory();
     }
+
+    ////////////////////////////////////////////////////////////////////
+    ///////////////////// INTERFACE PRINCIPAL DE CONTROLES//////////////
+    ////////////////////////////////////////////////////////////////////
+
+    //CONTROLES DO JOGADOR: PLAY, SHOWMOVES, CHOOSE PROMOTION, QUIT
 
     /**Controle para efetuar jogada de Xadrez, solta erros se jogada for inconsistente */
     public void playMove(Player player, Move move) throws ChessError{
         
-        Piece      piece = chessModel.getPiece(move.origin);
+        Piece piece = chessModel.getPiece(move.origin);
 
         //Verifica inconsistências na requisição da jogada
         if(state == GameState.CHECKMATE) throw new GameHasAlreadyEnded();
@@ -77,7 +91,6 @@ public class ChessMatch {
         
         List<Move> moves = getAllPossibleMoves(move.origin);
 
-        System.out.println(piece);
 
         if(!moves.contains(move))                       throw new InvalidMove(move, moves);
         // if(piece.color != getColor(player))             throw new NotPlayerPiece(); //corrigir bug
@@ -86,21 +99,34 @@ public class ChessMatch {
         //Uma vez validada, registra jogada no modelo, atualiza estado do jogo e notifica aos observadores
         chessModel.play(piece, move);
 
+        updateGameState(move);
+        
         notifier.notifyMove(move, chessModel.getCurrentColor());
         
-        updateGameState(move);
-
+        history.saveTurn();
+        
         moveCache.clear();
 
-        System.out.println(getTime(player));
+        System.out.println("Tempo Restante: " + getTime(player));
     }
+    
+    public List<Move> getAllPossibleMoves(Position position){
 
-    /** Notifica todas as jogadas possíveis para os observers */
-    public void showPossibleMoves(Position position){
+        return moveCache.computeIfAbsent(position, pos ->{
+        
+            Piece piece = chessModel.getPiece(position);
 
-        notifier.notifyPossibleMoves(getAllPossibleMoves(position));
+            List<Move> defaultMoves = piece.defaultMoves(chessModel.getBoard());
+
+            List<Move> allowedMoves = this.chessRules.validateMoves(chessModel, piece, defaultMoves);
+
+            System.out.println(piece);
+
+            System.out.println("Jogadas válidas " + allowedMoves.stream().map(Move::toString).map(s -> s.concat(" ")).reduce(String::concat));
+
+            return allowedMoves;
+        });
     }
-
 
     public void choosePromotion(Pawn.Promotion promotion) throws NoPromotionEvent{
 
@@ -118,24 +144,10 @@ public class ChessMatch {
         notifier.notifyStateChange(state);
     }
 
-    public void checkTimeOut(){
-        
-        Optional<Entry<Player, Integer>> playerTimeout = playerTimeRemaining.entrySet()
-                                                                  .stream()
-                                                                  .filter(entry -> entry.getValue() == 0)
-                                                                  .findFirst();
-
-        if(playerTimeout.isPresent()){
-            
-            state = GameState.TIMEOUT;
-
-            notifier.notifyStateChange(state);
-
-            System.out.println("TEMPO TERMINOU");
-        }
-    }
-
-
+    //////////////////////////////////////////////////////////////
+    ///////////////// VERIFICAÇÃO DE ESTADO //////////////////////
+    //////////////////////////////////////////////////////////////
+    
     private void updateGameState(Move move){
 
         if(chessRules.isInCheckMate(chessModel, chessModel.getCurrentColor())){
@@ -161,25 +173,34 @@ public class ChessMatch {
         }
     }
 
-    public List<Move> getAllPossibleMoves(Position position){
+    // /** Notifica todas as jogadas possíveis para os observers */
+    public void showPossibleMoves(Position position){
 
-        return moveCache.computeIfAbsent(position, pos ->{
-        
-            Piece piece = chessModel.getPiece(position);
-
-            List<Move> defaultMoves = piece.defaultMoves(chessModel.getBoard());
-
-            List<Move> allowedMoves = this.chessRules.validateMoves(chessModel, piece, defaultMoves);
-
-            System.out.println(piece);
-
-            System.out.println("Jogadas válidas " + allowedMoves.stream().map(Move::toString).map(s -> s.concat(" ")).reduce(String::concat));
-
-            return allowedMoves;
-        });
+        notifier.notifyPossibleMoves(getAllPossibleMoves(position));
     }
 
-    //Getters de utilidade
+    //Mover isso para classe interna? => não é controle do jogador, timer usa isso
+    public void checkTimeOut(){
+        
+        Optional<Entry<Player, Integer>> playerTimeout = playerTimeRemaining.entrySet()
+                                                                  .stream()
+                                                                  .filter(entry -> entry.getValue() == 0)
+                                                                  .findFirst();
+
+        if(playerTimeout.isPresent()){
+            
+            state = GameState.TIMEOUT;
+
+            notifier.notifyStateChange(state);
+
+            System.out.println("TEMPO TERMINOU");
+        }
+    }
+
+
+    ////////////////////////////////////////////////////////////////////////
+    ////////////////// Getters de utilidade ////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////
     public Player getBlack() {
         return black;
     }
@@ -200,42 +221,14 @@ public class ChessMatch {
         return color == PlayerColor.WHITE? white : black;
     }
 
+    //Mover isso para classe interna?
     public Integer getTime(Player player){
         return playerTimeRemaining.get(player);
     }
 
+    //Mover isso para classe interna?
     public void updateTime(Player player, int time){
         playerTimeRemaining.put(player, time);
-    }
-
-    //Retorna DTO do turno
-    //Gambiarra, refatorar depois
-    public Turn getTurnSummary(Turn previousTurn){
-
-        if(previousTurn == null) {
-            return new Turn(
-                0, 
-                null, 
-                black, 
-                white, 
-                getCurrentPlayer(), 
-                0, 
-                new HashMap<Player, Integer>(playerTimeRemaining),
-                state);
-        }
-
-        Integer lastPlayerTime = previousTurn.timeRemaining().get(getCurrentOpponent()) - playerTimeRemaining.get(getCurrentOpponent());
-
-        return new Turn(
-            chessModel.getTurn(), 
-            chessModel.getLastMove(), 
-            black, 
-            white,
-            getCurrentPlayer(),
-            lastPlayerTime,
-            new HashMap<Player,Integer>(playerTimeRemaining),
-            state
-        );
     }
 
     public ChessModel getChessModel() {
@@ -258,7 +251,9 @@ public class ChessMatch {
         notifier.addObserver(observer);
     }
 
-    //Classes internas
+    ///////////////////////////////////////////////////////////////////////////////////
+    ///////////////////CLASSES INTERNAS: FUNCIONALIDADES AUXILIARES////////////////////
+    ///////////////////////////////////////////////////////////////////////////////////
 
     //Usar um countdown latch?
     //Guardar estado do último jogador para tratar jogadas repetidas?
@@ -282,8 +277,58 @@ public class ChessMatch {
     }
 
 
+    public class TurnHistory {
 
-    //Erros de Jogada
+        private Stack<Turn> previousTurns = new Stack<Turn>();
+
+        public TurnHistory(){
+
+            //Turno inicial
+            previousTurns.add(
+                new Turn(
+                    0, 
+                    null, 
+                    black, 
+                    white, 
+                    getCurrentPlayer(), 
+                    0, 
+                    new HashMap<Player, Integer>(playerTimeRemaining),
+                    chessModel.getCasualties(),
+                    state
+                )
+            );
+        }
+
+        //Retorna DTO do turno
+        //Gambiarra, refatorar depois
+        public Turn saveTurn(){
+
+            Turn previousTurn = previousTurns.peek();
+
+            Integer lastPlayerTime = previousTurn.timeRemaining().get(getCurrentOpponent()) - playerTimeRemaining.get(getCurrentOpponent());
+
+            return new Turn(
+                chessModel.getTurn(), 
+                chessModel.getLastMove(), 
+                black, 
+                white,
+                getCurrentPlayer(),
+                lastPlayerTime,
+                new HashMap<Player,Integer>(playerTimeRemaining),
+                chessModel.getCasualties(),
+                state
+            );
+        }
+
+        public Turn lastTurn(){
+            return previousTurns.peek();
+        }
+    }
+
+    //////////////////////////////////////////////////////////////////
+    //////////////////////// Erros de Jogada /////////////////////////
+    //////////////////////////////////////////////////////////////////
+    
     public class ChessError extends Exception{
 
         ChessError(){

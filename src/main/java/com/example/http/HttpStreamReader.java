@@ -1,9 +1,4 @@
-package com.example.parser;
-
-import com.example.http.HttpRequest;
-import com.example.http.HttpResponse;
-import com.example.http.HttpMessage;
-import com.example.http.HttpMethod;
+package com.example.http;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -12,6 +7,11 @@ import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import com.example.parser.HttpLexer;
+import com.example.parser.HttpParser;
+import com.example.parser.AbstractSyntaxNode;
+import com.example.parser.TreeNode;
 
 //TODO: Refazer lógica do HttpLexer e parser para adequar ler mensagens de resposta
 //TODO: Refinar interface HttpMessage para métodos compartilhados de HttpResponse e HttpRequest
@@ -106,11 +106,12 @@ public class HttpStreamReader {
     }
 
     private void populateHeaders(HttpMessage message, TreeNode AST) {
-        List<Node> headers = AST.getNodeByType("HEADER");
+        
+        List<AbstractSyntaxNode> headers = AST.getNodeByType("HEADER");
 
         Map<String, String> headerMap = new HashMap<>();
 
-        for (Node node : headers) {
+        for (AbstractSyntaxNode node : headers) {
             TreeNode header = (TreeNode) node;
             String name = header.getNodeByType("HEADER_NAME").isEmpty()
                 ? header.getNodeByType("NON_STANDARD_HEADER").get(0).getExpression()
@@ -124,7 +125,7 @@ public class HttpStreamReader {
     }
 
     private void populateBody(HttpRequest message, TreeNode AST) {
-        List<Node> bodyNodes = AST.getNodeByType("BODY");
+        List<AbstractSyntaxNode> bodyNodes = AST.getNodeByType("BODY");
         if (!bodyNodes.isEmpty()) {
             TreeNode bodyNode = (TreeNode) bodyNodes.get(0);
             String body = bodyNode.getExpression();
