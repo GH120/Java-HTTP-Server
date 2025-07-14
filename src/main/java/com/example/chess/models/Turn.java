@@ -38,7 +38,10 @@ public record Turn(
     List<Piece> casualties,
 
     @JsonProperty("gamestate")
-    ChessMatch.GameState gamestate
+    ChessMatch.GameState gamestate,
+
+    @JsonProperty("board")
+    Piece[][] board
 ) {}
 
 class PlayerKeySerializer extends JsonSerializer<Player> {

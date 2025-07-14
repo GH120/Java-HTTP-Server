@@ -14,6 +14,7 @@ import com.example.core.HttpController;
 import com.example.http.HttpRequest;
 import com.example.http.HttpResponse;
 import com.example.http.HttpStreamWriter;
+import com.example.json.Json;
 import com.fasterxml.jackson.core.JsonParseException;
 
 public class SendMoveController extends HttpController{
@@ -42,9 +43,9 @@ public class SendMoveController extends HttpController{
             match.playMove(player, move); //Irá ativar observers, dentre eles o watcher da partida, que irá avisar o outro jogador
             
             //Adicionar um condicional, pois se houver uma promoção o oponente não será liberado
-            match.semaphor.notifyMove();
+            match.semaphor.notifyMove(player);
 
-            response = HttpResponse.OK(move.toJson().getBytes(), "application/json");
+            response = HttpResponse.OK(Json.from(match.history.lastTurn()), "application/json");
         }
         catch(ChessError e){
 

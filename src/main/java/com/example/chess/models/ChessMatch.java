@@ -1,11 +1,9 @@
 package com.example.chess.models;
 
 import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Queue;
 import java.util.Stack;
 import java.util.Map.Entry;
 
@@ -31,7 +29,7 @@ public class ChessMatch {
 
     //Campos de estado
     private GameState             state;
-    private Map<Player, Integer>  playerTimeRemaining;
+    private Map<Player, Integer>  playerTimeRemaining; //Usar instants e duration depois
 
     //Campos imutáveis
     private final Player white;
@@ -42,7 +40,7 @@ public class ChessMatch {
     public  final TurnHistory       history;
 
     //Componentes privados
-    private final MatchNotifier     notifier;
+    private final MatchNotifier     notifier; //Meio de comunicação externo para observadores
     private final ChessRules        chessRules;
     private final ChessModel        chessModel;
 
@@ -81,6 +79,8 @@ public class ChessMatch {
         
         Piece piece = chessModel.getPiece(move.origin);
 
+        System.out.println(getState());
+
         //Verifica inconsistências na requisição da jogada
         if(state == GameState.CHECKMATE) throw new GameHasAlreadyEnded();
         if(state == GameState.DRAW)      throw new GameHasAlreadyEnded();
@@ -99,6 +99,7 @@ public class ChessMatch {
         //Uma vez validada, registra jogada no modelo, atualiza estado do jogo e notifica aos observadores
         chessModel.play(piece, move);
 
+        //Problema com relação a promoção, tentar debugar
         updateGameState(move);
         
         notifier.notifyMove(move, chessModel.getCurrentColor());
@@ -108,6 +109,8 @@ public class ChessMatch {
         moveCache.clear();
 
         System.out.println("Tempo Restante: " + getTime(player));
+        System.out.println(getState());
+
     }
     
     public List<Move> getAllPossibleMoves(Position position){
@@ -165,11 +168,15 @@ public class ChessMatch {
 
         notifier.notifyStateChange(state);
 
+        System.out.println("Evento: " +getState());
+
         //Depois de avisar se houve cheque ou o jogo acabou, verifica promoção
         if(move != null && move.event == Event.PROMOTION){
             notifier.notifyPromotionRequired(move.destination);
 
             state = GameState.PROMOTION;
+            
+            System.out.println("Promoveu?: " + getState());
         }
     }
 
@@ -256,21 +263,28 @@ public class ChessMatch {
     ///////////////////////////////////////////////////////////////////////////////////
 
     //Usar um countdown latch?
-    //Guardar estado do último jogador para tratar jogadas repetidas?
     public class MatchSynchronizer{
 
+        private Player  lastPlayer = null;
         private boolean moveReceived = false;
 
-        public synchronized void waitForMove() throws InterruptedException {
-            while (!moveReceived) {
+        public synchronized void waitForMove(Player player) throws InterruptedException {
+
+            while (!moveReceived || lastPlayer.toString().equals(player.toString())) {
                 wait(); // Libera o lock até receber notificação
             }
+
             moveReceived = false; // Reseta para próxima jogada
         }
 
 
         //Ambos wait e notifyAll tem que estarem em um bloco synchronized
-        public synchronized void notifyMove() {
+        public synchronized void notifyMove(Player player) {
+
+            if(player == lastPlayer) return;
+
+            lastPlayer = player;
+
             moveReceived = true;
             notifyAll(); // Libera as threads bloqueadas
         }
@@ -294,20 +308,22 @@ public class ChessMatch {
                     0, 
                     new HashMap<Player, Integer>(playerTimeRemaining),
                     chessModel.getCasualties(),
-                    state
+                    state,
+                    chessModel.getBoard()
                 )
             );
         }
 
         //Retorna DTO do turno
         //Gambiarra, refatorar depois
-        public Turn saveTurn(){
+        public void saveTurn(){
 
             Turn previousTurn = previousTurns.peek();
 
             Integer lastPlayerTime = previousTurn.timeRemaining().get(getCurrentOpponent()) - playerTimeRemaining.get(getCurrentOpponent());
 
-            return new Turn(
+            previousTurns.add(
+                new Turn(
                 chessModel.getTurn(), 
                 chessModel.getLastMove(), 
                 black, 
@@ -316,8 +332,9 @@ public class ChessMatch {
                 lastPlayerTime,
                 new HashMap<Player,Integer>(playerTimeRemaining),
                 chessModel.getCasualties(),
-                state
-            );
+                state,
+                chessModel.getBoard()
+            ));
         }
 
         public Turn lastTurn(){

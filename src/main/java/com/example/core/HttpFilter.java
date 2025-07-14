@@ -16,7 +16,7 @@ public abstract class HttpFilter implements HttpRouter {
     @Override
     public void handleRequest(HttpRequest request, InputStream input, OutputStream output) throws Exception {
        
-        request.print();
+        // request.print();
         //Interage com request e se retornar flag true para sua propagação
         if(intercept(request, input, output)) return;
         

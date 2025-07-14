@@ -154,7 +154,7 @@ public class ChessRules {
     // Promoção
     private void addPromotionMove(ChessModel model, Pawn pawn, List<Move> moves){
 
-        int lastRow = pawn.getColor() == PlayerColor.WHITE ? 7 : 0; //Adicionar enum chessPositions?
+        int lastRow = pawn.getColor() == PlayerColor.WHITE ? 0 : 7; //Adicionar enum chessPositions?
 
         for(Move move : moves){
 

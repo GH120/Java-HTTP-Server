@@ -5,14 +5,17 @@ import java.io.InputStream;
 import java.io.OutputStream;
 
 import com.example.chess.models.ChessMatch;
-import com.example.chess.models.Move;
+import com.example.chess.models.Piece;
 import com.example.chess.models.Player;
+import com.example.chess.models.Turn;
 import com.example.chess.services.ChessMatchManager;
 import com.example.chess.services.ChessMatchManager.MatchNotFound;
 import com.example.core.HttpController;
 import com.example.http.HttpRequest;
 import com.example.http.HttpResponse;
 import com.example.http.HttpStreamWriter;
+import com.example.json.Json;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.JsonParseException;
 
 public class AwaitResponseController extends HttpController{
@@ -28,13 +31,20 @@ public class AwaitResponseController extends HttpController{
         Player player = Player.fromRequest(request);
 
         ChessMatch match = ChessMatchManager.getInstance().getMatchFromPlayer(player);
+
+        System.out.println("player " + player.name + "is waiting");
         
-        match.semaphor.waitForMove();
+        match.semaphor.waitForMove(player);
+
+        System.out.println("player " + player.name + "now can play");
 
         //Tem que tratar o caso que o jogo terminou ou que o adversário quitou
-        Move move = match.getChessModel().getLastMove();
 
-        HttpStreamWriter.send(HttpResponse.OK(move.toJson().getBytes(), "application/json"), output);
+        Turn turn = match.history.lastTurn();
+
+        HttpResponse response = HttpResponse.OK(Json.from(turn), "application/json");
+
+        HttpStreamWriter.send(response, output);
 
         //Melhor implementação: 
         //Tornar o MatchWatcher em um observador sincronizado, que controla o acesso de ambos os jogadores
@@ -43,4 +53,11 @@ public class AwaitResponseController extends HttpController{
         //Ele irá guardar o estado da última jogada e todos os efeitos a ela associados, tendo uma função para retornar os eventos da jogada (se foi cheque, se teve en passant...)
         //Usar essa função que retorna um json para montar uma requisição http e mandar de volta para o adversário e para o jogador.
     }
+}
+
+record TurnState (
+    @JsonProperty("turn")
+    Turn turn
+){
+
 }

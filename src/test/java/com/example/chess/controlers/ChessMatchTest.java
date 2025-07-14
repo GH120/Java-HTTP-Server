@@ -3,6 +3,8 @@ package com.example.chess.controlers;
 import static org.junit.jupiter.api.Assertions.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import java.util.concurrent.atomic.AtomicBoolean;
+
 
 import com.example.chess.models.*;
 import com.example.chess.models.chesspieces.Pawn;
@@ -20,6 +22,79 @@ class ChessMatchTest {
         black = new Player("Guest2");
         match = new ChessMatch(white, black);
     }
+
+
+    @Test
+    void testMatchSynchronization() throws InterruptedException {
+        ChessMatch.MatchSynchronizer synchronizer = match.semaphor;
+
+        AtomicBoolean moveProcessed = new AtomicBoolean(false);
+
+        Thread waitingThread = new Thread(() -> {
+            try {
+                synchronizer.waitForMove();
+                moveProcessed.set(true); // Marca que a thread foi desbloqueada
+            } catch (InterruptedException e) {
+                fail("Thread foi interrompida inesperadamente");
+            }
+        });
+
+        waitingThread.start();
+
+        // Aguarda para garantir que a thread está bloqueada
+        Thread.sleep(200);
+
+        assertFalse(moveProcessed.get(), "A thread não deveria ter processado o movimento ainda");
+
+        // Agora notificamos a jogada
+        synchronizer.notifyMove();
+
+        // Aguarda a thread liberar
+        waitingThread.join(1000); // Timeout de 1s
+
+        assertTrue(moveProcessed.get(), "A thread deveria ter sido desbloqueada após notifyMove()");
+    }
+
+    @Test
+    void testRealMatchSynchronization() throws Exception {
+        ChessMatch.MatchSynchronizer synchronizer = match.semaphor;
+
+        // Thread do jogador preto esperando sua vez
+        Thread blackThread = new Thread(() -> {
+            try {
+                // Espera jogada do branco
+                synchronizer.waitForMove();
+
+                // Depois de notificado, faz sua jogada
+                Move blackMove = new Move(new Position(1, 1), new Position(1, 3)); // e7 → e5
+
+                match.playMove(black, blackMove);
+
+                assertEquals(PlayerColor.WHITE, match.getChessModel().getCurrentColor());
+            } catch (Exception e) {
+                fail("Erro na thread do jogador preto: " + e.getMessage());
+            }
+        });
+
+        blackThread.start();
+
+        // Jogador branco joga e2 → e4
+        Move whiteMove = new Move(new Position(7, 6), new Position(7, 4));
+        match.playMove(white, whiteMove);
+
+        // Após a jogada, notifica que o movimento foi feito
+        synchronizer.notifyMove();
+        
+        Thread.sleep(10000);
+
+        // Aguarda a thread do jogador preto terminar
+        blackThread.join(1000);
+
+        // Verifica se o estado é NORMAL após os dois lances
+        assertEquals(ChessMatch.GameState.NORMAL, match.getState());
+    }
+
+
 
     @Test
     void testPlayMove_Valid() throws Exception {
