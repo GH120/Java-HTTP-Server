@@ -13,8 +13,8 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 public record Turn(
 
-    @JsonProperty("turn")
-    Integer turn,
+    @JsonProperty("id")
+    Integer id,
 
     @JsonProperty("move")
     Move move,

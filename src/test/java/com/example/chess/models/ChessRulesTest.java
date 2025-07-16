@@ -56,8 +56,8 @@ class ChessRulesTest {
     @Test
     void testIsInCheck_KingUnderAttack() {
         // Simula situação de xeque
-        model.kill(model.getPiece(new Position(3, 0))); // Remove rainha branca
-        model.insertPiece(new Queen(new Position(3, 1), PlayerColor.BLACK)); // Rainha preta atacando rei
+        model.kill(model.getPiece(new Position(3, 7))); // Remove rainha branca
+        model.insertPiece(new Queen(new Position(3, 6), PlayerColor.BLACK)); // Rainha preta atacando rei
         
         assertTrue(rules.isInCheck(model, PlayerColor.WHITE));
     }
@@ -133,7 +133,7 @@ class ChessRulesTest {
     @Test
     void testPawnPromotion() {
         
-        Pawn whitePawn = new Pawn(new Position(0, 6), PlayerColor.WHITE);
+        Pawn whitePawn = new Pawn(new Position(0, 1), PlayerColor.WHITE);
         model.insertPiece(whitePawn);
 
         List<Move> moves = whitePawn.defaultMoves(model.getBoard());
@@ -141,7 +141,7 @@ class ChessRulesTest {
 
         //Gambiarra, já que as peças pretas ainda existem, a única jogada válida é um ataque à direita
         assertTrue(validatedMoves.stream().anyMatch(m -> 
-            m.destination.equals(new Position(1, 7)) && m.event == Move.Event.PROMOTION)
+            m.destination.equals(new Position(1, 0)) && m.event == Move.Event.PROMOTION)
         );
     }
 

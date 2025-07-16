@@ -79,6 +79,7 @@ public class HttpResponse implements HttpMessage{
         var headers = new HashMap<String,String>();
 
         headers.put("Content-Length", "" + body.length);
+        headers.put("Connection", "close"); //Para evitar envios do mesmo browser para o mesmo endpoint da API de reusarem a conexão HTTP (era o que causava o delay de 30s)
 
         if(contentType != null){
             headers.put("Content-Type", contentType);

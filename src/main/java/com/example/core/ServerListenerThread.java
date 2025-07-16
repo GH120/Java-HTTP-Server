@@ -30,9 +30,12 @@ public class ServerListenerThread extends Thread{
 
         try{
             while(serverSocket.isBound() && !serverSocket.isClosed()){
-    
+
                 //Aceita uma conexão socket, roda a thread dela e concorrentemente espera a proxima
                 Socket socket = serverSocket.accept();
+
+                System.out.println("ACEITOU CONEXÃO");
+
     
                 //Processa a requisição paralelamente
                 HttpConnectionWorkerThread worker = new HttpConnectionWorkerThread(socket);

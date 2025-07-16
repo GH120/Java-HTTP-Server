@@ -18,7 +18,7 @@ public class ChessMatchMaker {
         waitingPlayers    = new HashMap<>();
     }
 
-    public static synchronized ChessMatchMaker getInstance() {
+    public static ChessMatchMaker getInstance() {
         if (instance == null) {
             instance = new ChessMatchMaker();
         }
@@ -97,5 +97,9 @@ public class ChessMatchMaker {
         public synchronized void matchFound(){
             notifyAll();
         }
+    }
+
+    public boolean isPlayerWaiting(Player player){
+        return waitingPlayers.containsKey(player);
     }
 }

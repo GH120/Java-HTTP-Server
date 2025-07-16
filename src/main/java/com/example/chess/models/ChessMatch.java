@@ -75,9 +75,9 @@ public class ChessMatch {
     //CONTROLES DO JOGADOR: PLAY, SHOWMOVES, CHOOSE PROMOTION, QUIT
 
     /**Controle para efetuar jogada de Xadrez, solta erros se jogada for inconsistente */
-    public void playMove(Player player, Move move) throws ChessError{
+    public void playMove(Player player, Move playedMove) throws ChessError{
         
-        Piece piece = chessModel.getPiece(move.origin);
+        Piece piece = chessModel.getPiece(playedMove.origin);
 
         System.out.println(getState());
 
@@ -89,10 +89,11 @@ public class ChessMatch {
         if(state == GameState.PROMOTION) throw new PendingPromotion();
         if(piece == null)                throw new InvalidMove();
         
-        List<Move> moves = getAllPossibleMoves(move.origin);
+        List<Move> moves = getAllPossibleMoves(playedMove.origin);
 
+        Move move = moves.stream().filter(m -> m.equals(playedMove)).findFirst().orElse(null);
 
-        if(!moves.contains(move))                       throw new InvalidMove(move, moves);
+        if(move == null)                                throw new InvalidMove(playedMove, moves);
         // if(piece.color != getColor(player))             throw new NotPlayerPiece(); //corrigir bug
         if(piece.color != chessModel.getCurrentColor()) throw new NotPlayerTurn();
 

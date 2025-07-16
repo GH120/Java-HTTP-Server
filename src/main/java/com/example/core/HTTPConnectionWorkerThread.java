@@ -17,6 +17,7 @@ public class HttpConnectionWorkerThread extends Thread{
     private HttpRouter router = new ChessController(); //Fazer ele carregar esse router das configurações, ou talvez passar como argumento
 
     HttpConnectionWorkerThread(Socket socket){
+        System.out.println("CRIOU NOVO WORKER THREAD");
         this.socket = socket;
     }
 

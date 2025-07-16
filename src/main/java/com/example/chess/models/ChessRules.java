@@ -11,6 +11,8 @@ import com.example.chess.models.chesspieces.Knight;
 import com.example.chess.models.chesspieces.Pawn;
 import com.example.chess.models.chesspieces.Rook;
 
+//TODO: ATUALIZAR POSIÇÕES DO CASTLE, POIS INVERTI A POSIÇÃO DAS PEÇAS BRANCAS E PRETAS
+
 /** Validador de regras do Xadrez;
  * Responsabilidades: 
  * 1. Validar jogadas básicas; 
@@ -98,7 +100,7 @@ public class ChessRules {
                 return false;
             }
 
-            if(isSquareUnderAttack(model, square, model.getOpponentColor())){ //Verificar se esse getOpponentColor não gera bugs 
+            if(isSquareUnderAttack(model, square, king.color.opposite())){ 
                 return false;
             }
         }

@@ -30,7 +30,24 @@ public class FindMatchController extends HttpController{
     public void handleRequest(HttpRequest request, InputStream input, OutputStream output) throws JsonParseException, IOException, MatchNotFound{
 
         //Fazer parte de conseguir player logado depois, vamos tratar apenas guest agora
-        // Player player = Player.fromRequest(request);
+        try{
+
+            Player player = Player.fromRequest(request);
+
+            System.out.println("Nome + " + player.name);
+
+            ChessMatch match = ChessMatchManager.getInstance().getMatchFromPlayer(player);
+
+            //Cria o DTO da partida encontrada junto com o jogador selecionado
+            MatchFound matchStart = new MatchFound(match.history.lastTurn(), player);
+
+            HttpStreamWriter.send(HttpResponse.OK(Json.from(matchStart),"application/json"), output);
+
+            return;
+        }
+        catch(Exception e){
+
+        }
 
         //Cria um guest
         Player player = ChessMatchManager.getInstance().createGuest();
