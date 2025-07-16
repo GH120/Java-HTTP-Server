@@ -54,6 +54,42 @@ class ChessRulesTest {
     }
 
     @Test
+    void testAddCastlingMoves_KingSide2() {
+        // Remove peças entre rei e torre
+        // model.kill(model.getPiece(new Position(5, 0))); // Bispo
+        // model.kill(model.getPiece(new Position(6, 0))); // Cavalo
+        
+        King king = (King) model.getPiece(new Position(4, 0)); // Rei branco
+
+        Piece bishop = model.getPiece(new Position(5,0));
+        Piece knight = model.getPiece(new Position(6, 0));
+        Piece rook = model.getPiece(new Position(7, 0));
+
+        Piece pawn = model.getPiece(new Position(4,1));
+
+        model.play(pawn, new Move(pawn.position, new Position(4, 3)));
+        model.play(knight, new Move(knight.position, new Position(5, 3)));
+        model.play(bishop, new Move(bishop.position, new Position(4, 1)));
+
+        List<Move> moves = king.defaultMoves(model.getBoard());
+        rules.validateMoves(model, king, moves);
+
+        
+        // Deve incluir roque pequeno
+        assertTrue(moves.stream().anyMatch(m -> 
+            m.event == Move.Event.CASTLING && 
+            m.destination.equals(new Position(6, 0)))
+        );
+
+        model.play(king, moves.stream().filter(m -> 
+            m.event == Move.Event.CASTLING && 
+            m.destination.equals(new Position(6, 0))).findFirst().get());
+
+        assertTrue(king.position.equals(new Position(6,0)));
+        assertTrue(rook.position.equals(new Position(5,0)));
+    }
+
+    @Test
     void testIsInCheck_KingUnderAttack() {
         // Simula situação de xeque
         model.kill(model.getPiece(new Position(3, 7))); // Remove rainha branca

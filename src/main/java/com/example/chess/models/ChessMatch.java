@@ -79,8 +79,6 @@ public class ChessMatch {
         
         Piece piece = chessModel.getPiece(playedMove.origin);
 
-        System.out.println(getState());
-
         //Verifica inconsistências na requisição da jogada
         if(state == GameState.CHECKMATE) throw new GameHasAlreadyEnded();
         if(state == GameState.DRAW)      throw new GameHasAlreadyEnded();
@@ -91,7 +89,11 @@ public class ChessMatch {
         
         List<Move> moves = getAllPossibleMoves(playedMove.origin);
 
-        Move move = moves.stream().filter(m -> m.equals(playedMove)).findFirst().orElse(null);
+        //Encontra jogada válida igual a requisitada pelo jogador
+        Move move = moves.stream()
+                         .filter(m -> m.equals(playedMove))
+                         .findFirst()
+                         .orElse(null);
 
         if(move == null)                                throw new InvalidMove(playedMove, moves);
         // if(piece.color != getColor(player))             throw new NotPlayerPiece(); //corrigir bug

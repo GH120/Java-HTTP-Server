@@ -196,6 +196,7 @@ public class ChessModel{
         return history.peek();
     }
 
+    //Fazer filtro para retornar apenas as casualties ignorando valores nulos
     public Stack<Piece> getCasualties(){
         return this.casualties;
     }
@@ -242,9 +243,10 @@ public class ChessModel{
 
                 Position destination = new Position(isKingside? 5 : 3, rook.position.y);
 
-                piece.position = destination;
-
-                board[destination.x][destination.y] = piece;
+                board[rook.position.x][rook.position.y] = null;
+                board[destination.x][destination.y]     = rook;
+                
+                rook.position = destination;
             }
             default -> {
 
@@ -271,9 +273,10 @@ public class ChessModel{
 
                 Position destination = new Position(isKingside? 7 : 0, rook.position.y);
 
-                piece.position = destination;
-
-                board[destination.x][destination.y] = piece;
+                board[rook.position.x][rook.position.y] = null;
+                board[destination.x][destination.y]     = rook;
+                
+                rook.position = destination;
             }
             default -> {
 
