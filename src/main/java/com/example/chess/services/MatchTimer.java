@@ -63,7 +63,7 @@ public class MatchTimer implements MatchObserver{
     @Override
     public void onPromotionRequired(Position pawnPosition) {
         // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'onPromotionRequired'");
+        // throw new UnsupportedOperationException("Unimplemented method 'onPromotionRequired'");
     }
 
     @Override

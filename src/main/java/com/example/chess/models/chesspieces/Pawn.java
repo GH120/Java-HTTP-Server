@@ -1,6 +1,7 @@
 package com.example.chess.models.chesspieces;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -108,9 +109,9 @@ public class Pawn extends Piece{
 
     //Criar uma fábrica para isso
     public static Promotion PromotionFromRequest(HttpRequest request) throws JsonProcessingException, IOException{
-            System.out.println(request.getBody());
-            JsonNode info = Json.parse(request.getBody().toString());
 
-            return Json.fromJson(info, Promotion.class);
+            JsonNode info = Json.parse(new String(request.getBody(), StandardCharsets.US_ASCII));
+
+            return Pawn.Promotion.valueOf(info.get("promotion").asText());
     }
 }

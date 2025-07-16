@@ -334,7 +334,7 @@ public class ChessMatch {
                 new HashMap<Player,Integer>(playerTimeRemaining),
                 chessModel.getCasualties(),
                 state,
-                chessModel.getBoard()
+                chessModel.getBoard() //Tem que copiar o tabuleiro atual
             ));
         }
 
