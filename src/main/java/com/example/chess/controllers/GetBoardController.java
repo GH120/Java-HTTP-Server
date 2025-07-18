@@ -31,7 +31,7 @@ public class GetBoardController extends HttpController{
         try{
             ChessMatch match = ChessMatchManager.getInstance().getMatchFromPlayer(player);
             
-            Piece[][] board = match.getChessModel().getBoard();
+            Piece[][] board = match.getChessBoard().getBoard();
             
             HttpStreamWriter.send(HttpResponse.OK(Json.from(board), "application/json"), output);
         }

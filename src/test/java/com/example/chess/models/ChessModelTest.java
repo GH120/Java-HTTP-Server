@@ -7,11 +7,11 @@ import org.junit.jupiter.api.Test;
 import com.example.chess.models.gamestart.DefaultStartingPieces;
 
 class ChessModelTest {
-    private ChessModel model;
+    private ChessBoard model;
 
     @BeforeEach
     void setUp() {
-        model = new ChessModel(new DefaultStartingPieces());
+        model = new ChessBoard(new DefaultStartingPieces());
     }
 
     @Test
@@ -19,7 +19,7 @@ class ChessModelTest {
         Piece pawn = model.getPiece(new Position(0, 1));
         Move move = new Move(pawn.position, new Position(0, 2));
         
-        model.play(pawn, move);
+        model.applyMove(pawn, move);
         
         assertNull(model.getPiece(new Position(0, 1)));
         assertEquals(pawn, model.getPiece(new Position(0, 2)));
@@ -30,16 +30,16 @@ class ChessModelTest {
     void testPlay_Capture() {
         // Move peão para posição de captura
         Piece pawn = model.getPiece(new Position(0, 1));
-        model.play(pawn, new Move(pawn.position, new Position(0, 3)));
+        model.applyMove(pawn, new Move(pawn.position, new Position(0, 3)));
         
         // Peão preto na diagonal
         Piece blackPawn = model.getPiece(new Position(1, 6));
         Move capture = new Move(blackPawn.position, new Position(0, 3));
         
-        int initialPieces = model.getAllPieces(PlayerColor.WHITE).size();
-        model.play(blackPawn, capture);
+        int initialPieces = model.getAllPieces(PlayerColor.BLACK).size();
+        model.applyMove(blackPawn, capture);
         
-        assertEquals(initialPieces - 1, model.getAllPieces(PlayerColor.WHITE).size());
+        assertEquals(initialPieces - 1, model.getAllPieces(PlayerColor.BLACK).size());
         assertTrue(model.getCasualties().contains(pawn));
     }
 
@@ -48,8 +48,8 @@ class ChessModelTest {
         Piece pawn = model.getPiece(new Position(0, 1));
         Move move = new Move(pawn.position, new Position(0, 2));
         
-        model.play(pawn, move);
-        model.revertLastMove();
+        model.applyMove(pawn, move);
+        model.revertMove();
         
         assertEquals(pawn, model.getPiece(new Position(0, 1)));
         assertNull(model.getPiece(new Position(0, 2)));
@@ -60,17 +60,17 @@ class ChessModelTest {
     void testEnPassant() {
 
         Piece blackPawn = model.getPiece(new Position(0,6));
-        model.play(blackPawn, new Move(blackPawn.position, new Position(1, 3)));
+        model.applyMove(blackPawn, new Move(blackPawn.position, new Position(1, 3)));
 
         // Peão branco avança 2 casas
         Piece whitePawn = model.getPiece(new Position(0, 1));
-        model.play(whitePawn, new Move(whitePawn.position, new Position(0, 3)));
+        model.applyMove(whitePawn, new Move(whitePawn.position, new Position(0, 3)));
         
         // Peão preto faz en passant
         Move enPassant = new Move(blackPawn.position, new Position(0, 2));
         enPassant.setEvent(Move.Event.EN_PASSANT.setTarget(whitePawn));
         
-        model.play(blackPawn, enPassant);
+        model.applyMove(blackPawn, enPassant);
         
         assertNull(model.getPiece(new Position(0, 3))); // Peão branco capturado
         assertEquals(blackPawn, model.getPiece(new Position(0, 2)));

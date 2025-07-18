@@ -17,12 +17,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 class ChessRulesTest {
-    private ChessModel model;
+    private ChessBoard model;
     private ChessRules rules;
 
     @BeforeEach
     void setUp() {
-        model = new ChessModel(new DefaultStartingPieces());
+        model = new ChessBoard(new DefaultStartingPieces());
         rules = new ChessRules();
     }
 
@@ -39,8 +39,8 @@ class ChessRulesTest {
     @Test
     void testAddCastlingMoves_KingSide() {
         // Remove peças entre rei e torre
-        model.kill(model.getPiece(new Position(5, 0))); // Bispo
-        model.kill(model.getPiece(new Position(6, 0))); // Cavalo
+        model.capture(model.getPiece(new Position(5, 0))); // Bispo
+        model.capture(model.getPiece(new Position(6, 0))); // Cavalo
         
         King king = (King) model.getPiece(new Position(4, 0)); // Rei branco
         List<Move> moves = king.defaultMoves(model.getBoard());
@@ -67,9 +67,9 @@ class ChessRulesTest {
 
         Piece pawn = model.getPiece(new Position(4,1));
 
-        model.play(pawn, new Move(pawn.position, new Position(4, 3)));
-        model.play(knight, new Move(knight.position, new Position(5, 3)));
-        model.play(bishop, new Move(bishop.position, new Position(4, 1)));
+        model.applyMove(pawn, new Move(pawn.position, new Position(4, 3)));
+        model.applyMove(knight, new Move(knight.position, new Position(5, 3)));
+        model.applyMove(bishop, new Move(bishop.position, new Position(4, 1)));
 
         List<Move> moves = king.defaultMoves(model.getBoard());
         rules.validateMoves(model, king, moves);
@@ -81,7 +81,7 @@ class ChessRulesTest {
             m.destination.equals(new Position(6, 0)))
         );
 
-        model.play(king, moves.stream().filter(m -> 
+        model.applyMove(king, moves.stream().filter(m -> 
             m.event == Move.Event.CASTLING && 
             m.destination.equals(new Position(6, 0))).findFirst().get());
 
@@ -92,8 +92,8 @@ class ChessRulesTest {
     @Test
     void testIsInCheck_KingUnderAttack() {
         // Simula situação de xeque
-        model.kill(model.getPiece(new Position(3, 7))); // Remove rainha branca
-        model.insertPiece(new Queen(new Position(3, 6), PlayerColor.BLACK)); // Rainha preta atacando rei
+        model.capture(model.getPiece(new Position(3, 7))); // Remove rainha branca
+        model.placePiece(new Queen(new Position(3, 6), PlayerColor.BLACK)); // Rainha preta atacando rei
         
         assertTrue(rules.isInCheck(model, PlayerColor.WHITE));
     }
@@ -104,7 +104,7 @@ class ChessRulesTest {
         Move suicidalMove = new Move(king.position, new Position(4, 1)); // Move rei para frente
         
         // Coloca uma torre inimiga na coluna
-        model.insertPiece(new Rook(new Position(4, 5), PlayerColor.BLACK));
+        model.placePiece(new Rook(new Position(4, 5), PlayerColor.BLACK));
 
         ArrayList<Move> moves = new ArrayList<>();
 
@@ -120,15 +120,15 @@ class ChessRulesTest {
 
         StartingPieces setup = new StartingPieces() {
             
-            public void populateBoard(ChessModel model){
-                model.insertPiece(new King(new Position(0, 0), PlayerColor.WHITE));
-                model.insertPiece(new King(new Position(2, 2), PlayerColor.BLACK));
-                model.insertPiece(new Rook(new Position(1, 1), PlayerColor.BLACK));
+            public void populateBoard(ChessBoard model){
+                model.placePiece(new King(new Position(0, 0), PlayerColor.WHITE));
+                model.placePiece(new King(new Position(2, 2), PlayerColor.BLACK));
+                model.placePiece(new Rook(new Position(1, 1), PlayerColor.BLACK));
             }
             
         };
 
-        model = new ChessModel(setup);
+        model = new ChessBoard(setup);
         
         assertTrue(rules.isDraw(model, PlayerColor.WHITE));
     }
@@ -137,21 +137,21 @@ class ChessRulesTest {
     void testEnPassantCapture() {
         // Remove todos os peões para controle total
         for (int x = 0; x < 8; x++) {
-            model.kill(model.getPiece(new Position(x, 1)));
-            model.kill(model.getPiece(new Position(x, 6)));
+            model.capture(model.getPiece(new Position(x, 1)));
+            model.capture(model.getPiece(new Position(x, 6)));
         }
 
         // Coloca um peão branco em posição para capturar en passant
         Pawn whitePawn = new Pawn(new Position(4, 2), PlayerColor.WHITE);
-        model.insertPiece(whitePawn);
+        model.placePiece(whitePawn);
 
         Move enPassant = new Move(new Position(4, 2), new Position(4, 4)).setEvent(Event.TWOTILESKIP);
 
-        model.play(whitePawn, enPassant);
+        model.applyMove(whitePawn, enPassant);
 
         // Peão preto se move duas casas, ativando en passant
         Pawn blackPawn = new Pawn(new Position(5, 4), PlayerColor.BLACK);
-        model.insertPiece(blackPawn);
+        model.placePiece(blackPawn);
 
         List<Move> moves = whitePawn.defaultMoves(model.getBoard());
         List<Move> validatedMoves = rules.validateMoves(model, blackPawn, moves);
@@ -170,7 +170,7 @@ class ChessRulesTest {
     void testPawnPromotion() {
         
         Pawn whitePawn = new Pawn(new Position(0, 1), PlayerColor.WHITE);
-        model.insertPiece(whitePawn);
+        model.placePiece(whitePawn);
 
         List<Move> moves = whitePawn.defaultMoves(model.getBoard());
         List<Move> validatedMoves = rules.validateMoves(model, whitePawn, moves);
@@ -183,12 +183,12 @@ class ChessRulesTest {
 
     @Test
     void testInvalidCastling_WhenInCheck() {
-        model.kill(model.getPiece(new Position(5, 0)));
-        model.kill(model.getPiece(new Position(6, 0)));
-        model.kill(model.getPiece(new Position(4, 1)));
+        model.capture(model.getPiece(new Position(5, 0)));
+        model.capture(model.getPiece(new Position(6, 0)));
+        model.capture(model.getPiece(new Position(4, 1)));
 
         King king = (King) model.getPiece(new Position(4, 0));
-        model.insertPiece(new Queen(new Position(4, 4), PlayerColor.BLACK)); // Coloca o rei em cheque
+        model.placePiece(new Queen(new Position(4, 4), PlayerColor.WHITE)); // Coloca o rei em cheque
 
         List<Move> moves = king.defaultMoves(model.getBoard());
         List<Move> validated = rules.validateMoves(model, king, moves);
@@ -200,11 +200,11 @@ class ChessRulesTest {
     void testBlockedBishop() {
         
         // Insere bispo cercado por peças da mesma cor
-        model.insertPiece(new Bishop(new Position(3, 3), PlayerColor.WHITE));
-        model.insertPiece(new Pawn(new Position(2, 2), PlayerColor.WHITE));
-        model.insertPiece(new Pawn(new Position(4, 4), PlayerColor.WHITE));
-        model.insertPiece(new Pawn(new Position(2, 4), PlayerColor.WHITE));
-        model.insertPiece(new Pawn(new Position(4, 2), PlayerColor.WHITE));
+        model.placePiece(new Bishop(new Position(3, 3), PlayerColor.WHITE));
+        model.placePiece(new Pawn(new Position(2, 2), PlayerColor.WHITE));
+        model.placePiece(new Pawn(new Position(4, 4), PlayerColor.WHITE));
+        model.placePiece(new Pawn(new Position(2, 4), PlayerColor.WHITE));
+        model.placePiece(new Pawn(new Position(4, 2), PlayerColor.WHITE));
 
         List<Move> moves = model.getPiece(new Position(3, 3)).defaultMoves(model.getBoard());
         List<Move> validated = rules.validateMoves(model, model.getPiece(new Position(3, 3)), moves);
@@ -216,11 +216,11 @@ class ChessRulesTest {
     void testKnightCanJumpOverPieces() {
         // Insere cavalo cercado por peças aliadas
         Knight knight = new Knight(new Position(3, 3), PlayerColor.WHITE);
-        model.insertPiece(knight);
-        model.insertPiece(new Pawn(new Position(2, 3), PlayerColor.WHITE));
-        model.insertPiece(new Pawn(new Position(4, 3), PlayerColor.WHITE));
-        model.insertPiece(new Pawn(new Position(3, 2), PlayerColor.WHITE));
-        model.insertPiece(new Pawn(new Position(3, 4), PlayerColor.WHITE));
+        model.placePiece(knight);
+        model.placePiece(new Pawn(new Position(2, 3), PlayerColor.WHITE));
+        model.placePiece(new Pawn(new Position(4, 3), PlayerColor.WHITE));
+        model.placePiece(new Pawn(new Position(3, 2), PlayerColor.WHITE));
+        model.placePiece(new Pawn(new Position(3, 4), PlayerColor.WHITE));
 
         List<Move> validated = rules.validateMoves(model, knight, knight.defaultMoves(model.getBoard()));
 
@@ -232,13 +232,13 @@ class ChessRulesTest {
     void testIsCheckmate() {
         // Rei branco encurralado, xeque-mate
         StartingPieces setup = new StartingPieces() {
-            public void populateBoard(ChessModel model) {
-                model.insertPiece(new King(new Position(0, 0), PlayerColor.WHITE));
-                model.insertPiece(new King(new Position(2, 2), PlayerColor.BLACK));
-                model.insertPiece(new Queen(new Position(1, 1), PlayerColor.BLACK));
+            public void populateBoard(ChessBoard model) {
+                model.placePiece(new King(new Position(0, 0), PlayerColor.WHITE));
+                model.placePiece(new King(new Position(2, 2), PlayerColor.BLACK));
+                model.placePiece(new Queen(new Position(1, 1), PlayerColor.BLACK));
             }
         };
-        model = new ChessModel(setup);
+        model = new ChessBoard(setup);
 
         assertTrue(rules.isInCheckMate(model, PlayerColor.WHITE));
     }

@@ -5,7 +5,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.example.chess.models.ChessModel;
+import com.example.chess.models.ChessBoard;
 import com.example.chess.models.Direction;
 import com.example.chess.models.Move;
 import com.example.chess.models.Piece;
@@ -43,7 +43,7 @@ public class Pawn extends Piece{
         Position tile = position.moveTo(getDirection(Direction.NORTH));
 
         //Se posição está fora do tabuleiro, é inválida
-        if(!ChessModel.withinBoard(board, tile)) return;
+        if(!ChessBoard.withinBoard(board, tile)) return;
 
         Piece neighbour = board[tile.x][tile.y];
 
@@ -62,11 +62,11 @@ public class Pawn extends Piece{
 
        Position firstStep  = position .moveTo(getDirection(Direction.NORTH));
 
-       if(!ChessModel.withinBoard(board, firstStep)) return;
+       if(!ChessBoard.withinBoard(board, firstStep)) return;
 
        Position secondStep = firstStep.moveTo(getDirection(Direction.NORTH));
        
-       if(!ChessModel.withinBoard(board, secondStep)) return;
+       if(!ChessBoard.withinBoard(board, secondStep)) return;
 
        if(board[firstStep.x][firstStep.y] == null && board[secondStep.x][secondStep.y] == null){
 
@@ -78,7 +78,7 @@ public class Pawn extends Piece{
 
     private void addCaptureMoves(Piece[][] board, List<Move> moves){
         addDiagonalCapture(board, moves, Direction.NORTHEAST);
-        addDiagonalCapture(board, moves, Direction.NORTHWEST);
+        addDiagonalCapture(board, moves, Direction.NORTHWEST); //Poderia criar array attack directions com essas direções e condicionar a cor do peão
     }
 
     private void addDiagonalCapture(Piece[][] board, List<Move> moves, Direction direction){
@@ -86,7 +86,7 @@ public class Pawn extends Piece{
         //Ataque diagonal direita
         Position tile = position.moveTo(getDirection(direction));
 
-        if(!ChessModel.withinBoard(board, tile)) return;
+        if(!ChessBoard.withinBoard(board, tile)) return;
 
         Piece neighbour = board[tile.x][tile.y];
 

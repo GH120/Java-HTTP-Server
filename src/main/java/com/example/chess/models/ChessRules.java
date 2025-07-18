@@ -34,7 +34,7 @@ public class ChessRules {
      *  ex: matar peão no enpassant e mover torre no castle
      *  retorna lista enriquecida e filtrada de todas as jogadas possíveis 
     */
-    public List<Move> validateMoves(ChessModel model, Piece piece, List<Move> moves) {
+    public List<Move> validateMoves(ChessBoard model, Piece piece, List<Move> moves) {
 
         attackCache.clear();
 
@@ -54,7 +54,7 @@ public class ChessRules {
     ////////////////////////////
     
     // Roque (pequeno e grande)
-    private void addCastlingMoves(ChessModel model, King king, List<Move> moves) {
+    private void addCastlingMoves(ChessBoard model, King king, List<Move> moves) {
 
         if (model.hasMoved(king) || isInCheck(model, king.getColor())) return;
 
@@ -82,7 +82,7 @@ public class ChessRules {
         }
     }
 
-    private boolean canCastle(ChessModel model, Piece king, Piece rook) {
+    private boolean canCastle(ChessBoard model, Piece king, Piece rook) {
 
         if (!(rook instanceof Rook) || (model.hasMoved(rook))) return false;
 
@@ -108,7 +108,7 @@ public class ChessRules {
     }
 
     // En passant
-    private void addEnPassantMoves(ChessModel model, Pawn pawn, List<Move> moves) {
+    private void addEnPassantMoves(ChessBoard model, Pawn pawn, List<Move> moves) {
         Move lastMove = model.getLastMove();
         
         if (lastMove == null) return;
@@ -154,7 +154,7 @@ public class ChessRules {
     
 
     // Promoção
-    private void addPromotionMove(ChessModel model, Pawn pawn, List<Move> moves){
+    private void addPromotionMove(ChessBoard model, Pawn pawn, List<Move> moves){
 
         int lastRow = pawn.getColor() == PlayerColor.WHITE ? 0 : 7; //Adicionar enum chessPositions?
 
@@ -170,7 +170,7 @@ public class ChessRules {
     // -- Validações de Xeque e Empate: Interface Pública -- //
     ///////////////////////////////////////////////////////////
     
-    public boolean isInCheck(ChessModel model, PlayerColor color) {
+    public boolean isInCheck(ChessBoard model, PlayerColor color) {
 
         Position kingPos = model.findKing(color).position;
 
@@ -178,12 +178,12 @@ public class ChessRules {
     }
 
     //Ineficiente, poderia verificar apenas as peças atacando o quadrado do rei
-    public boolean isInCheckMate(ChessModel model, PlayerColor color){
+    public boolean isInCheckMate(ChessBoard model, PlayerColor color){
 
         return isInCheck(model, color) && isStalemate(model, color);
     }
 
-    public boolean isDraw(ChessModel model, PlayerColor color) {
+    public boolean isDraw(ChessBoard model, PlayerColor color) {
 
         if (isStalemate(model, color))     return true;
         if (isInsufficientMaterial(model)) return true;
@@ -201,7 +201,7 @@ public class ChessRules {
      * WARNING: Ignores en passant (must be handled separately).  
      * Extremamente ineficiente (O(n²)), refatorar depois
      */
-    private boolean isSquareUnderAttack(ChessModel model, Position square, PlayerColor byColor) {
+    private boolean isSquareUnderAttack(ChessBoard model, Position square, PlayerColor byColor) {
 
         //Nenhum movimento especial é um ataque, salvo o en-passant
         //Para o caso de movimento do pawn, levar em conta se o Event do move é um ataque ou movimento
@@ -219,15 +219,15 @@ public class ChessRules {
     }
 
     /** Verifica se jogada não deixa o rei exposto a um ataque */
-    private boolean wouldCauseSelfCheck(ChessModel model, Piece piece, Move move) {
+    private boolean wouldCauseSelfCheck(ChessBoard model, Piece piece, Move move) {
 
         //Simula jogada, guardando estado inicial
-        model.play(piece, move); 
+        model.applyMove(piece, move); 
 
         boolean inCheck = isInCheck(model, piece.getColor());
 
         //Retorna tabuleiro e peça ao estado inicial
-        model.revertLastMove(); 
+        model.revertMove(); 
 
         //Cache de ataque para a jogada simulada é eliminado (Verificar ineficiência)
         attackCache.clear();
@@ -235,7 +235,7 @@ public class ChessRules {
         return inCheck;
     }
 
-    private boolean isStalemate(ChessModel model, PlayerColor color){
+    private boolean isStalemate(ChessBoard model, PlayerColor color){
 
         King king = model.findKing(color);
         
@@ -262,7 +262,7 @@ public class ChessRules {
     // -- Condições de Empate: Métodos Privados -- //
     /////////////////////////////////////////////////
     
-    private boolean isInsufficientMaterial(ChessModel model) {
+    private boolean isInsufficientMaterial(ChessBoard model) {
         Set<Piece> whitePieces = model.getAllPieces(PlayerColor.WHITE);
         Set<Piece> blackPieces = model.getAllPieces(PlayerColor.BLACK);
 

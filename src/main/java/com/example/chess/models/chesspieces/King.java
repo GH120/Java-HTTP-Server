@@ -3,7 +3,7 @@ package com.example.chess.models.chesspieces;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.example.chess.models.ChessModel;
+import com.example.chess.models.ChessBoard;
 import com.example.chess.models.Direction;
 import com.example.chess.models.Move;
 import com.example.chess.models.Piece;
@@ -39,7 +39,7 @@ public class King extends Piece{
             Position tile      = position.moveTo(attackDirection);
             
             //Saiu do tabuleiro, ignora
-            if(!ChessModel.withinBoard(board, tile)) continue;
+            if(!ChessBoard.withinBoard(board, tile)) continue;
             
             Piece    neighbour = board[tile.x][tile.y];
             

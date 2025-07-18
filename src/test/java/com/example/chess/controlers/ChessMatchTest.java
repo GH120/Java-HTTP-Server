@@ -70,7 +70,7 @@ class ChessMatchTest {
 
                 match.playMove(black, blackMove);
 
-                assertEquals(PlayerColor.WHITE, match.getChessModel().getCurrentColor());
+                assertEquals(PlayerColor.WHITE, match.getChessBoard().getCurrentColor());
             } catch (Exception e) {
                 fail("Erro na thread do jogador preto: " + e.getMessage());
             }
@@ -117,8 +117,8 @@ class ChessMatchTest {
     @Test
     void testCheckDetection() {
         // Configura xeque-mate (Fool's Mate)
-        match.getChessModel().kill(match.getChessModel().getPiece(new Position(1, 5))); // Peão f2
-        match.getChessModel().kill(match.getChessModel().getPiece(new Position(1, 6))); // Peão g2
+        match.getChessBoard().capture(match.getChessBoard().getPiece(new Position(1, 5))); // Peão f2
+        match.getChessBoard().capture(match.getChessBoard().getPiece(new Position(1, 6))); // Peão g2
         
 
         assertDoesNotThrow(()-> {
@@ -126,7 +126,7 @@ class ChessMatchTest {
         });
 
         // Rainha preta para h4
-        match.getChessModel().insertPiece(
+        match.getChessBoard().placePiece(
             new Queen(new Position(7, 4), PlayerColor.BLACK)
         );
         
@@ -140,23 +140,23 @@ class ChessMatchTest {
     @Test
     void testCheckMateDetection() {
         // Configura xeque-mate (Fool's Mate)
-        match.getChessModel().kill(match.getChessModel().getPiece(new Position(5, 1))); // Peão f2
-        match.getChessModel().kill(match.getChessModel().getPiece(new Position(6, 1))); // Peão g2
-        match.getChessModel().kill(match.getChessModel().getPiece(new Position(5, 0))); // bispo
-        match.getChessModel().kill(match.getChessModel().getPiece(new Position(3, 0))); // rainha
-        match.getChessModel().kill(match.getChessModel().getPiece(new Position(6, 0))); // CAVALO
+        match.getChessBoard().capture(match.getChessBoard().getPiece(new Position(5, 1))); // Peão f2
+        match.getChessBoard().capture(match.getChessBoard().getPiece(new Position(6, 1))); // Peão g2
+        match.getChessBoard().capture(match.getChessBoard().getPiece(new Position(5, 0))); // bispo
+        match.getChessBoard().capture(match.getChessBoard().getPiece(new Position(3, 0))); // rainha
+        match.getChessBoard().capture(match.getChessBoard().getPiece(new Position(6, 0))); // CAVALO
 
         assertDoesNotThrow(()-> {
             match.playMove(white, new Move(new Position(0,1), new Position(0,3)));
         });
 
         // Rainha preta para h4
-        match.getChessModel().insertPiece(
+        match.getChessBoard().placePiece(
             new Queen(new Position(7, 4), PlayerColor.BLACK)
         );
 
         // Torre que protege a rainha no cheque
-        match.getChessModel().insertPiece(
+        match.getChessBoard().placePiece(
             new Rook(new Position(4, 5), PlayerColor.BLACK)
         );
         
@@ -176,10 +176,10 @@ class ChessMatchTest {
     @Test
     void testPromotionFlow() {
         // Configura promoção
-        ChessModel model = match.getChessModel();
-        model.kill(model.getPiece(new Position(0, 1))); // Remove peão branco
+        ChessBoard model = match.getChessBoard();
+        model.capture(model.getPiece(new Position(0, 1))); // Remove peão branco
         Pawn pawn = new Pawn(new Position(0, 6), PlayerColor.WHITE); // Peão perto de promover
-        model.insertPiece(pawn, pawn.position);
+        model.placePiece(pawn, pawn.position);
         
         Move promotionMove = new Move(pawn.position, new Position(1, 7));
         promotionMove.setEvent(Move.Event.PROMOTION);

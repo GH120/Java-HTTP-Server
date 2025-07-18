@@ -21,12 +21,10 @@ import com.example.chess.models.chesspieces.Rook;
  * 2. Transicionar entre um estado válido para outro válido por meio dos métodos play e reverse;
  * 3. Não implementa nem validação nem tratamento de erros
 */
-public class ChessModel{
+public class ChessBoard{
 
-    //TODO: Possibilidade: criar classe interna histórico que é responsável por reverter para estado válido
     //TODO: Ver como usar o mockito
     //OBS: Modificação não é thread safe, mas sincronização na partida ChessMatch garante acesso único
-    //Renomear para ChessBoard?
     
     //Estado do jogo
     private Piece[][]       board;
@@ -34,27 +32,31 @@ public class ChessModel{
     private Set<Piece>      blackPieces;
     private Stack<Move>     history;
     private Stack<Piece>    casualties; //Verifica as peças abatidas nas jogadas
+    private HashMap<Piece, Integer> moveCount; 
 
-    private HashMap<Piece, Integer> moveCount; //Responsabilidade separada, mover para outra classe? Serve para saber se a peça se moveu
+    //Cache
+    private HashMap<PlayerColor, King> kings;
 
-    public ChessModel(StartingPieces pieces){
+    public ChessBoard(StartingPieces pieces){
         history     = new Stack<Move>();
         board       = new Piece[8][8];
         moveCount   = new HashMap<>();
         whitePieces = new HashSet<>();
         blackPieces = new HashSet<>();
         casualties  = new Stack<>();
+        kings       = new HashMap<>();
 
         pieces.populateBoard(this); //Tabuleiro de xadrez padrão, extrair depois método separado em uma classe Factory
     }
 
-    public ChessModel(){
+    public ChessBoard(){
         history     = new Stack<Move>();
         board       = new Piece[8][8];
         moveCount   = new HashMap<>();
         whitePieces = new HashSet<>();
         blackPieces = new HashSet<>();
         casualties  = new Stack<>();
+        kings       = new HashMap<>();
     }
 
     //////////////////////////////////////
@@ -66,9 +68,9 @@ public class ChessModel{
      *  Se houver peça no quadrado do destino, mata ela
      *  efeitos colaterais: adiciona as pilhas attackMove, casualties e history
     */
-    public void play(Piece piece, Move move){
+    public void applyMove(Piece piece, Move move){
 
-        kill(getPiece(move.destination)); 
+        capture(getPiece(move.destination)); 
 
         piece.position = move.destination; //Informação interna da posição
 
@@ -85,7 +87,7 @@ public class ChessModel{
 
     }
 
-    public void insertPiece(Piece piece, Position position){
+    public void placePiece(Piece piece, Position position){
         piece.position = position;
 
         board[position.x][position.y] = piece;
@@ -96,14 +98,14 @@ public class ChessModel{
     }
 
     // Método auxiliar para simplificar a inserção
-    public void insertPiece(Piece piece) {
-        insertPiece(piece, piece.position);
+    public void placePiece(Piece piece) {
+        placePiece(piece, piece.position);
     }
 
     /**Elimina uma peça do tabuleiro e de peças ativas se estiver viva
      * Adiciona a pilha de casualties (até mesmo se for nula)
      */
-    public void kill(Piece attackedPiece){
+    public void capture(Piece attackedPiece){
 
         //Adiciona a pilha de casualties, mesmo se for nulo (não tinha peça atacada)
         //Propício a bugs, efeito colateral indesejado
@@ -117,11 +119,14 @@ public class ChessModel{
 
     }
 
-    //Talvez colocar em componente interno
+    //TODO: Ponto fraco - não consegue reverter promoções de xadrez
+    //Para verificações de xeque, isso não importa
+    //Para IAs ou outras classes que queiram usar desse modelo, talvez seja
+
     /**Esquece última jogada do histórico, 
      * decrementa o número de movimentos da peça que se moveu, 
      * revive peça morta no último turno */
-    public ChessModel revertLastMove(){
+    public ChessBoard revertMove(){
 
         Move lastMove = getLastMove();
 
@@ -129,7 +134,7 @@ public class ChessModel{
 
         Move moveBack = new Move(lastMove.destination, lastMove.origin);
 
-        play(piece, moveBack); //Move de volta a peça
+        applyMove(piece, moveBack); //Move de volta a peça
 
         //Remove as duas jogadas (ida e volta) da peça movida
         history.pop();    //Remove movimento desse último play
@@ -140,7 +145,7 @@ public class ChessModel{
         //Se houve vitima na última jogada, reinsere no tabuleiro
         Piece victim = casualties.pop(); //Muito propício a bugs
         
-        if(victim != null) insertPiece(victim, lastMove.destination);
+        if(victim != null) placePiece(victim, lastMove.destination);
 
         revertSideEffects(piece, lastMove);
 
@@ -151,7 +156,7 @@ public class ChessModel{
 
         Pawn pawn = (Pawn) getPiece(getLastMove().destination);
 
-        kill(pawn);
+        capture(pawn);
         
         Piece promotedPiece = null;
 
@@ -162,7 +167,7 @@ public class ChessModel{
             case BISHOP -> promotedPiece = new Bishop(pawn.position, pawn.color);
         }
 
-        insertPiece(promotedPiece, pawn.position);
+        placePiece(promotedPiece, pawn.position);
     }
 
     ///////////////////////////////////////
@@ -205,13 +210,14 @@ public class ChessModel{
         return this.casualties; //Passa a ser responsabilidade do histórico
     }
 
-    /**Cachear depois, busca bruta extremamente ineficiente */
+    /**Procura Rei da cor solicitada e cacheia ele, retornando caso seja chamada de novo */
     public King findKing(PlayerColor color){
 
-        return (King) getAllPieces(color).stream()
-                                         .filter(p -> p instanceof King)
-                                         .findFirst()
-                                         .orElse(null);
+        return kings.compute(color, (c,k) -> ((King) getAllPieces(color)
+                                                    .stream()
+                                                    .filter(p -> p instanceof King)
+                                                    .findFirst()
+                                                    .orElse(null)));
     }
 
     public static boolean withinBoard(Piece[][] board, Position position){
@@ -237,7 +243,7 @@ public class ChessModel{
                 
                 Piece victim = move.event.target;
 
-                kill(victim);
+                capture(victim);
             }
             case CASTLING -> {
 
@@ -258,6 +264,10 @@ public class ChessModel{
         }
     }
 
+    //TODO: Tratar caso de peão promovido não ser revertido
+    //Isso não afeta a verificação de xeque que usa o revert move, 
+    //Mas isso pode afetar outros componentes como IA que tentem reverter esse estado
+    
     /** Tratar casos de En-passant, Castle*/
     private void revertSideEffects(Piece piece, Move move){
         
@@ -281,6 +291,24 @@ public class ChessModel{
                 board[destination.x][destination.y]     = rook;
                 
                 rook.position = destination;
+            }
+            
+            //Já é tratado no revert move que coloca o peão de volta, falta só tirar a peça promovida das peças do jogador
+            case PROMOTION -> {
+
+                // //ANÁLISE: NÃO FAZ NADA PARA JOGADAS INCOMPLETAS ONDE O JOGADOR NÃO ESCOLHEU A PROMOÇÃO
+                // if(piece instanceof Pawn) return;
+
+                // capture(piece); //Captura a peça promovida 
+                // casualties.pop(); //Se esquece dela
+
+                // Piece pawn = casualties.pop(); //Consegue de volta o peão morto
+
+                // placePiece(piece);
+
+                //
+                if(!(piece instanceof Pawn)) getAllPieces(piece.color).remove(piece);
+                
             }
             default -> {
 

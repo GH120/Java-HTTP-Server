@@ -3,7 +3,7 @@ package com.example.chess.models.chesspieces;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.example.chess.models.ChessModel;
+import com.example.chess.models.ChessBoard;
 import com.example.chess.models.Direction;
 import com.example.chess.models.Move;
 import com.example.chess.models.Piece;
@@ -59,7 +59,7 @@ public class Knight extends Piece{
     private void attackInL(Piece[][] board, List<Move> moves, Position attackedTile){
 
         
-        if(ChessModel.withinBoard(board, attackedTile)){
+        if(ChessBoard.withinBoard(board, attackedTile)){
    
             Piece piece = board[attackedTile.x][attackedTile.y];
             

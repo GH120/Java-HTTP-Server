@@ -27,7 +27,7 @@ import com.example.chess.services.MatchObserver;
  */
 public class ChessMatch {
 
-    //Campos de estado
+    //Campos de estado da partida
     private GameState             state;
     private Map<Player, Integer>  playerTimeRemaining; //Usar instants e duration depois
     //Campos imutáveis
@@ -41,7 +41,9 @@ public class ChessMatch {
     //Componentes privados: funcionalidades internas
     private final MatchNotifier     notifier; //Meio de comunicação externo para observadores
     private final ChessRules        chessRules;
-    private final ChessModel        chessModel;
+    private final ChessBoard        chessBoard; //Estado do tabuleiro 
+
+    //Cache
     private final Map<Position, List<Move>> moveCache;
     
     //Estados de jogo
@@ -59,7 +61,7 @@ public class ChessMatch {
 
         moveCache  = new HashMap<>();
         chessRules = new ChessRules();
-        chessModel = new ChessModel(new DefaultStartingPieces());
+        chessBoard = new ChessBoard(new DefaultStartingPieces());
         notifier   = new MatchNotifier();
         semaphor   = new MatchSynchronizer();
         history    = new TurnHistory();
@@ -74,7 +76,7 @@ public class ChessMatch {
     /**Controle para efetuar jogada de Xadrez, solta erros se jogada for inconsistente */
     public void playMove(Player player, Move playedMove) throws ChessError{
         
-        Piece piece = chessModel.getPiece(playedMove.origin);
+        Piece piece = chessBoard.getPiece(playedMove.origin);
 
         //Verifica inconsistências na requisição da jogada
         if(state == GameState.CHECKMATE) throw new GameHasAlreadyEnded();
@@ -93,16 +95,16 @@ public class ChessMatch {
                          .orElse(null);
 
         if(move == null)                                throw new InvalidMove(playedMove, moves);
-        if(piece.color != chessModel.getCurrentColor()) throw new NotPlayerTurn();
+        if(piece.color != chessBoard.getCurrentColor()) throw new NotPlayerTurn();
         // if(piece.color != getColor(player))             throw new NotPlayerPiece(); //corrigir bug
 
         //Uma vez validada, registra jogada no modelo, atualiza estado do jogo e notifica aos observadores
-        chessModel.play(piece, move);
+        chessBoard.applyMove(piece, move);
 
         //Problema com relação a promoção, tentar debugar
         updateGameState(move);
         
-        notifier.notifyMove(move, chessModel.getCurrentColor());
+        notifier.notifyMove(move, chessBoard.getCurrentColor());
         
         history.saveTurn();
         
@@ -113,11 +115,11 @@ public class ChessMatch {
 
         return moveCache.computeIfAbsent(position, pos ->{
         
-            Piece piece = chessModel.getPiece(position);
+            Piece piece = chessBoard.getPiece(position);
 
-            List<Move> defaultMoves = piece.defaultMoves(chessModel.getBoard());
+            List<Move> defaultMoves = piece.defaultMoves(chessBoard.getBoard());
 
-            List<Move> allowedMoves = this.chessRules.validateMoves(chessModel, piece, defaultMoves);
+            List<Move> allowedMoves = this.chessRules.validateMoves(chessBoard, piece, defaultMoves);
 
             System.out.println(piece);
 
@@ -127,12 +129,13 @@ public class ChessMatch {
         });
     }
 
+    //TODO: decidir como armazenar promoções para reversão futura
     public void choosePromotion(Pawn.Promotion promotion) throws NoPromotionEvent{
 
         if(state != GameState.PROMOTION) 
             throw new NoPromotionEvent();
 
-        chessModel.choosePromotion(promotion);
+        chessBoard.choosePromotion(promotion);
 
         updateGameState(null);
 
@@ -153,13 +156,13 @@ public class ChessMatch {
     
     private void updateGameState(Move move){
 
-        if(chessRules.isInCheckMate(chessModel, chessModel.getCurrentColor())){
+        if(chessRules.isInCheckMate(chessBoard, chessBoard.getCurrentColor())){
             state = GameState.CHECKMATE;
         }
-        else if(chessRules.isDraw(chessModel, chessModel.getCurrentColor())){
+        else if(chessRules.isDraw(chessBoard, chessBoard.getCurrentColor())){
             state = GameState.DRAW;
         }
-        else if(chessRules.isInCheck(chessModel, chessModel.getCurrentColor())){
+        else if(chessRules.isInCheck(chessBoard, chessBoard.getCurrentColor())){
             state = GameState.CHECK;
         }
         else{
@@ -178,12 +181,6 @@ public class ChessMatch {
             
             System.out.println("Promoveu?: " + getState());
         }
-    }
-
-    // /** Notifica todas as jogadas possíveis para os observers */
-    public void showPossibleMoves(Position position){
-
-        notifier.notifyPossibleMoves(getAllPossibleMoves(position));
     }
 
     //Mover isso para classe interna? => não é controle do jogador, timer usa isso
@@ -238,8 +235,8 @@ public class ChessMatch {
         playerTimeRemaining.put(player, time);
     }
 
-    public ChessModel getChessModel() {
-        return chessModel;
+    public ChessBoard getChessBoard() {
+        return chessBoard;
     }
 
     public GameState getState() {
@@ -247,11 +244,11 @@ public class ChessMatch {
     }
 
     public Player getCurrentPlayer(){
-        return chessModel.getCurrentColor() == PlayerColor.WHITE? white : black;
+        return chessBoard.getCurrentColor() == PlayerColor.WHITE? white : black;
     }
 
     public Player getCurrentOpponent(){
-        return chessModel.getCurrentColor() == PlayerColor.BLACK? white : black;
+        return chessBoard.getCurrentColor() == PlayerColor.BLACK? white : black;
     }
 
     public void addObserver(MatchObserver observer){
@@ -307,9 +304,9 @@ public class ChessMatch {
                     getCurrentPlayer(), 
                     0, 
                     new HashMap<Player, Integer>(playerTimeRemaining),
-                    chessModel.getCasualties(),
+                    chessBoard.getCasualties(),
                     state,
-                    chessModel.getBoard()
+                    chessBoard.getBoard()
                 )
             );
         }
@@ -324,16 +321,16 @@ public class ChessMatch {
 
             previousTurns.add(
                 new Turn(
-                chessModel.getTurn(), 
-                chessModel.getLastMove(), 
+                chessBoard.getTurn(), 
+                chessBoard.getLastMove(), 
                 black, 
                 white,
                 getCurrentPlayer(),
                 lastPlayerTime,
                 new HashMap<Player,Integer>(playerTimeRemaining),
-                chessModel.getCasualties(),
+                chessBoard.getCasualties(),
                 state,
-                chessModel.getBoard() //Tem que copiar o tabuleiro atual
+                chessBoard.getBoard() //Tem que copiar o tabuleiro atual
             ));
         }
 

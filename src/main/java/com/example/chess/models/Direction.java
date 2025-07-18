@@ -1,5 +1,7 @@
 package com.example.chess.models;
 
+//Adicionar quantificiador N, para especificar "N vezes nessa direção"
+//Melhor ser um método que retorna uma posição
 public enum Direction {
 
     NORTH(0,1), NORTHWEST(-1,1), NORTHEAST(1,1),
