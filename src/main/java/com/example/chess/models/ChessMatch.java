@@ -30,21 +30,18 @@ public class ChessMatch {
     //Campos de estado
     private GameState             state;
     private Map<Player, Integer>  playerTimeRemaining; //Usar instants e duration depois
-
     //Campos imutáveis
     private final Player white;
     private final Player black;
 
-    //Componentes públicos
+    //Componentes públicos: funcionalidades específicas 
     public  final MatchSynchronizer semaphor; //Responsabilidade de sincronização fica fora da partida, expõe métodos (acho melhor tornar isso um observer e colocar um método wait, mas corre o risco de ficar muito complexo)
     public  final TurnHistory       history;
 
-    //Componentes privados
+    //Componentes privados: funcionalidades internas
     private final MatchNotifier     notifier; //Meio de comunicação externo para observadores
     private final ChessRules        chessRules;
     private final ChessModel        chessModel;
-
-    //Cache
     private final Map<Position, List<Move>> moveCache;
     
     //Estados de jogo
@@ -96,8 +93,8 @@ public class ChessMatch {
                          .orElse(null);
 
         if(move == null)                                throw new InvalidMove(playedMove, moves);
-        // if(piece.color != getColor(player))             throw new NotPlayerPiece(); //corrigir bug
         if(piece.color != chessModel.getCurrentColor()) throw new NotPlayerTurn();
+        // if(piece.color != getColor(player))             throw new NotPlayerPiece(); //corrigir bug
 
         //Uma vez validada, registra jogada no modelo, atualiza estado do jogo e notifica aos observadores
         chessModel.play(piece, move);
@@ -110,10 +107,6 @@ public class ChessMatch {
         history.saveTurn();
         
         moveCache.clear();
-
-        System.out.println("Tempo Restante: " + getTime(player));
-        System.out.println(getState());
-
     }
     
     public List<Move> getAllPossibleMoves(Position position){
@@ -142,6 +135,10 @@ public class ChessMatch {
         chessModel.choosePromotion(promotion);
 
         updateGameState(null);
+
+        //Salva o turno com a promoção escolhida
+        //Regra de negócio: turnos com promoção aparecem com id repetido, sobrescrever no database
+        history.saveTurn();
     }
 
     public void quit(){

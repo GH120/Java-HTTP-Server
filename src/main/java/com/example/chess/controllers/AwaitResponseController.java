@@ -5,7 +5,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 
 import com.example.chess.models.ChessMatch;
-import com.example.chess.models.Piece;
 import com.example.chess.models.Player;
 import com.example.chess.models.Turn;
 import com.example.chess.services.ChessMatchManager;

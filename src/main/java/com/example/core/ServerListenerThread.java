@@ -10,13 +10,9 @@ import java.net.Socket;
 //Talvez armazenar o programa a ser rodado no ConfigurationManager?
 public class ServerListenerThread extends Thread{
 
-    private int port;
-    private String webroot;
     private ServerSocket serverSocket;
 
     public ServerListenerThread(int port, String webroot){
-        this.port    = port;
-        this.webroot = webroot;
 
         try{
             this.serverSocket = new ServerSocket(port);
@@ -26,6 +22,7 @@ public class ServerListenerThread extends Thread{
         }
     }
 
+    //TODO: Criar limitações de aceitação por número de threads já em execução
     public void run(){
 
         try{

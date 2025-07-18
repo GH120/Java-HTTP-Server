@@ -1,7 +1,7 @@
 package com.example.parser;
 
 import java.util.*;
-import java.util.regex.*;
+// import java.util.regex.*;
 
 //Transformar regras em ENUM?
 public class HttpLexer extends Lexer{

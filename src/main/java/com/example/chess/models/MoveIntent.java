@@ -1,9 +1,9 @@
 package com.example.chess.models;
 
 import com.example.chess.models.chesspieces.Pawn;
-import com.example.parser.ChessNotationLexer;
-import com.example.parser.ChessNotationParser;
-import com.example.parser.TreeNode;
+// import com.example.parser.ChessNotationLexer;
+// import com.example.parser.ChessNotationParser;
+// import com.example.parser.TreeNode;
 
 public record MoveIntent(Position origin, Position destination, Piece piece, Pawn.Promotion promotion) {
 
@@ -15,7 +15,7 @@ public record MoveIntent(Position origin, Position destination, Piece piece, Paw
         Piece           piece       = null;
         Pawn.Promotion  promotion   = null;
 
-        TreeNode AST = new ChessNotationParser().parse(new ChessNotationLexer().tokenize(notation)).getTree();
+        // TreeNode AST = new ChessNotationParser().parse(new ChessNotationLexer().tokenize(notation)).getTree();
 
         //Extrai parte da AST e coloca nas variáveis
 

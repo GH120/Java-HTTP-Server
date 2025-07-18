@@ -52,7 +52,7 @@ public class FindMatchController extends HttpController{
         //Cria um guest
         Player player = ChessMatchManager.getInstance().createGuest();
 
-        //Método assíncrono que espera outro usuário aceitar um duelo
+        //Método assíncrono que espera outro usuário aceitar um duelo -> adicionar timeout de 5s e retentativa?
         ChessMatchMaker.getInstance().findDuel(player);
 
         //Uma vez passada a parte de espera, então encontrou uma partida

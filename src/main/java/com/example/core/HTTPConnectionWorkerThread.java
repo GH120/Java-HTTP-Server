@@ -21,6 +21,7 @@ public class HttpConnectionWorkerThread extends Thread{
         this.socket = socket;
     }
 
+    //Limitar acessos a findMatch a depender do número de jogadores já ativos e a capacidade do servidor
     public void run(){
 
         InputStream  inputStream  = null;

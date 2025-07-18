@@ -36,7 +36,7 @@ public class ChoosePromotionController extends HttpController{
 
         match.choosePromotion(promotion);
 
-        HttpStreamWriter.send(HttpResponse.OK(Json.from(promotion),null), output);
+        HttpStreamWriter.send(HttpResponse.OK(Json.from(match.history.lastTurn()),null), output);
     }
 
 }

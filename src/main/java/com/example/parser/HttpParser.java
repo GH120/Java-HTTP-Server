@@ -3,7 +3,6 @@ package com.example.parser;
 import java.util.LinkedList;
 import java.util.List;
 
-import com.example.http.HttpMessage;
 import com.example.http.HttpParseException;
 import com.example.http.HttpStatusCode;
 

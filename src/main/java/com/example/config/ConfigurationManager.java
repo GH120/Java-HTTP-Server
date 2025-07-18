@@ -1,6 +1,5 @@
 package com.example.config;
 
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 
 import com.example.json.Json;
@@ -40,6 +39,8 @@ public class ConfigurationManager {
             configuration.setWebroot(Json.fromJson(tree.get("webroot"), String.class));
             
             myCurrentConfiguration = configuration;
+
+            filereader.close();
 
         }
         catch(Exception e){

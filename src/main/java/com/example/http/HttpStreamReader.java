@@ -124,14 +124,14 @@ public class HttpStreamReader {
         message.setHeaders(headerMap);
     }
 
-    private void populateBody(HttpRequest message, TreeNode AST) {
-        List<AbstractSyntaxNode> bodyNodes = AST.getNodeByType("BODY");
-        if (!bodyNodes.isEmpty()) {
-            TreeNode bodyNode = (TreeNode) bodyNodes.get(0);
-            String body = bodyNode.getExpression();
-            message.setBody(body.getBytes());
-        }
-    }
+    // private void populateBody(HttpRequest message, TreeNode AST) {
+    //     List<AbstractSyntaxNode> bodyNodes = AST.getNodeByType("BODY");
+    //     if (!bodyNodes.isEmpty()) {
+    //         TreeNode bodyNode = (TreeNode) bodyNodes.get(0);
+    //         String body = bodyNode.getExpression();
+    //         message.setBody(body.getBytes());
+    //     }
+    // }
 
     //TODO: está ignorando mensagens com body, adicionar checagem de body (pois para no duplo \n\r dos headers)
     private String readRawHttpHeader(InputStream inputStream) throws IOException{

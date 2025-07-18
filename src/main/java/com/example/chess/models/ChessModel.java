@@ -22,18 +22,20 @@ import com.example.chess.models.chesspieces.Rook;
  * 3. Não implementa nem validação nem tratamento de erros
 */
 public class ChessModel{
+
+    //TODO: Possibilidade: criar classe interna histórico que é responsável por reverter para estado válido
+    //TODO: Ver como usar o mockito
+    //OBS: Modificação não é thread safe, mas sincronização na partida ChessMatch garante acesso único
+    //Renomear para ChessBoard?
     
     //Estado do jogo
     private Piece[][]       board;
     private Set<Piece>      whitePieces;
     private Set<Piece>      blackPieces;
     private Stack<Move>     history;
+    private Stack<Piece>    casualties; //Verifica as peças abatidas nas jogadas
 
-    //Verifica as peças abatidas nas jogadas
-    private Stack<Piece>    casualties;
-    
-    //Responsabilidade separada, mover para outra classe? Serve para saber se a peça se moveu
-    private HashMap<Piece, Integer> moveCount;
+    private HashMap<Piece, Integer> moveCount; //Responsabilidade separada, mover para outra classe? Serve para saber se a peça se moveu
 
     public ChessModel(StartingPieces pieces){
         history     = new Stack<Move>();
@@ -76,6 +78,7 @@ public class ChessModel{
 
         treatSideEffects(piece, move);
 
+        //Adicionar eles abaixo no componente interno 'histórico', responsável por reverter jogadas
         moveCount.compute(piece, (p,i) -> i + 1); //Incrementa número de jogadas dessa peça
 
         history.add(move);
@@ -114,6 +117,7 @@ public class ChessModel{
 
     }
 
+    //Talvez colocar em componente interno
     /**Esquece última jogada do histórico, 
      * decrementa o número de movimentos da peça que se moveu, 
      * revive peça morta no último turno */
@@ -198,7 +202,7 @@ public class ChessModel{
 
     //Fazer filtro para retornar apenas as casualties ignorando valores nulos
     public Stack<Piece> getCasualties(){
-        return this.casualties;
+        return this.casualties; //Passa a ser responsabilidade do histórico
     }
 
     /**Cachear depois, busca bruta extremamente ineficiente */
@@ -218,7 +222,7 @@ public class ChessModel{
     }
 
     public boolean hasMoved(Piece piece){
-        return moveCount.get(piece) > 0;
+        return moveCount.get(piece) > 0; //Passa a ser responsabilidade do histórico
     }
 
     ////////////////////////////
